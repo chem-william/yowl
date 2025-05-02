@@ -1,12 +1,15 @@
 # Yowl
 
-**NOTE: This repository has been superseded by the [Balsa Reference Implementation](https://github.com/metamolecular/balsa/).**
+**Primitives for reading and writing SMILES strings in Rust.**
+This project is a hard fork of [Purr](https://github.com/rapodaca/purr) and extends its functionality to support additional SMILES inputs accepted by RDKit and beyond.
 
-Primitives for reading and writing the SMILES language in Rust.
+## About
+
+Yowl provides a safe, ergonomic API to parse and serialize molecular structures in the [OpenSMILES](https://opensmiles.org/opensmiles.html) format. SMILES (Simplified Molecular Input Line Entry System) is a widely adopted notation for representing molecular graphs as text strings.
 
 ## Usage
 
-Add this to your `Cargo.toml`:
+Add `yowl` to your `Cargo.toml`:
 
 ```toml
 [dependencies]
@@ -18,9 +21,9 @@ yowl = "0.1"
 Parse acetamide into an adjacency representation:
 
 ```rust
-use yowl::graph::{ Builder, Atom, Bond };
-use yowl::feature::{ AtomKind, BondKind, Aliphatic };
-use yowl::read::{ read, Error };
+use yowl::graph::{Builder, Atom, Bond};
+use yowl::feature::{AtomKind, BondKind, Aliphatic};
+use yowl::read::{read, Error};
 
 fn main() -> Result<(), Error> {
     let mut builder = Builder::new();
@@ -66,7 +69,7 @@ An optional `Trace` type maps adjacency features to a cursor position in the ori
 
 ```rust
 use yowl::graph::Builder;
-use yowl::read::{ read, Error, Trace };
+use yowl::read::{read, Error, Trace};
 
 fn main() -> Result<(), Error> {
     let mut builder = Builder::new();
@@ -86,7 +89,7 @@ Syntax errors are mapped to the cursor at which they occur.
 
 ```rust
 use yowl::graph::Builder;
-use yowl::read::{ read, Error };
+use yowl::read::{read, Error};
 
 fn main() {
     let mut builder = Builder::new();
@@ -98,9 +101,9 @@ fn main() {
 An adjacency can be written using `write`.
 
 ```rust
-use yowl::graph::{ Builder, Atom, Bond };
-use yowl::feature::{ AtomKind, BondKind, Aliphatic };
-use yowl::read::{ read, Error };
+use yowl::graph::{Builder, Atom, Bond};
+use yowl::feature::{AtomKind, BondKind, Aliphatic};
+use yowl::read::{read, Error};
 use yowl::write::Writer;
 use yowl::walk::walk;
 
@@ -122,11 +125,13 @@ fn main() -> Result<(), Error> {
 
 The output string doesn't match the input string, although both represent the same molecule (Cl-37 chlorobenzene). `write` traces `atoms` in depth-first order, but the adjacency representation (`atoms`) lacks information about how the original SMILES tree was cut.
 
-# Versions
+## Why a hard fork
+The original author of Purr has [seemingly passed away](https://doi.org/10.59350/myaw4-dtg76) ([he shared a bit of his journey on his blog](https://depth-first.com/articles/2024/05/24/bridge-to-nowhere/)), and the library needed extensions to accept a broader set of SMILES inputs (e.g., RDKit-compatible strings). Yowl continues maintenance and adds new features.
 
-Yowl is not yet stable. Patch versions never introduce breaking changes, but minor/major versions probably will.
+## Contributing
 
-# License
+Contributions are welcome! Please open an issue or pull request. Ensure you add tests for new functionality and follow Rust formatting conventions (`cargo fmt`).
 
-Yowl is distributed under the terms of the MIT License. See
-[LICENSE-MIT](LICENSE-MIT) and [COPYRIGHT](COPYRIGHT) for details.
+## License
+
+Yowl is distributed under the terms of the MIT License. See [LICENSE-MIT](LICENSE-MIT) and [COPYRIGHT](COPYRIGHT) for details.
