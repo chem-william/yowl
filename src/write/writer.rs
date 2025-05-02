@@ -1,32 +1,30 @@
-use crate::feature::{ AtomKind, BondKind, Rnum };
+use crate::feature::{AtomKind, BondKind, Rnum};
 use crate::walk::Follower;
 
 /// A `Follower` that builds a string SMILEs representation.
-/// 
+///
 /// ```
-/// use purr::walk::Follower;
-/// use purr::write::Writer;
-/// use purr::feature::{ AtomKind, BondKind };
-/// 
+/// use yowl::walk::Follower;
+/// use yowl::write::Writer;
+/// use yowl::feature::{ AtomKind, BondKind };
+///
 /// fn main() {
 ///     let mut writer = Writer::new();
-/// 
+///
 ///     writer.root(AtomKind::Star);
 ///     writer.extend(BondKind::Double, AtomKind::Star);
-/// 
+///
 ///     assert_eq!(writer.write(), "*=*")
 /// }
 /// ```
-#[derive(Debug,PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct Writer {
-    stack: Vec<String>
+    stack: Vec<String>,
 }
 
 impl Writer {
     pub fn new() -> Self {
-        Writer {
-            stack: Vec::new()
-        }
+        Writer { stack: Vec::new() }
     }
 
     pub fn write(self) -> String {
@@ -44,7 +42,8 @@ impl Follower for Writer {
     }
 
     fn extend(&mut self, bond_kind: BondKind, atom_kind: AtomKind) {
-        self.stack.push(bond_kind.to_string() + &atom_kind.to_string())
+        self.stack
+            .push(bond_kind.to_string() + &atom_kind.to_string())
     }
 
     fn join(&mut self, bond_kind: BondKind, rnum: Rnum) {
@@ -67,9 +66,9 @@ impl Follower for Writer {
 
 #[cfg(test)]
 mod write {
-    use pretty_assertions::assert_eq;
-    use crate::feature::Aliphatic;
     use super::*;
+    use crate::feature::Aliphatic;
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn p1() {

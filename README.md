@@ -1,4 +1,4 @@
-# Purr
+# Yowl
 
 **NOTE: This repository has been superseded by the [Balsa Reference Implementation](https://github.com/metamolecular/balsa/).**
 
@@ -10,7 +10,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-purr = "0.9"
+yowl = "0.1"
 ```
 
 ## Examples
@@ -18,9 +18,9 @@ purr = "0.9"
 Parse acetamide into an adjacency representation:
 
 ```rust
-use purr::graph::{ Builder, Atom, Bond };
-use purr::feature::{ AtomKind, BondKind, Aliphatic };
-use purr::read::{ read, Error };
+use yowl::graph::{ Builder, Atom, Bond };
+use yowl::feature::{ AtomKind, BondKind, Aliphatic };
+use yowl::read::{ read, Error };
 
 fn main() -> Result<(), Error> {
     let mut builder = Builder::new();
@@ -65,8 +65,8 @@ The order of atoms and their substituents reflects their implied order within th
 An optional `Trace` type maps adjacency features to a cursor position in the original string. This is useful for conveying semantic errors such as hypervalence. 
 
 ```rust
-use purr::graph::Builder;
-use purr::read::{ read, Error, Trace };
+use yowl::graph::Builder;
+use yowl::read::{ read, Error, Trace };
 
 fn main() -> Result<(), Error> {
     let mut builder = Builder::new();
@@ -85,8 +85,8 @@ fn main() -> Result<(), Error> {
 Syntax errors are mapped to the cursor at which they occur.
 
 ```rust
-use purr::graph::Builder;
-use purr::read::{ read, Error };
+use yowl::graph::Builder;
+use yowl::read::{ read, Error };
 
 fn main() {
     let mut builder = Builder::new();
@@ -98,11 +98,11 @@ fn main() {
 An adjacency can be written using `write`.
 
 ```rust
-use purr::graph::{ Builder, Atom, Bond };
-use purr::feature::{ AtomKind, BondKind, Aliphatic };
-use purr::read::{ read, Error };
-use purr::write::Writer;
-use purr::walk::walk;
+use yowl::graph::{ Builder, Atom, Bond };
+use yowl::feature::{ AtomKind, BondKind, Aliphatic };
+use yowl::read::{ read, Error };
+use yowl::write::Writer;
+use yowl::walk::walk;
 
 fn main() -> Result<(), Error> {
     let mut builder = Builder::new();
@@ -124,9 +124,9 @@ The output string doesn't match the input string, although both represent the sa
 
 # Versions
 
-Purr is not yet stable. Patch versions never introduce breaking changes, but minor/major versions probably will.
+Yowl is not yet stable. Patch versions never introduce breaking changes, but minor/major versions probably will.
 
 # License
 
-Purr is distributed under the terms of the MIT License. See
+Yowl is distributed under the terms of the MIT License. See
 [LICENSE-MIT](LICENSE-MIT) and [COPYRIGHT](COPYRIGHT) for details.

@@ -1,16 +1,16 @@
 use std::collections::HashMap;
 
-use crate::graph::{ Atom, JoinPool };
-use super::{ Follower, Error };
+use super::{Error, Follower};
+use crate::graph::{Atom, JoinPool};
 
 /// Performans a depth-first traversal of `graph`.
-/// 
+///
 /// ```
-/// use purr::graph::{ Atom, Bond };
-/// use purr::feature::{ AtomKind, BondKind, Aliphatic };
-/// use purr::read::read;
-/// use purr::write::Writer;
-/// use purr::walk::{ walk, Follower, Error };
+/// use yowl::graph::{ Atom, Bond };
+/// use yowl::feature::{ AtomKind, BondKind, Aliphatic };
+/// use yowl::read::read;
+/// use yowl::write::Writer;
+/// use yowl::walk::{ walk, Follower, Error };
 ///
 /// fn main() -> Result<(), Error> {
 ///     let atoms = vec![
@@ -36,18 +36,16 @@ use super::{ Follower, Error };
 ///     Ok(())
 /// }
 /// ```
-pub fn walk<F: Follower>(
-    graph: Vec<Atom>, follower: &mut F
-) -> Result<(), Error> {
+pub fn walk<F: Follower>(graph: Vec<Atom>, follower: &mut F) -> Result<(), Error> {
     let size = graph.len();
     let ids = 0..size;
-    let mut atoms = graph.into_iter().enumerate().collect::<HashMap<_,_>>();
+    let mut atoms = graph.into_iter().enumerate().collect::<HashMap<_, _>>();
     let mut pool = JoinPool::new();
 
     for id in ids {
         let root = match atoms.remove(&id) {
             Some(root) => root,
-            None => continue
+            None => continue,
         };
 
         walk_root(id, root, size, &mut atoms, follower, &mut pool)?;
@@ -62,7 +60,7 @@ fn walk_root<F: Follower>(
     size: usize,
     atoms: &mut HashMap<usize, Atom>,
     follower: &mut F,
-    pool: &mut JoinPool
+    pool: &mut JoinPool,
 ) -> Result<(), Error> {
     let mut stack = Vec::new();
     let mut chain = Vec::new();
@@ -76,11 +74,11 @@ fn walk_root<F: Follower>(
 
     while let Some((sid, bond)) = stack.pop() {
         if bond.tid >= size {
-            return Err(Error::UnknownTarget(sid, bond.tid))
+            return Err(Error::UnknownTarget(sid, bond.tid));
         } else if bond.tid == sid {
-            return Err(Error::Loop(sid))
+            return Err(Error::Loop(sid));
         }
-        
+
         let mut popcount = 0;
 
         loop {
@@ -112,10 +110,10 @@ fn walk_root<F: Follower>(
                         if back.is_none() {
                             back = Some(out);
                         } else {
-                            return Err(Error::DuplicateBond(sid, bond.tid))
+                            return Err(Error::DuplicateBond(sid, bond.tid));
                         }
 
-                        continue
+                        continue;
                     }
 
                     stack.push((bond.tid, out));
@@ -124,21 +122,19 @@ fn walk_root<F: Follower>(
                 if let Some(back) = back {
                     if bond.is_directional() {
                         if bond.kind != back.kind.reverse() {
-                            return Err(Error::IncompatibleBond(bond.tid, sid))
+                            return Err(Error::IncompatibleBond(bond.tid, sid));
                         }
                     } else if bond.kind != back.kind {
-                        return Err(Error::IncompatibleBond(bond.tid, sid))
+                        return Err(Error::IncompatibleBond(bond.tid, sid));
                     }
                 } else {
-                    return Err(Error::HalfBond(sid, bond.tid))
+                    return Err(Error::HalfBond(sid, bond.tid));
                 }
 
                 chain.push(bond.tid);
                 follower.extend(bond.kind, child.kind)
-            },
-            None => {
-                follower.join(bond.kind, pool.hit(sid, bond.tid))
             }
+            None => follower.join(bond.kind, pool.hit(sid, bond.tid)),
         }
     }
 
@@ -147,14 +143,13 @@ fn walk_root<F: Follower>(
 
 #[cfg(test)]
 mod walk {
-    use pretty_assertions::assert_eq;
+    use super::*;
     use crate::feature::{
-        BracketSymbol, VirtualHydrogen, BondKind, AtomKind, Configuration,
-        Aliphatic
+        Aliphatic, AtomKind, BondKind, BracketSymbol, Configuration, VirtualHydrogen,
     };
     use crate::graph::Bond;
     use crate::write::Writer;
-    use super::*;
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn half_bond() {
@@ -162,17 +157,15 @@ mod walk {
         let graph = vec![
             Atom {
                 kind: AtomKind::Star,
-                bonds: vec![
-                    Bond::new(BondKind::Elided, 1)
-                ]
+                bonds: vec![Bond::new(BondKind::Elided, 1)],
             },
             Atom {
                 kind: AtomKind::Star,
-                bonds: vec![ ]
-            }
+                bonds: vec![],
+            },
         ];
 
-        assert_eq!(walk(graph, &mut writer),Err(Error::HalfBond(0, 1)))
+        assert_eq!(walk(graph, &mut writer), Err(Error::HalfBond(0, 1)))
     }
 
     #[test]
@@ -181,33 +174,27 @@ mod walk {
         let graph = vec![
             Atom {
                 kind: AtomKind::Star,
-                bonds: vec![
-                    Bond::new(BondKind::Elided, 1)
-                ]
+                bonds: vec![Bond::new(BondKind::Elided, 1)],
             },
             Atom {
                 kind: AtomKind::Star,
                 bonds: vec![
                     Bond::new(BondKind::Elided, 0),
-                    Bond::new(BondKind::Elided, 0)
-                ]
-            }
+                    Bond::new(BondKind::Elided, 0),
+                ],
+            },
         ];
 
-        assert_eq!(walk(graph, &mut writer),Err(Error::DuplicateBond(0, 1)))
+        assert_eq!(walk(graph, &mut writer), Err(Error::DuplicateBond(0, 1)))
     }
 
     #[test]
     fn unknown_target() {
         let mut writer = Writer::new();
-        let graph = vec![
-            Atom {
-                kind: AtomKind::Star,
-                bonds: vec![
-                    Bond::new(BondKind::Elided, 1)
-                ]
-            }
-        ];
+        let graph = vec![Atom {
+            kind: AtomKind::Star,
+            bonds: vec![Bond::new(BondKind::Elided, 1)],
+        }];
 
         assert_eq!(walk(graph, &mut writer), Err(Error::UnknownTarget(0, 1)))
     }
@@ -215,14 +202,10 @@ mod walk {
     #[test]
     fn self_bond() {
         let mut writer = Writer::new();
-        let graph = vec![
-            Atom {
-                kind: AtomKind::Star,
-                bonds: vec![
-                    Bond::new(BondKind::Elided, 0)
-                ]
-            }
-        ];
+        let graph = vec![Atom {
+            kind: AtomKind::Star,
+            bonds: vec![Bond::new(BondKind::Elided, 0)],
+        }];
 
         assert_eq!(walk(graph, &mut writer), Err(Error::Loop(0)))
     }
@@ -233,16 +216,12 @@ mod walk {
         let graph = vec![
             Atom {
                 kind: AtomKind::Star,
-                bonds: vec![
-                    Bond::new(BondKind::Elided, 1)
-                ]
+                bonds: vec![Bond::new(BondKind::Elided, 1)],
             },
             Atom {
                 kind: AtomKind::Star,
-                bonds: vec![
-                    Bond::new(BondKind::Single, 0)
-                ]
-            }
+                bonds: vec![Bond::new(BondKind::Single, 0)],
+            },
         ];
 
         assert_eq!(walk(graph, &mut writer), Err(Error::IncompatibleBond(1, 0)))
@@ -251,12 +230,10 @@ mod walk {
     #[test]
     fn p1() {
         let mut writer = Writer::new();
-        let graph = vec![
-            Atom {
-                kind: AtomKind::Star,
-                bonds: vec![ ]
-            }
-        ];
+        let graph = vec![Atom {
+            kind: AtomKind::Star,
+            bonds: vec![],
+        }];
 
         walk(graph, &mut writer).unwrap();
 
@@ -269,18 +246,14 @@ mod walk {
         let graph = vec![
             Atom {
                 kind: AtomKind::Star,
-                bonds: vec![
-                    Bond::new(BondKind::Single, 1)
-                ]
+                bonds: vec![Bond::new(BondKind::Single, 1)],
             },
             Atom {
                 kind: AtomKind::Star,
-                bonds: vec![
-                    Bond::new(BondKind::Single, 0)
-                ]
-            }
+                bonds: vec![Bond::new(BondKind::Single, 0)],
+            },
         ];
-        
+
         walk(graph, &mut writer).unwrap();
 
         assert_eq!(writer.write(), "*-*")
@@ -292,18 +265,14 @@ mod walk {
         let graph = vec![
             Atom {
                 kind: AtomKind::Star,
-                bonds: vec![
-                    Bond::new(BondKind::Up, 1)
-                ]
+                bonds: vec![Bond::new(BondKind::Up, 1)],
             },
             Atom {
                 kind: AtomKind::Star,
-                bonds: vec![
-                    Bond::new(BondKind::Down, 0)
-                ]
-            }
+                bonds: vec![Bond::new(BondKind::Down, 0)],
+            },
         ];
-        
+
         walk(graph, &mut writer).unwrap();
 
         assert_eq!(writer.write(), "*/*")
@@ -315,18 +284,14 @@ mod walk {
         let graph = vec![
             Atom {
                 kind: AtomKind::Star,
-                bonds: vec![
-
-                ]
+                bonds: vec![],
             },
             Atom {
                 kind: AtomKind::Star,
-                bonds: vec![
-
-                ]
-            }
+                bonds: vec![],
+            },
         ];
-        
+
         walk(graph, &mut writer).unwrap();
 
         assert_eq!(writer.write(), "*.*")
@@ -338,25 +303,21 @@ mod walk {
         let graph = vec![
             Atom {
                 kind: AtomKind::Star,
-                bonds: vec![
-                    Bond::new(BondKind::Single, 1)
-                ]
+                bonds: vec![Bond::new(BondKind::Single, 1)],
             },
             Atom {
                 kind: AtomKind::Star,
                 bonds: vec![
                     Bond::new(BondKind::Single, 0),
-                    Bond::new(BondKind::Single, 2)
-                ]
+                    Bond::new(BondKind::Single, 2),
+                ],
             },
             Atom {
                 kind: AtomKind::Star,
-                bonds: vec![
-                    Bond::new(BondKind::Single, 1)
-                ]
-            }
+                bonds: vec![Bond::new(BondKind::Single, 1)],
+            },
         ];
-        
+
         walk(graph, &mut writer).unwrap();
 
         assert_eq!(writer.write(), "*-*-*")
@@ -370,23 +331,19 @@ mod walk {
                 kind: AtomKind::Star,
                 bonds: vec![
                     Bond::new(BondKind::Single, 1),
-                    Bond::new(BondKind::Double, 2)
-                ]
+                    Bond::new(BondKind::Double, 2),
+                ],
             },
             Atom {
                 kind: AtomKind::Star,
-                bonds: vec![
-                    Bond::new(BondKind::Single, 0)
-                ]
+                bonds: vec![Bond::new(BondKind::Single, 0)],
             },
             Atom {
                 kind: AtomKind::Star,
-                bonds: vec![
-                    Bond::new(BondKind::Double, 0)
-                ]
-            }
+                bonds: vec![Bond::new(BondKind::Double, 0)],
+            },
         ];
-        
+
         walk(graph, &mut writer).unwrap();
 
         assert_eq!(writer.write(), "*(-*)=*")
@@ -400,25 +357,25 @@ mod walk {
                 kind: AtomKind::Aliphatic(Aliphatic::C),
                 bonds: vec![
                     Bond::new(BondKind::Elided, 2),
-                    Bond::new(BondKind::Elided, 1)
-                ]
+                    Bond::new(BondKind::Elided, 1),
+                ],
             },
             Atom {
                 kind: AtomKind::Aliphatic(Aliphatic::O),
                 bonds: vec![
                     Bond::new(BondKind::Elided, 0),
-                    Bond::new(BondKind::Elided, 2)
-                ]
+                    Bond::new(BondKind::Elided, 2),
+                ],
             },
             Atom {
                 kind: AtomKind::Aliphatic(Aliphatic::S),
                 bonds: vec![
                     Bond::new(BondKind::Elided, 1),
-                    Bond::new(BondKind::Elided, 0)
-                ]
-            }
+                    Bond::new(BondKind::Elided, 0),
+                ],
+            },
         ];
-        
+
         walk(graph, &mut writer).unwrap();
 
         assert_eq!(writer.write(), "C(SO1)1")
@@ -435,31 +392,31 @@ mod walk {
                     configuration: Some(Configuration::TH1),
                     hcount: None,
                     charge: None,
-                    map: None
+                    map: None,
                 },
                 bonds: vec![
                     Bond::new(BondKind::Elided, 1),
                     Bond::new(BondKind::Elided, 2),
                     Bond::new(BondKind::Elided, 3),
-                    Bond::new(BondKind::Elided, 4)
-                ]
+                    Bond::new(BondKind::Elided, 4),
+                ],
             },
             Atom {
                 kind: AtomKind::Star,
-                bonds: vec![ Bond::new(BondKind::Elided, 0) ]
+                bonds: vec![Bond::new(BondKind::Elided, 0)],
             },
             Atom {
                 kind: AtomKind::Star,
-                bonds: vec![ Bond::new(BondKind::Elided, 0) ]
+                bonds: vec![Bond::new(BondKind::Elided, 0)],
             },
             Atom {
                 kind: AtomKind::Star,
-                bonds: vec![ Bond::new(BondKind::Elided, 0) ]
+                bonds: vec![Bond::new(BondKind::Elided, 0)],
             },
             Atom {
                 kind: AtomKind::Star,
-                bonds: vec![ Bond::new(BondKind::Elided, 0) ]
-            }
+                bonds: vec![Bond::new(BondKind::Elided, 0)],
+            },
         ];
 
         walk(graph, &mut writer).unwrap();
@@ -473,7 +430,7 @@ mod walk {
         let graph = vec![
             Atom {
                 kind: AtomKind::Star,
-                bonds: vec![ Bond::new(BondKind::Elided, 1) ]
+                bonds: vec![Bond::new(BondKind::Elided, 1)],
             },
             Atom {
                 kind: AtomKind::Bracket {
@@ -482,27 +439,27 @@ mod walk {
                     configuration: Some(Configuration::TH1),
                     hcount: None,
                     charge: None,
-                    map: None
+                    map: None,
                 },
                 bonds: vec![
                     Bond::new(BondKind::Elided, 0),
                     Bond::new(BondKind::Elided, 2),
                     Bond::new(BondKind::Elided, 3),
-                    Bond::new(BondKind::Elided, 4)
-                ]
+                    Bond::new(BondKind::Elided, 4),
+                ],
             },
             Atom {
                 kind: AtomKind::Star,
-                bonds: vec![ Bond::new(BondKind::Elided, 1) ]
+                bonds: vec![Bond::new(BondKind::Elided, 1)],
             },
             Atom {
                 kind: AtomKind::Star,
-                bonds: vec![ Bond::new(BondKind::Elided, 1) ]
+                bonds: vec![Bond::new(BondKind::Elided, 1)],
             },
             Atom {
                 kind: AtomKind::Star,
-                bonds: vec![ Bond::new(BondKind::Elided, 1) ]
-            }
+                bonds: vec![Bond::new(BondKind::Elided, 1)],
+            },
         ];
 
         walk(graph, &mut writer).unwrap();
@@ -516,7 +473,7 @@ mod walk {
         let graph = vec![
             Atom {
                 kind: AtomKind::Star,
-                bonds: vec![ Bond::new(BondKind::Elided, 1) ]
+                bonds: vec![Bond::new(BondKind::Elided, 1)],
             },
             Atom {
                 kind: AtomKind::Bracket {
@@ -525,27 +482,27 @@ mod walk {
                     configuration: Some(Configuration::TH1),
                     hcount: Some(VirtualHydrogen::H1),
                     charge: None,
-                    map: None
+                    map: None,
                 },
                 bonds: vec![
                     Bond::new(BondKind::Elided, 0),
                     Bond::new(BondKind::Elided, 2),
                     Bond::new(BondKind::Elided, 3),
-                    Bond::new(BondKind::Elided, 4)
-                ]
+                    Bond::new(BondKind::Elided, 4),
+                ],
             },
             Atom {
                 kind: AtomKind::Star,
-                bonds: vec![ Bond::new(BondKind::Elided, 1) ]
+                bonds: vec![Bond::new(BondKind::Elided, 1)],
             },
             Atom {
                 kind: AtomKind::Star,
-                bonds: vec![ Bond::new(BondKind::Elided, 1) ]
+                bonds: vec![Bond::new(BondKind::Elided, 1)],
             },
             Atom {
                 kind: AtomKind::Star,
-                bonds: vec![ Bond::new(BondKind::Elided, 1) ]
-            }
+                bonds: vec![Bond::new(BondKind::Elided, 1)],
+            },
         ];
 
         walk(graph, &mut writer).unwrap();
@@ -559,7 +516,7 @@ mod walk {
         let graph = vec![
             Atom {
                 kind: AtomKind::Star,
-                bonds: vec![ Bond::new(BondKind::Elided, 1) ]
+                bonds: vec![Bond::new(BondKind::Elided, 1)],
             },
             Atom {
                 kind: AtomKind::Bracket {
@@ -568,27 +525,27 @@ mod walk {
                     configuration: Some(Configuration::TH1),
                     hcount: Some(VirtualHydrogen::H1),
                     charge: None,
-                    map: None
+                    map: None,
                 },
                 bonds: vec![
                     Bond::new(BondKind::Elided, 2),
                     Bond::new(BondKind::Elided, 0),
                     Bond::new(BondKind::Elided, 3),
-                    Bond::new(BondKind::Elided, 4)
-                ]
+                    Bond::new(BondKind::Elided, 4),
+                ],
             },
             Atom {
                 kind: AtomKind::Star,
-                bonds: vec![ Bond::new(BondKind::Elided, 1) ]
+                bonds: vec![Bond::new(BondKind::Elided, 1)],
             },
             Atom {
                 kind: AtomKind::Star,
-                bonds: vec![ Bond::new(BondKind::Elided, 1) ]
+                bonds: vec![Bond::new(BondKind::Elided, 1)],
             },
             Atom {
                 kind: AtomKind::Star,
-                bonds: vec![ Bond::new(BondKind::Elided, 1) ]
-            }
+                bonds: vec![Bond::new(BondKind::Elided, 1)],
+            },
         ];
 
         walk(graph, &mut writer).unwrap();

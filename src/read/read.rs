@@ -1,22 +1,21 @@
-use crate::walk::Follower;
-use crate::feature::{ AtomKind, BondKind };
 use super::{
-    Scanner, Trace, Error, missing_character, read_rnum, read_bond,
-    read_organic, read_bracket
+    missing_character, read_bond, read_bracket, read_organic, read_rnum, Error, Scanner, Trace,
 };
+use crate::feature::{AtomKind, BondKind};
+use crate::walk::Follower;
 
 /// Reads a string using a `Follower` and optional `Trace`.
-/// 
+///
 /// ```
-/// use purr::write::Writer;
-/// use purr::read::{ read, Error, Trace };
+/// use yowl::write::Writer;
+/// use yowl::read::{ read, Error, Trace };
 ///
 /// fn main() -> Result<(), Error> {
 ///     let mut writer = Writer::new();
 ///     let mut trace = Trace::new();
 ///
 ///     read("CC(=O)N", &mut writer, Some(&mut trace))?;
-/// 
+///
 ///     assert_eq!(writer.write(), "CC(=O)N");
 ///     assert_eq!(trace.bond(1, 2), Some(3));
 ///
@@ -24,7 +23,9 @@ use super::{
 /// }
 /// ```
 pub fn read<F: Follower>(
-    smiles: &str, follower: &mut F, mut trace: Option<&mut Trace>
+    smiles: &str,
+    follower: &mut F,
+    mut trace: Option<&mut Trace>,
 ) -> Result<(), Error> {
     let mut scanner = Scanner::new(smiles);
 
@@ -48,12 +49,12 @@ fn read_smiles<F: Follower>(
     input: Option<BondKind>,
     scanner: &mut Scanner,
     follower: &mut F,
-    trace: &mut Option<&mut Trace>
+    trace: &mut Option<&mut Trace>,
 ) -> Result<Option<usize>, Error> {
     let cursor = scanner.cursor();
     let atom_kind = match read_atom(scanner)? {
         Some(kind) => kind,
-        None => return Ok(None)
+        None => return Ok(None),
     };
 
     match input {
@@ -67,7 +68,7 @@ fn read_smiles<F: Follower>(
             }
 
             follower.extend(bond_kind, atom_kind)
-        },
+        }
         None => {
             follower.root(atom_kind);
 
@@ -82,21 +83,19 @@ fn read_smiles<F: Follower>(
     loop {
         match read_body(scanner, follower, trace)? {
             Some(length) => result += length,
-            None => break Ok(Some(result))
+            None => break Ok(Some(result)),
         }
     }
 }
 
 // <atom> ::= <organic> | <bracket> | <star>
-fn read_atom(
-    scanner: &mut Scanner
-) -> Result<Option<AtomKind>, Error> {
+fn read_atom(scanner: &mut Scanner) -> Result<Option<AtomKind>, Error> {
     if let Some(organic) = read_organic(scanner)? {
-        return Ok(Some(organic))
+        return Ok(Some(organic));
     }
 
     if let Some(bracket) = read_bracket(scanner)? {
-        return Ok(Some(bracket))
+        return Ok(Some(bracket));
     }
 
     Ok(read_star(scanner))
@@ -104,14 +103,16 @@ fn read_atom(
 
 // <body> ::= <branch> | <split> | <union>
 fn read_body<F: Follower>(
-    scanner: &mut Scanner, follower: &mut F, trace: &mut Option<&mut Trace>
+    scanner: &mut Scanner,
+    follower: &mut F,
+    trace: &mut Option<&mut Trace>,
 ) -> Result<Option<usize>, Error> {
     if read_branch(scanner, follower, trace)? {
-        return Ok(Some(0))
+        return Ok(Some(0));
     }
 
     if let Some(length) = read_split(scanner, follower, trace)? {
-        return Ok(Some(length))
+        return Ok(Some(length));
     }
 
     read_union(scanner, follower, trace)
@@ -119,13 +120,15 @@ fn read_body<F: Follower>(
 
 // <branch> ::= "(" ( <dot> | <bond> )? <smiles> ")"
 fn read_branch<F: Follower>(
-    scanner: &mut Scanner, follower: &mut F, trace: &mut Option<&mut Trace>
+    scanner: &mut Scanner,
+    follower: &mut F,
+    trace: &mut Option<&mut Trace>,
 ) -> Result<bool, Error> {
     match scanner.peek() {
         Some('(') => {
             scanner.pop();
-        },
-        _ => return Ok(false)
+        }
+        _ => return Ok(false),
     }
 
     let length = match scanner.peek() {
@@ -134,19 +137,19 @@ fn read_branch<F: Follower>(
 
             match read_smiles(None, scanner, follower, trace)? {
                 Some(length) => length,
-                None => return Err(missing_character(scanner))
+                None => return Err(missing_character(scanner)),
             }
-        },
+        }
         _ => {
             let bond_kind = read_bond(scanner);
 
             match read_smiles(Some(bond_kind), scanner, follower, trace)? {
                 Some(length) => length,
-                None => return Err(missing_character(scanner))
+                None => return Err(missing_character(scanner)),
             }
         }
     };
-    
+
     match scanner.peek() {
         Some(')') => {
             scanner.pop();
@@ -157,39 +160,41 @@ fn read_branch<F: Follower>(
             }
 
             Ok(true)
-        },
-        _ => Err(missing_character(scanner))
+        }
+        _ => Err(missing_character(scanner)),
     }
 }
 
 // <split> ::= <dot> <smiles>
 fn read_split<F: Follower>(
-    scanner: &mut Scanner, follower: &mut F, trace: &mut Option<&mut Trace>
+    scanner: &mut Scanner,
+    follower: &mut F,
+    trace: &mut Option<&mut Trace>,
 ) -> Result<Option<usize>, Error> {
     match scanner.peek() {
         Some('.') => {
             scanner.pop();
-        },
-        _ => return Ok(None)
+        }
+        _ => return Ok(None),
     }
 
     match read_smiles(None, scanner, follower, trace)? {
         Some(length) => Ok(Some(length)),
-        None => Err(missing_character(scanner))
+        None => Err(missing_character(scanner)),
     }
 }
 
 // <union> ::= <bond>? ( <smiles> | <rnum> )
 fn read_union<F: Follower>(
-    scanner: &mut Scanner, follower: &mut F, trace: &mut Option<&mut Trace>
+    scanner: &mut Scanner,
+    follower: &mut F,
+    trace: &mut Option<&mut Trace>,
 ) -> Result<Option<usize>, Error> {
     let bond_cursor = scanner.cursor();
     let bond_kind = read_bond(scanner);
 
-    if let Some(length) = read_smiles(
-        Some(bond_kind.clone()), scanner, follower, trace
-    )? {
-        return Ok(Some(length))
+    if let Some(length) = read_smiles(Some(bond_kind.clone()), scanner, follower, trace)? {
+        return Ok(Some(length));
     }
 
     let cursor = scanner.cursor();
@@ -203,183 +208,138 @@ fn read_union<F: Follower>(
             follower.join(bond_kind, rnum);
 
             Ok(Some(0))
-        },
-        None => if bond_kind == BondKind::Elided {
-            Ok(None)
-        } else {
-            Err(missing_character(scanner))
+        }
+        None => {
+            if bond_kind == BondKind::Elided {
+                Ok(None)
+            } else {
+                Err(missing_character(scanner))
+            }
         }
     }
 }
 
 // <star> = "*"
-fn read_star(
-    scanner: &mut Scanner
-) -> Option<AtomKind> {
+fn read_star(scanner: &mut Scanner) -> Option<AtomKind> {
     match scanner.peek() {
         Some('*') => {
             scanner.pop();
 
             Some(AtomKind::Star)
-        },
-        _ => None
+        }
+        _ => None,
     }
 }
 
 #[cfg(test)]
 mod read {
-    use pretty_assertions::assert_eq;
-    use crate::write::Writer;
     use super::*;
+    use crate::write::Writer;
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn blank() {
         let mut writer = Writer::new();
 
-        assert_eq!(
-            read("", &mut writer, None),
-            Err(Error::EndOfLine)
-        )
+        assert_eq!(read("", &mut writer, None), Err(Error::EndOfLine))
     }
 
     #[test]
     fn leading_paren() {
         let mut writer = Writer::new();
 
-        assert_eq!(
-            read("(", &mut writer, None),
-            Err(Error::Character(0))
-        )
+        assert_eq!(read("(", &mut writer, None), Err(Error::Character(0)))
     }
 
     #[test]
     fn invalid_tail() {
         let mut writer = Writer::new();
 
-        assert_eq!(
-            read("*?", &mut writer, None),
-            Err(Error::Character(1))
-        )
+        assert_eq!(read("*?", &mut writer, None), Err(Error::Character(1)))
     }
 
     #[test]
     fn trailing_bond() {
         let mut writer = Writer::new();
 
-        assert_eq!(
-            read("*-", &mut writer, None),
-            Err(Error::EndOfLine)
-        )
+        assert_eq!(read("*-", &mut writer, None), Err(Error::EndOfLine))
     }
 
     #[test]
     fn trailing_dot() {
         let mut writer = Writer::new();
 
-        assert_eq!(
-            read("*.", &mut writer, None),
-            Err(Error::EndOfLine)
-        )
+        assert_eq!(read("*.", &mut writer, None), Err(Error::EndOfLine))
     }
 
     #[test]
     fn cut_percent_single_digit() {
         let mut writer = Writer::new();
 
-        assert_eq!(
-            read("*%1*", &mut writer, None),
-            Err(Error::Character(3))
-        )
+        assert_eq!(read("*%1*", &mut writer, None), Err(Error::Character(3)))
     }
 
     #[test]
     fn open_paren_eol() {
         let mut writer = Writer::new();
 
-        assert_eq!(
-            read("*(", &mut writer, None),
-            Err(Error::EndOfLine)
-        )
+        assert_eq!(read("*(", &mut writer, None), Err(Error::EndOfLine))
     }
 
     #[test]
     fn missing_close_paren() {
         let mut writer = Writer::new();
 
-        assert_eq!(
-            read("*(*", &mut writer, None),
-            Err(Error::EndOfLine)
-        )
+        assert_eq!(read("*(*", &mut writer, None), Err(Error::EndOfLine))
     }
 
     #[test]
     fn bond_to_invalid() {
         let mut writer = Writer::new();
 
-        assert_eq!(
-            read("*-X", &mut writer, None),
-            Err(Error::Character(2))
-        )
+        assert_eq!(read("*-X", &mut writer, None), Err(Error::Character(2)))
     }
 
     #[test]
     fn split_to_invalid() {
         let mut writer = Writer::new();
 
-        assert_eq!(
-            read("*.X", &mut writer, None),
-            Err(Error::Character(2))
-        )
+        assert_eq!(read("*.X", &mut writer, None), Err(Error::Character(2)))
     }
 
     #[test]
     fn branch_invalid() {
         let mut writer = Writer::new();
 
-        assert_eq!(
-            read("*(X)", &mut writer, None),
-            Err(Error::Character(2))
-        )
+        assert_eq!(read("*(X)", &mut writer, None), Err(Error::Character(2)))
     }
 
     #[test]
     fn branch_rnum() {
         let mut writer = Writer::new();
 
-        assert_eq!(
-            read("*(1)*", &mut writer, None),
-            Err(Error::Character(2))
-        )
+        assert_eq!(read("*(1)*", &mut writer, None), Err(Error::Character(2)))
     }
 
     #[test]
     fn branch_bond_rnum() {
         let mut writer = Writer::new();
 
-        assert_eq!(
-            read("*(-1)*", &mut writer, None),
-            Err(Error::Character(3))
-        )
+        assert_eq!(read("*(-1)*", &mut writer, None), Err(Error::Character(3)))
     }
 
     #[test]
     fn dot_rnum() {
         let mut writer = Writer::new();
 
-        assert_eq!(
-            read("*.1", &mut writer, None),
-            Err(Error::Character(2))
-        )
+        assert_eq!(read("*.1", &mut writer, None), Err(Error::Character(2)))
     }
 
     #[test]
     fn branch_split_invalid() {
         let mut writer = Writer::new();
 
-        assert_eq!(
-            read("*(.X)", &mut writer, None),
-            Err(Error::Character(3))
-        )
+        assert_eq!(read("*(.X)", &mut writer, None), Err(Error::Character(3)))
     }
 
     #[test]
@@ -538,9 +498,9 @@ mod read {
 
 #[cfg(test)]
 mod trace {
-    use pretty_assertions::assert_eq;
-    use crate::write::Writer;
     use super::*;
+    use crate::write::Writer;
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn p1() {
