@@ -7,4 +7,5 @@ readme = "README.md"
 
 [dependencies]
 
-[dev_dependencies]
+[dev-dependencies]
+pretty_assertions = "1.4.1"
