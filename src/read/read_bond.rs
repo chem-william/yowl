@@ -1,5 +1,5 @@
-use crate::feature::BondKind;
 use super::scanner::Scanner;
+use crate::feature::BondKind;
 
 pub fn read_bond(scanner: &mut Scanner) -> BondKind {
     let result = match scanner.peek() {
@@ -10,7 +10,7 @@ pub fn read_bond(scanner: &mut Scanner) -> BondKind {
         Some(':') => BondKind::Aromatic,
         Some('/') => BondKind::Up,
         Some('\\') => BondKind::Down,
-        _ => BondKind::Elided
+        _ => BondKind::Elided,
     };
 
     if result != BondKind::Elided {

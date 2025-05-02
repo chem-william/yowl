@@ -1,5 +1,5 @@
-use crate::feature::{ Element, BracketSymbol, BracketAromatic };
-use super::{ scanner::Scanner, Error, missing_character::missing_character };
+use super::{missing_character::missing_character, scanner::Scanner, Error};
+use crate::feature::{BracketAromatic, BracketSymbol, Element};
 
 pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, Error> {
     match scanner.peek() {
@@ -7,15 +7,15 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, Error> {
             scanner.pop();
 
             Ok(BracketSymbol::Star)
-        },
+        }
         Some('a') => {
             scanner.pop();
 
             match scanner.peek() {
                 Some('s') => aromatic(BracketAromatic::As, scanner),
-                _ => Err(missing_character(scanner))
+                _ => Err(missing_character(scanner)),
             }
-        },
+        }
         Some('b') => aromatic(BracketAromatic::B, scanner),
         Some('c') => aromatic(BracketAromatic::C, scanner),
         Some('n') => aromatic(BracketAromatic::N, scanner),
@@ -26,9 +26,17 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, Error> {
 
             match scanner.peek() {
                 Some('e') => aromatic(BracketAromatic::Se, scanner),
-                _ => Ok(BracketSymbol::Aromatic(BracketAromatic::S))
+                _ => Ok(BracketSymbol::Aromatic(BracketAromatic::S)),
             }
-        },
+        }
+        Some('t') => {
+            scanner.pop();
+
+            match scanner.peek() {
+                Some('e') => aromatic(BracketAromatic::Te, scanner),
+                _ => Ok(BracketSymbol::Aromatic(BracketAromatic::Te)),
+            }
+        }
         Some('A') => {
             scanner.pop();
 
@@ -41,9 +49,9 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, Error> {
                 Some('s') => element(Element::As, scanner),
                 Some('t') => element(Element::At, scanner),
                 Some('u') => element(Element::Au, scanner),
-                _ => Err(missing_character(scanner))
+                _ => Err(missing_character(scanner)),
             }
-        },
+        }
         Some('B') => {
             scanner.pop();
 
@@ -54,9 +62,9 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, Error> {
                 Some('i') => element(Element::Bi, scanner),
                 Some('k') => element(Element::Bk, scanner),
                 Some('r') => element(Element::Br, scanner),
-                _ => Ok(BracketSymbol::Element(Element::B))
+                _ => Ok(BracketSymbol::Element(Element::B)),
             }
-        },
+        }
         Some('C') => {
             scanner.pop();
 
@@ -72,9 +80,9 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, Error> {
                 Some('r') => element(Element::Cr, scanner),
                 Some('s') => element(Element::Cs, scanner),
                 Some('u') => element(Element::Cu, scanner),
-                _ => Ok(BracketSymbol::Element(Element::C))
+                _ => Ok(BracketSymbol::Element(Element::C)),
             }
-        },
+        }
         Some('D') => {
             scanner.pop();
 
@@ -82,9 +90,9 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, Error> {
                 Some('b') => element(Element::Db, scanner),
                 Some('s') => element(Element::Ds, scanner),
                 Some('y') => element(Element::Dy, scanner),
-                _ => Err(missing_character(scanner))
+                _ => Err(missing_character(scanner)),
             }
-        },
+        }
         Some('E') => {
             scanner.pop();
 
@@ -92,9 +100,9 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, Error> {
                 Some('r') => element(Element::Er, scanner),
                 Some('s') => element(Element::Es, scanner),
                 Some('u') => element(Element::Eu, scanner),
-                _ => Err(missing_character(scanner))
+                _ => Err(missing_character(scanner)),
             }
-        },
+        }
         Some('F') => {
             scanner.pop();
 
@@ -103,9 +111,9 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, Error> {
                 Some('l') => element(Element::Fl, scanner),
                 Some('m') => element(Element::Fm, scanner),
                 Some('r') => element(Element::Fr, scanner),
-                _ => Ok(BracketSymbol::Element(Element::F))
+                _ => Ok(BracketSymbol::Element(Element::F)),
             }
-        },
+        }
         Some('G') => {
             scanner.pop();
 
@@ -113,9 +121,9 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, Error> {
                 Some('a') => element(Element::Ga, scanner),
                 Some('d') => element(Element::Gd, scanner),
                 Some('e') => element(Element::Ge, scanner),
-                _ => Ok(BracketSymbol::Element(Element::F))
+                _ => Ok(BracketSymbol::Element(Element::F)),
             }
-        },
+        }
         Some('H') => {
             scanner.pop();
 
@@ -125,26 +133,26 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, Error> {
                 Some('g') => element(Element::Hg, scanner),
                 Some('o') => element(Element::Ho, scanner),
                 Some('s') => element(Element::Hs, scanner),
-                _ => Ok(BracketSymbol::Element(Element::H))
+                _ => Ok(BracketSymbol::Element(Element::H)),
             }
-        },
+        }
         Some('I') => {
             scanner.pop();
 
             match scanner.peek() {
                 Some('n') => element(Element::In, scanner),
                 Some('r') => element(Element::Ir, scanner),
-                _ => Ok(BracketSymbol::Element(Element::I))
+                _ => Ok(BracketSymbol::Element(Element::I)),
             }
-        },
+        }
         Some('K') => {
             scanner.pop();
 
             match scanner.peek() {
                 Some('r') => element(Element::Kr, scanner),
-                _ => Ok(BracketSymbol::Element(Element::K))
+                _ => Ok(BracketSymbol::Element(Element::K)),
             }
-        },
+        }
         Some('L') => {
             scanner.pop();
 
@@ -154,9 +162,9 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, Error> {
                 Some('r') => element(Element::Lr, scanner),
                 Some('u') => element(Element::Lu, scanner),
                 Some('v') => element(Element::Lv, scanner),
-                _ => Err(missing_character(scanner))
+                _ => Err(missing_character(scanner)),
             }
-        },
+        }
         Some('M') => {
             scanner.pop();
 
@@ -167,9 +175,9 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, Error> {
                 Some('n') => element(Element::Mn, scanner),
                 Some('o') => element(Element::Mo, scanner),
                 Some('t') => element(Element::Mt, scanner),
-                _ => Err(missing_character(scanner))
+                _ => Err(missing_character(scanner)),
             }
-        },
+        }
         Some('N') => {
             scanner.pop();
 
@@ -182,18 +190,18 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, Error> {
                 Some('i') => element(Element::Ni, scanner),
                 Some('o') => element(Element::No, scanner),
                 Some('p') => element(Element::Np, scanner),
-                _ => Ok(BracketSymbol::Element(Element::N))
+                _ => Ok(BracketSymbol::Element(Element::N)),
             }
-        },
+        }
         Some('O') => {
             scanner.pop();
 
             match scanner.peek() {
                 Some('g') => element(Element::Og, scanner),
                 Some('s') => element(Element::Os, scanner),
-                _ => Ok(BracketSymbol::Element(Element::O))
+                _ => Ok(BracketSymbol::Element(Element::O)),
             }
-        },
+        }
         Some('P') => {
             scanner.pop();
 
@@ -206,9 +214,9 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, Error> {
                 Some('r') => element(Element::Pr, scanner),
                 Some('t') => element(Element::Pt, scanner),
                 Some('u') => element(Element::Pu, scanner),
-                _ => Ok(BracketSymbol::Element(Element::P))
+                _ => Ok(BracketSymbol::Element(Element::P)),
             }
-        },
+        }
         Some('R') => {
             scanner.pop();
 
@@ -221,9 +229,9 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, Error> {
                 Some('h') => element(Element::Rh, scanner),
                 Some('n') => element(Element::Rn, scanner),
                 Some('u') => element(Element::Ru, scanner),
-                _ => Err(missing_character(scanner))
+                _ => Err(missing_character(scanner)),
             }
-        },
+        }
         Some('S') => {
             scanner.pop();
 
@@ -236,9 +244,9 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, Error> {
                 Some('m') => element(Element::Sm, scanner),
                 Some('n') => element(Element::Sn, scanner),
                 Some('r') => element(Element::Sr, scanner),
-                _ => Ok(BracketSymbol::Element(Element::S))
+                _ => Ok(BracketSymbol::Element(Element::S)),
             }
-        },
+        }
         Some('T') => {
             scanner.pop();
 
@@ -252,9 +260,9 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, Error> {
                 Some('l') => element(Element::Tl, scanner),
                 Some('m') => element(Element::Tm, scanner),
                 Some('s') => element(Element::Ts, scanner),
-                _ => Err(missing_character(scanner))
+                _ => Err(missing_character(scanner)),
             }
-        },
+        }
         Some('U') => element(Element::U, scanner),
         Some('V') => element(Element::V, scanner),
         Some('W') => element(Element::W, scanner),
@@ -263,41 +271,37 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, Error> {
 
             match scanner.peek() {
                 Some('e') => element(Element::Xe, scanner),
-                _ => Err(missing_character(scanner))
+                _ => Err(missing_character(scanner)),
             }
-        },
+        }
         Some('Y') => {
             scanner.pop();
 
             match scanner.peek() {
                 Some('b') => element(Element::Yb, scanner),
-                _ => Ok(BracketSymbol::Element(Element::Y))
+                _ => Ok(BracketSymbol::Element(Element::Y)),
             }
-        },
+        }
         Some('Z') => {
             scanner.pop();
 
             match scanner.peek() {
                 Some('n') => element(Element::Zn, scanner),
                 Some('r') => element(Element::Zr, scanner),
-                _ => Err(missing_character(scanner))
+                _ => Err(missing_character(scanner)),
             }
-        },
-        _ => Err(missing_character(scanner))
+        }
+        _ => Err(missing_character(scanner)),
     }
 }
 
-fn aromatic(
-    aromatic: BracketAromatic, scanner: &mut Scanner
-) -> Result<BracketSymbol, Error> {
+fn aromatic(aromatic: BracketAromatic, scanner: &mut Scanner) -> Result<BracketSymbol, Error> {
     scanner.pop();
 
     Ok(BracketSymbol::Aromatic(aromatic))
 }
 
-fn element(
-    element: Element, scanner: &mut Scanner
-) -> Result<BracketSymbol, Error> {
+fn element(element: Element, scanner: &mut Scanner) -> Result<BracketSymbol, Error> {
     scanner.pop();
 
     Ok(BracketSymbol::Element(element))
@@ -325,8 +329,7 @@ mod follower {
     fn lower_a_eol() {
         let mut scanner = Scanner::new("a");
 
-        assert_eq!(read_symbol(&mut scanner), Err(Error::EndOfLine)
-        )
+        assert_eq!(read_symbol(&mut scanner), Err(Error::EndOfLine))
     }
 
     #[test]
@@ -346,13 +349,16 @@ mod follower {
             ("ox", BracketAromatic::O, 1),
             ("px", BracketAromatic::P, 1),
             ("sx", BracketAromatic::S, 1),
-            ("sex", BracketAromatic::Se, 2)
+            ("sex", BracketAromatic::Se, 2),
         ];
 
         for (input, aromatic, cursor) in tests.into_iter() {
             let mut scanner = Scanner::new(input);
 
-            assert_eq!(read_symbol(&mut scanner), Ok(BracketSymbol::Aromatic(aromatic)));
+            assert_eq!(
+                read_symbol(&mut scanner),
+                Ok(BracketSymbol::Aromatic(aromatic))
+            );
             assert_eq!(scanner.cursor(), cursor)
         }
     }
@@ -364,14 +370,12 @@ mod follower {
         assert_eq!(read_symbol(&mut scanner), Err(Error::EndOfLine));
         assert_eq!(scanner.cursor(), 1);
     }
-    
+
     #[test]
     fn a_unknown() {
         let mut scanner = Scanner::new(&"Ax");
 
-        assert_eq!(
-            read_symbol(&mut scanner), Err(Error::Character(1))
-        );
+        assert_eq!(read_symbol(&mut scanner), Err(Error::Character(1)));
         assert_eq!(scanner.cursor(), 1);
     }
 

@@ -1,7 +1,7 @@
 use std::convert::TryInto;
 
+use super::{scanner::Scanner, Error};
 use crate::feature::Charge;
-use super::{ scanner::Scanner, Error };
 
 pub fn read_charge(scanner: &mut Scanner) -> Result<Option<Charge>, Error> {
     match scanner.peek() {
@@ -15,11 +15,11 @@ pub fn read_charge(scanner: &mut Scanner) -> Result<Option<Charge>, Error> {
                         scanner.pop();
 
                         Ok(Some(Charge::Two))
-                    },
-                    _ => Ok(Some(Charge::One))
-                }
+                    }
+                    _ => Ok(Some(Charge::One)),
+                },
             }
-        },
+        }
         Some('-') => {
             scanner.pop();
 
@@ -31,11 +31,11 @@ pub fn read_charge(scanner: &mut Scanner) -> Result<Option<Charge>, Error> {
 
                         Ok(Some(Charge::MinusTwo))
                     }
-                    _ => Ok(Some(Charge::MinusOne))
-                }
+                    _ => Ok(Some(Charge::MinusOne)),
+                },
             }
-        },
-        _ => Ok(None)
+        }
+        _ => Ok(None),
     }
 }
 
@@ -49,9 +49,9 @@ fn fifteen(scanner: &mut Scanner) -> Option<i8> {
                     Some('3') => 13,
                     Some('4') => 14,
                     Some('5') => 15,
-                    _ => 1
+                    _ => 1,
                 },
-                _ => 1
+                _ => 1,
             },
             Some('2') => 2,
             Some('3') => 3,
@@ -61,16 +61,16 @@ fn fifteen(scanner: &mut Scanner) -> Option<i8> {
             Some('7') => 7,
             Some('8') => 8,
             Some('9') => 9,
-            _ => unreachable!("fifteen")
+            _ => unreachable!("fifteen"),
         }),
-        _ => None
+        _ => None,
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use pretty_assertions::assert_eq;
     use super::*;
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn none() {

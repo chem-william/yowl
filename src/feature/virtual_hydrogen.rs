@@ -1,9 +1,9 @@
-use std::fmt;
 use std::convert::TryFrom;
+use std::fmt;
 
 /// Represents the virtual hydrogen count on a bracket atom.
 /// See: [Hydrogen Suppression in SMILES](https://depth-first.com/articles/2020/06/08/hydrogen-suppression-in-smiles/).
-#[derive(Debug,PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum VirtualHydrogen {
     H0,
     H1,
@@ -14,7 +14,7 @@ pub enum VirtualHydrogen {
     H6,
     H7,
     H8,
-    H9
+    H9,
 }
 
 impl VirtualHydrogen {
@@ -39,7 +39,7 @@ impl TryFrom<u8> for VirtualHydrogen {
             7 => Ok(Self::H7),
             8 => Ok(Self::H8),
             9 => Ok(Self::H9),
-            _ => Err(())
+            _ => Err(()),
         }
     }
 }
@@ -56,24 +56,28 @@ impl Into<u8> for &VirtualHydrogen {
             VirtualHydrogen::H6 => 6,
             VirtualHydrogen::H7 => 7,
             VirtualHydrogen::H8 => 8,
-            VirtualHydrogen::H9 => 9
+            VirtualHydrogen::H9 => 9,
         }
     }
 }
 
 impl fmt::Display for VirtualHydrogen {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", match self {
-            VirtualHydrogen::H0 => "",
-            VirtualHydrogen::H1 => "H",
-            VirtualHydrogen::H2 => "H2",
-            VirtualHydrogen::H3 => "H3",
-            VirtualHydrogen::H4 => "H4",
-            VirtualHydrogen::H5 => "H5",
-            VirtualHydrogen::H6 => "H6",
-            VirtualHydrogen::H7 => "H7",
-            VirtualHydrogen::H8 => "H8",
-            VirtualHydrogen::H9 => "H9",
-        })
+        write!(
+            f,
+            "{}",
+            match self {
+                VirtualHydrogen::H0 => "",
+                VirtualHydrogen::H1 => "H",
+                VirtualHydrogen::H2 => "H2",
+                VirtualHydrogen::H3 => "H3",
+                VirtualHydrogen::H4 => "H4",
+                VirtualHydrogen::H5 => "H5",
+                VirtualHydrogen::H6 => "H6",
+                VirtualHydrogen::H7 => "H7",
+                VirtualHydrogen::H8 => "H8",
+                VirtualHydrogen::H9 => "H9",
+            }
+        )
     }
 }

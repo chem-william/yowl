@@ -1,11 +1,11 @@
-use crate::feature::AtomKind;
 use super::Bond;
+use crate::feature::AtomKind;
 
 /// Atom used in graph-like (adjacency) SMILES representation.
-#[derive(Debug,PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct Atom {
     pub kind: AtomKind,
-    pub bonds: Vec<Bond>
+    pub bonds: Vec<Bond>,
 }
 
 impl Atom {
@@ -13,7 +13,7 @@ impl Atom {
     pub fn new(kind: AtomKind) -> Self {
         Self {
             kind,
-            bonds: vec![ ]
+            bonds: vec![],
         }
     }
 
@@ -30,21 +30,25 @@ impl Atom {
         let hcount: u8 = match &self.kind {
             AtomKind::Bracket { hcount, .. } => match hcount {
                 Some(hcount) => hcount.into(),
-                None => 0
-            }
-            _ => 0
+                None => 0,
+            },
+            _ => 0,
         };
-        let valence = self.bonds.iter().fold(hcount, |sum,bond| {
-            sum + bond.order()
-        });
-        let targets = self.kind.targets().iter()
+        let valence = self
+            .bonds
+            .iter()
+            .fold(hcount, |sum, bond| sum + bond.order());
+        let targets = self
+            .kind
+            .targets()
+            .iter()
             .find(|&&target| target >= valence);
 
         let target = match targets {
             Some(target) => target,
-            None => return 0
+            None => return 0,
         };
-        
+
         target - valence
     }
 
@@ -61,30 +65,29 @@ impl Atom {
                 } else {
                     0
                 }
-            },
+            }
             AtomKind::Aliphatic(_) => self.subvalence(),
             AtomKind::Bracket { hcount, .. } => match hcount {
                 Some(hcount) => hcount.into(),
-                None => 0
-            }
+                None => 0,
+            },
         }
     }
-    
 }
 
 #[cfg(test)]
 mod subvalence {
-    use crate::feature::{
-        BondKind, BracketSymbol, Element, BracketAromatic, Aliphatic, Aromatic,
-        Charge, VirtualHydrogen
-    };
     use super::*;
+    use crate::feature::{
+        Aliphatic, Aromatic, BondKind, BracketAromatic, BracketSymbol, Charge, Element,
+        VirtualHydrogen,
+    };
 
     #[test]
     fn star() {
         let atom = Atom {
             kind: AtomKind::Star,
-            bonds: vec![ ]
+            bonds: vec![],
         };
 
         assert_eq!(atom.subvalence(), 0)
@@ -94,9 +97,7 @@ mod subvalence {
     fn star_single() {
         let atom = Atom {
             kind: AtomKind::Star,
-            bonds: vec![
-                Bond::new(BondKind::Single, 1)
-            ]
+            bonds: vec![Bond::new(BondKind::Single, 1)],
         };
 
         assert_eq!(atom.subvalence(), 0)
@@ -106,9 +107,7 @@ mod subvalence {
     fn carbon_single() {
         let atom = Atom {
             kind: AtomKind::Aliphatic(Aliphatic::C),
-            bonds: vec![
-                Bond::new(BondKind::Single, 1)
-            ]
+            bonds: vec![Bond::new(BondKind::Single, 1)],
         };
 
         assert_eq!(atom.subvalence(), 3)
@@ -118,9 +117,7 @@ mod subvalence {
     fn aromatic_carbon_single() {
         let atom = Atom {
             kind: AtomKind::Aromatic(Aromatic::C),
-            bonds: vec![
-                Bond::new(BondKind::Single, 1)
-            ]
+            bonds: vec![Bond::new(BondKind::Single, 1)],
         };
 
         assert_eq!(atom.subvalence(), 3)
@@ -135,11 +132,9 @@ mod subvalence {
                 configuration: None,
                 hcount: None,
                 charge: None,
-                map: None
+                map: None,
             },
-            bonds: vec![
-                Bond::new(BondKind::Single, 1)
-            ]
+            bonds: vec![Bond::new(BondKind::Single, 1)],
         };
 
         assert_eq!(atom.subvalence(), 0)
@@ -154,11 +149,9 @@ mod subvalence {
                 configuration: None,
                 hcount: Some(VirtualHydrogen::H1),
                 charge: None,
-                map: None
+                map: None,
             },
-            bonds: vec![
-
-            ]
+            bonds: vec![],
         };
 
         assert_eq!(atom.subvalence(), 3)
@@ -173,11 +166,9 @@ mod subvalence {
                 configuration: None,
                 hcount: None,
                 charge: None,
-                map: None
+                map: None,
             },
-            bonds: vec![
-                Bond::new(BondKind::Single, 1)
-            ]
+            bonds: vec![Bond::new(BondKind::Single, 1)],
         };
 
         assert_eq!(atom.subvalence(), 3)
@@ -192,11 +183,9 @@ mod subvalence {
                 configuration: None,
                 hcount: None,
                 charge: None,
-                map: None
+                map: None,
             },
-            bonds: vec![
-                Bond::new(BondKind::Single, 1)
-            ]
+            bonds: vec![Bond::new(BondKind::Single, 1)],
         };
 
         assert_eq!(atom.subvalence(), 3)
@@ -211,11 +200,9 @@ mod subvalence {
                 configuration: None,
                 hcount: Some(VirtualHydrogen::H1),
                 charge: None,
-                map: None
+                map: None,
             },
-            bonds: vec![
-                Bond::new(BondKind::Single, 1)
-            ]
+            bonds: vec![Bond::new(BondKind::Single, 1)],
         };
 
         assert_eq!(atom.subvalence(), 2)
@@ -230,12 +217,12 @@ mod subvalence {
                 configuration: None,
                 hcount: None,
                 charge: Some(Charge::One),
-                map: None
+                map: None,
             },
             bonds: vec![
                 Bond::new(BondKind::Single, 1),
-                Bond::new(BondKind::Single, 2)
-            ]
+                Bond::new(BondKind::Single, 2),
+            ],
         };
 
         assert_eq!(atom.subvalence(), 1)
@@ -244,11 +231,9 @@ mod subvalence {
 
 #[cfg(test)]
 mod suppressed_hydrogens {
-    use pretty_assertions::assert_eq;
-    use crate::feature::{
-        Aromatic, Aliphatic, BondKind, BracketSymbol, Element, VirtualHydrogen
-    };
     use super::*;
+    use crate::feature::{Aliphatic, Aromatic, BondKind, BracketSymbol, Element, VirtualHydrogen};
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn star() {
@@ -264,8 +249,8 @@ mod suppressed_hydrogens {
             bonds: vec![
                 Bond::new(BondKind::Elided, 1),
                 Bond::new(BondKind::Elided, 2),
-                Bond::new(BondKind::Elided, 3)
-            ]
+                Bond::new(BondKind::Elided, 3),
+            ],
         };
 
         assert_eq!(atom.suppressed_hydrogens(), 0)
@@ -277,8 +262,8 @@ mod suppressed_hydrogens {
             kind: AtomKind::Aromatic(Aromatic::C),
             bonds: vec![
                 Bond::new(BondKind::Elided, 1),
-                Bond::new(BondKind::Elided, 2)
-            ]
+                Bond::new(BondKind::Elided, 2),
+            ],
         };
 
         assert_eq!(atom.suppressed_hydrogens(), 1)
@@ -292,8 +277,8 @@ mod suppressed_hydrogens {
                 Bond::new(BondKind::Elided, 1),
                 Bond::new(BondKind::Elided, 2),
                 Bond::new(BondKind::Elided, 3),
-                Bond::new(BondKind::Elided, 4)
-            ]
+                Bond::new(BondKind::Elided, 4),
+            ],
         };
 
         assert_eq!(atom.suppressed_hydrogens(), 0)
@@ -306,8 +291,8 @@ mod suppressed_hydrogens {
             bonds: vec![
                 Bond::new(BondKind::Elided, 1),
                 Bond::new(BondKind::Elided, 2),
-                Bond::new(BondKind::Elided, 3)
-            ]
+                Bond::new(BondKind::Elided, 3),
+            ],
         };
 
         assert_eq!(atom.suppressed_hydrogens(), 1)
@@ -319,8 +304,8 @@ mod suppressed_hydrogens {
             kind: AtomKind::Aliphatic(Aliphatic::C),
             bonds: vec![
                 Bond::new(BondKind::Elided, 1),
-                Bond::new(BondKind::Elided, 2)
-            ]
+                Bond::new(BondKind::Elided, 2),
+            ],
         };
 
         assert_eq!(atom.suppressed_hydrogens(), 2)
@@ -335,9 +320,9 @@ mod suppressed_hydrogens {
                 hcount: None,
                 charge: None,
                 configuration: None,
-                map: None
+                map: None,
             },
-            bonds: vec![ ]
+            bonds: vec![],
         };
 
         assert_eq!(atom.suppressed_hydrogens(), 0)
@@ -352,9 +337,9 @@ mod suppressed_hydrogens {
                 hcount: Some(VirtualHydrogen::H0),
                 charge: None,
                 configuration: None,
-                map: None
+                map: None,
             },
-            bonds: vec![ ]
+            bonds: vec![],
         };
 
         assert_eq!(atom.suppressed_hydrogens(), 0)
@@ -369,9 +354,9 @@ mod suppressed_hydrogens {
                 hcount: Some(VirtualHydrogen::H1),
                 charge: None,
                 configuration: None,
-                map: None
+                map: None,
             },
-            bonds: vec![ ]
+            bonds: vec![],
         };
 
         assert_eq!(atom.suppressed_hydrogens(), 1)

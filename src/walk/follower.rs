@@ -1,4 +1,4 @@
-use crate::feature::{ AtomKind, BondKind, Rnum };
+use crate::feature::{AtomKind, BondKind, Rnum};
 
 /// The actions possible when traversing a SMILES representation
 pub trait Follower {
@@ -11,18 +11,18 @@ pub trait Follower {
     /// A bond between the current head atom and the next head atom has
     /// been found. Using this method implies the existence of a head atom,
     /// as in methanol (`C-O` or `CO`).
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// Panics if headless.
     fn extend(&mut self, bond_kind: BondKind, atom_kind: AtomKind);
 
     /// A bond between the current head atom and a ring closure digit has
     /// been found. Using this method implies the existence of a head atom,
     /// as in cyclopropane (`C1CC1`).
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// Panics if headless.
     fn join(&mut self, bond_kind: BondKind, rnum: Rnum);
 
@@ -30,9 +30,9 @@ pub trait Follower {
     /// encountered, `Follower` builds a working path. Branching removes
     /// one or more atoms from the head of this path, exposing a new head.
     /// The newly-exposed head will have previously been a head.
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// Panics given depth exceeds the length of the current path.
     fn pop(&mut self, depth: usize);
 }

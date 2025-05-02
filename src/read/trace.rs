@@ -1,17 +1,17 @@
+use std::collections::{hash_map::Entry, HashMap};
 use std::ops::Range;
-use std::collections::{ HashMap, hash_map::Entry };
 
 use crate::feature::Rnum;
 
 /// Maps the features of an ajacency representation to cursors within a
 /// string representation.
-#[derive(Debug,PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct Trace {
     atoms: Vec<Range<usize>>,
     bonds: HashMap<(usize, usize), usize>,
     stack: Vec<usize>,
     opens: HashMap<Rnum, Open>,
-    rnums: Vec<Range<usize>>
+    rnums: Vec<Range<usize>>,
 }
 
 impl Trace {
@@ -21,7 +21,7 @@ impl Trace {
             bonds: HashMap::new(),
             stack: Vec::new(),
             opens: HashMap::new(),
-            rnums: Vec::new()
+            rnums: Vec::new(),
         }
     }
 
@@ -63,9 +63,7 @@ impl Trace {
     }
 
     /// Joins a ring closure to head.
-    pub fn join(
-        &mut self, bond_cursor: usize, rnum_cursor: Range<usize>, rnum: Rnum
-    ) {
+    pub fn join(&mut self, bond_cursor: usize, rnum_cursor: Range<usize>, rnum: Rnum) {
         let sid = *self.stack.last().expect("last on stack");
 
         match self.opens.entry(rnum) {
@@ -74,12 +72,12 @@ impl Trace {
 
                 self.bonds.insert((sid, open.sid), bond_cursor);
                 self.bonds.insert((open.sid, sid), open.bond_cursor);
-            },
+            }
             Entry::Vacant(vacant) => {
                 vacant.insert(Open {
                     sid,
                     bond_cursor,
-                    rnum_cursor: rnum_cursor.clone()
+                    rnum_cursor: rnum_cursor.clone(),
                 });
             }
         }
@@ -88,9 +86,9 @@ impl Trace {
     }
 
     /// Pops back by `depth`.
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// Panics if depth is greater than or equal to the current chain
     /// length.
     pub fn pop(&mut self, depth: usize) {
@@ -104,11 +102,11 @@ impl Trace {
     }
 }
 
-#[derive(Debug,PartialEq)]
+#[derive(Debug, PartialEq)]
 struct Open {
     sid: usize,
     bond_cursor: usize,
-    rnum_cursor: Range<usize>
+    rnum_cursor: Range<usize>,
 }
 
 #[cfg(test)]
@@ -127,8 +125,8 @@ mod pop {
 
 #[cfg(test)]
 mod tests {
-    use pretty_assertions::assert_eq;
     use super::*;
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn p3() {

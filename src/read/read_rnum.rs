@@ -1,17 +1,15 @@
 use std::convert::TryInto;
 
+use super::{missing_character::missing_character, scanner::Scanner, Error};
 use crate::feature::Rnum;
-use super::{ scanner::Scanner, Error, missing_character::missing_character };
 
-pub fn read_rnum(
-    scanner: &mut Scanner
-) -> Result<Option<Rnum>, Error> {
+pub fn read_rnum(scanner: &mut Scanner) -> Result<Option<Rnum>, Error> {
     let mut digits = String::new();
 
     match scanner.peek() {
         Some('0'..='9') => {
             digits.push(*scanner.pop().unwrap());
-        },
+        }
         Some('%') => {
             scanner.pop();
 
@@ -19,12 +17,12 @@ pub fn read_rnum(
                 match scanner.peek() {
                     Some('0'..='9') => {
                         digits.push(*scanner.pop().expect("scanner done"));
-                    },
-                    _ => return Err(missing_character(scanner))
+                    }
+                    _ => return Err(missing_character(scanner)),
                 }
             }
-        },
-        _ => return Ok(None)
+        }
+        _ => return Ok(None),
     }
 
     let rnum = digits.parse::<u16>().expect("rnum to u16");

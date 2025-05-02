@@ -1,8 +1,6 @@
 use crate::feature::BondKind;
 
-pub fn reconcile(
-    left: BondKind, right: BondKind
-) -> Option<(BondKind, BondKind)> {
+pub fn reconcile(left: BondKind, right: BondKind) -> Option<(BondKind, BondKind)> {
     if left == right {
         if left == BondKind::Up || left == BondKind::Down {
             None
@@ -17,13 +15,13 @@ pub fn reconcile(
         match right {
             BondKind::Up => Some((BondKind::Down, right)),
             BondKind::Down => Some((BondKind::Up, right)),
-            _ => Some((right.clone(), right))
+            _ => Some((right.clone(), right)),
         }
     } else if right == BondKind::Elided {
         match left {
             BondKind::Up => Some((left, BondKind::Down)),
             BondKind::Down => Some((left, BondKind::Up)),
-            _ => Some((left.clone(), left))
+            _ => Some((left.clone(), left)),
         }
     } else {
         None
@@ -32,31 +30,22 @@ pub fn reconcile(
 
 #[cfg(test)]
 mod tests {
-    use pretty_assertions::assert_eq;
     use super::*;
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn single_double() {
-        assert_eq!(
-            reconcile(BondKind::Single, BondKind::Double),
-            None
-        )
+        assert_eq!(reconcile(BondKind::Single, BondKind::Double), None)
     }
 
     #[test]
     fn up_up() {
-        assert_eq!(
-            reconcile(BondKind::Up, BondKind::Up),
-            None
-        )
+        assert_eq!(reconcile(BondKind::Up, BondKind::Up), None)
     }
 
     #[test]
     fn down_down() {
-        assert_eq!(
-            reconcile(BondKind::Down, BondKind::Down),
-            None
-        )
+        assert_eq!(reconcile(BondKind::Down, BondKind::Down), None)
     }
 
     #[test]

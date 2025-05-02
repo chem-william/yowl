@@ -1,10 +1,10 @@
-use std::convert::{ TryFrom, TryInto, From };
+use std::convert::{From, TryFrom, TryInto};
 use std::fmt;
 
 /// An integer from zero to 1,000.
-#[derive(Debug,PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct Number {
-    value: u16
+    value: u16,
 }
 
 impl TryFrom<u16> for Number {
@@ -12,7 +12,7 @@ impl TryFrom<u16> for Number {
 
     fn try_from(value: u16) -> Result<Self, Self::Error> {
         if value < 1000 {
-            return Ok(Number { value })
+            return Ok(Number { value });
         } else {
             Err(())
         }
@@ -30,8 +30,8 @@ impl TryInto<Number> for String {
 
     fn try_into(self) -> Result<Number, Self::Error> {
         match self.parse::<u16>() {
-            Ok(number) => Ok(Number { value: number}),
-            Err(_) => Err(())
+            Ok(number) => Ok(Number { value: number }),
+            Err(_) => Err(()),
         }
     }
 }

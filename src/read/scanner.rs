@@ -1,14 +1,14 @@
 #[derive(Debug)]
 pub struct Scanner {
     cursor: usize,
-    characters: Vec<char>
+    characters: Vec<char>,
 }
 
 impl Scanner {
     pub fn new(string: &str) -> Self {
         Self {
             cursor: 0,
-            characters: string.chars().collect()
+            characters: string.chars().collect(),
         }
     }
 
@@ -30,8 +30,8 @@ impl Scanner {
                 self.cursor = self.cursor + 1;
 
                 Some(result)
-            },
-            None => None
+            }
+            None => None,
         }
     }
 }

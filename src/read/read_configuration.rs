@@ -1,13 +1,7 @@
+use super::{missing_character::missing_character, scanner::Scanner, Error};
 use crate::feature::Configuration;
-use super::{
-    scanner::Scanner,
-    Error,
-    missing_character::missing_character
-};
 
-pub fn read_configuration(
-    scanner: &mut Scanner
-) -> Result<Option<Configuration>, Error> {
+pub fn read_configuration(scanner: &mut Scanner) -> Result<Option<Configuration>, Error> {
     Ok(Some(match scanner.peek() {
         Some('@') => {
             scanner.pop();
@@ -15,9 +9,9 @@ pub fn read_configuration(
             match scanner.peek() {
                 Some('@') => {
                     scanner.pop();
-    
+
                     Configuration::TH2
-                },
+                }
                 Some('A') => {
                     scanner.pop();
 
@@ -26,10 +20,10 @@ pub fn read_configuration(
                             scanner.pop();
 
                             allene(scanner)?
-                        },
-                        _ => return Err(missing_character(scanner))
+                        }
+                        _ => return Err(missing_character(scanner)),
                     }
-                },
+                }
                 Some('O') => {
                     scanner.pop();
 
@@ -38,10 +32,10 @@ pub fn read_configuration(
                             scanner.pop();
 
                             octahedral(scanner)?
-                        },
-                        _ => return Err(missing_character(scanner))
+                        }
+                        _ => return Err(missing_character(scanner)),
                     }
-                },
+                }
                 Some('S') => {
                     scanner.pop();
 
@@ -50,10 +44,10 @@ pub fn read_configuration(
                             scanner.pop();
 
                             square_planar(scanner)?
-                        },
-                        _ => return Err(missing_character(scanner))
+                        }
+                        _ => return Err(missing_character(scanner)),
                     }
-                },
+                }
                 Some('T') => {
                     scanner.pop();
 
@@ -62,19 +56,19 @@ pub fn read_configuration(
                             scanner.pop();
 
                             trigonal_bipyramidal(scanner)?
-                        },
+                        }
                         Some('H') => {
                             scanner.pop();
 
                             tetrahedral(scanner)?
-                        },
-                        _ => return Err(missing_character(scanner))
+                        }
+                        _ => return Err(missing_character(scanner)),
                     }
-                },
-                _ => Configuration::TH1
+                }
+                _ => Configuration::TH1,
             }
-        },
-        _ => return Ok(None)
+        }
+        _ => return Ok(None),
     }))
 }
 
@@ -84,13 +78,13 @@ fn tetrahedral(scanner: &mut Scanner) -> Result<Configuration, Error> {
             scanner.pop();
 
             Configuration::TH1
-        },
+        }
         Some('2') => {
             scanner.pop();
 
             Configuration::TH2
-        },
-        _ => return Err(missing_character(scanner))
+        }
+        _ => return Err(missing_character(scanner)),
     })
 }
 
@@ -100,13 +94,13 @@ fn allene(scanner: &mut Scanner) -> Result<Configuration, Error> {
             scanner.pop();
 
             Configuration::AL1
-        },
+        }
         Some('2') => {
             scanner.pop();
 
             Configuration::AL2
-        },
-        _ => return Err(missing_character(scanner))
+        }
+        _ => return Err(missing_character(scanner)),
     })
 }
 
@@ -116,18 +110,18 @@ fn square_planar(scanner: &mut Scanner) -> Result<Configuration, Error> {
             scanner.pop();
 
             Configuration::SP1
-        },
+        }
         Some('2') => {
             scanner.pop();
 
             Configuration::SP2
-        },
+        }
         Some('3') => {
             scanner.pop();
 
             Configuration::SP3
         }
-        _ => return Err(missing_character(scanner))
+        _ => return Err(missing_character(scanner)),
     })
 }
 
@@ -145,17 +139,17 @@ fn trigonal_bipyramidal(scanner: &mut Scanner) -> Result<Configuration, Error> {
                 Some('7') => Configuration::TB17,
                 Some('8') => Configuration::TB18,
                 Some('9') => Configuration::TB19,
-                _ => unreachable!("TB1X")
+                _ => unreachable!("TB1X"),
             },
-            _ => Configuration::TB1
+            _ => Configuration::TB1,
         },
         Some('2') => match scanner.peek() {
             Some('0') => {
                 scanner.pop();
 
                 Configuration::TB20
-            },
-            _ => Configuration::TB2
+            }
+            _ => Configuration::TB2,
         },
         Some('3') => Configuration::TB3,
         Some('4') => Configuration::TB4,
@@ -164,7 +158,7 @@ fn trigonal_bipyramidal(scanner: &mut Scanner) -> Result<Configuration, Error> {
         Some('7') => Configuration::TB7,
         Some('8') => Configuration::TB8,
         Some('9') => Configuration::TB9,
-        _ => return Err(missing_character(scanner))
+        _ => return Err(missing_character(scanner)),
     })
 }
 
@@ -182,9 +176,9 @@ fn octahedral(scanner: &mut Scanner) -> Result<Configuration, Error> {
                 Some('7') => Configuration::OH17,
                 Some('8') => Configuration::OH18,
                 Some('9') => Configuration::OH19,
-                _ => unreachable!("OH1X")
+                _ => unreachable!("OH1X"),
             },
-            _ => Configuration::OH1
+            _ => Configuration::OH1,
         },
         Some('2') => match scanner.peek() {
             Some('0'..='9') => match scanner.pop() {
@@ -198,17 +192,17 @@ fn octahedral(scanner: &mut Scanner) -> Result<Configuration, Error> {
                 Some('7') => Configuration::OH27,
                 Some('8') => Configuration::OH28,
                 Some('9') => Configuration::OH29,
-                _ => unreachable!("OH2X")
+                _ => unreachable!("OH2X"),
             },
-            _ => Configuration::OH2
+            _ => Configuration::OH2,
         },
         Some('3') => match scanner.peek() {
             Some('0') => {
                 scanner.pop();
 
                 Configuration::OH30
-            },
-            _ => Configuration::OH3
+            }
+            _ => Configuration::OH3,
         },
         Some('4') => Configuration::OH4,
         Some('5') => Configuration::OH5,
@@ -216,14 +210,14 @@ fn octahedral(scanner: &mut Scanner) -> Result<Configuration, Error> {
         Some('7') => Configuration::OH7,
         Some('8') => Configuration::OH8,
         Some('9') => Configuration::OH9,
-        _ => return Err(missing_character(scanner))
+        _ => return Err(missing_character(scanner)),
     })
 }
 
 #[cfg(test)]
 mod tests {
-    use pretty_assertions::assert_eq;
     use super::*;
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn counterclockwise() {

@@ -2,7 +2,7 @@ use std::fmt;
 
 /// A kind of bond. Elided bonds are not present in the corresponding
 /// string representation.
-#[derive(Debug,PartialEq,Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum BondKind {
     Elided,
     Single,
@@ -11,7 +11,7 @@ pub enum BondKind {
     Quadruple,
     Aromatic,
     Up,
-    Down
+    Down,
 }
 
 impl BondKind {
@@ -26,7 +26,7 @@ impl BondKind {
             Self::Quadruple => Self::Quadruple,
             Self::Aromatic => Self::Aromatic,
             Self::Up => Self::Down,
-            Self::Down => Self::Up
+            Self::Down => Self::Up,
         }
     }
 }
@@ -41,7 +41,7 @@ impl fmt::Display for BondKind {
             Self::Quadruple => write!(f, "$"),
             Self::Up => write!(f, "/"),
             Self::Down => write!(f, "\\"),
-            Self::Aromatic => write!(f, ":")
+            Self::Aromatic => write!(f, ":"),
         }
     }
 }

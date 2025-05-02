@@ -1,8 +1,8 @@
+use std::convert::{Into, TryFrom};
 use std::fmt;
-use std::convert::{ Into, TryFrom };
 
 /// An integer charge from -15 to +15.
-#[derive(Debug,PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum Charge {
     MinusFifteen,
     MinusFourteen,
@@ -33,7 +33,7 @@ pub enum Charge {
     Twelve,
     Thirteen,
     Fourteen,
-    Fifteen
+    Fifteen,
 }
 
 impl TryFrom<i8> for Charge {
@@ -71,7 +71,7 @@ impl TryFrom<i8> for Charge {
             13 => Self::Thirteen,
             14 => Self::Fourteen,
             15 => Self::Fifteen,
-            _ => return Err(())
+            _ => return Err(()),
         })
     }
 }
@@ -108,44 +108,48 @@ impl Into<i8> for &Charge {
             Charge::Twelve => 12,
             Charge::Thirteen => 13,
             Charge::Fourteen => 14,
-            Charge::Fifteen => 15
+            Charge::Fifteen => 15,
         }
     }
 }
 
 impl fmt::Display for Charge {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", match self {
-            Charge::MinusFifteen => "-15",
-            Charge::MinusFourteen => "-14",
-            Charge::MinusThirteen => "-13",
-            Charge::MinusTwelve => "-12",
-            Charge::MinusEleven => "-11",
-            Charge::MinusTen => "-10",
-            Charge::MinusNine => "-9",
-            Charge::MinusEight => "-8",
-            Charge::MinusSeven => "-7",
-            Charge::MinusSix => "-6",
-            Charge::MinusFive => "-5",
-            Charge::MinusFour => "-4",
-            Charge::MinusThree => "-3",
-            Charge::MinusTwo => "-2",
-            Charge::MinusOne => "-",
-            Charge::One => "+",
-            Charge::Two => "+2",
-            Charge::Three => "+3",
-            Charge::Four => "+4",
-            Charge::Five =>" +5",
-            Charge::Six => "+6",
-            Charge::Seven => "+7",
-            Charge::Eight =>"+8",
-            Charge::Nine => "+9",
-            Charge::Ten => "+10",
-            Charge::Eleven => "+11",
-            Charge::Twelve => "+12",
-            Charge::Thirteen => "+13",
-            Charge::Fourteen => "+14",
-            Charge::Fifteen => "+15"
-        })
+        write!(
+            f,
+            "{}",
+            match self {
+                Charge::MinusFifteen => "-15",
+                Charge::MinusFourteen => "-14",
+                Charge::MinusThirteen => "-13",
+                Charge::MinusTwelve => "-12",
+                Charge::MinusEleven => "-11",
+                Charge::MinusTen => "-10",
+                Charge::MinusNine => "-9",
+                Charge::MinusEight => "-8",
+                Charge::MinusSeven => "-7",
+                Charge::MinusSix => "-6",
+                Charge::MinusFive => "-5",
+                Charge::MinusFour => "-4",
+                Charge::MinusThree => "-3",
+                Charge::MinusTwo => "-2",
+                Charge::MinusOne => "-",
+                Charge::One => "+",
+                Charge::Two => "+2",
+                Charge::Three => "+3",
+                Charge::Four => "+4",
+                Charge::Five => " +5",
+                Charge::Six => "+6",
+                Charge::Seven => "+7",
+                Charge::Eight => "+8",
+                Charge::Nine => "+9",
+                Charge::Ten => "+10",
+                Charge::Eleven => "+11",
+                Charge::Twelve => "+12",
+                Charge::Thirteen => "+13",
+                Charge::Fourteen => "+14",
+                Charge::Fifteen => "+15",
+            }
+        )
     }
 }
