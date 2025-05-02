@@ -127,7 +127,7 @@ fn main() -> Result<(), Error> {
 The output string doesn't match the input string, although both represent the same molecule (Cl-37 chlorobenzene). `write` traces `atoms` in depth-first order, but the adjacency representation (`atoms`) lacks information about how the original SMILES tree was cut.
 
 ## Why a hard fork
-The original author of Purr has [seemingly passed away](https://doi.org/10.59350/myaw4-dtg76)—[he chronicled some of his time with cancer on his personal blog](https://depth-first.com/articles/2024/05/24/bridge-to-nowhere/)—and the library needed extensions to accept a broader set of SMILES inputs (e.g., RDKit-compatible strings). Yowl continues maintenance and adds new features.
+The original author of Purr has [seemingly passed away](https://doi.org/10.59350/myaw4-dtg76) ([he chronicled some of his time with cancer on his personal blog](https://depth-first.com/articles/2024/05/24/bridge-to-nowhere/)), and the library needed extensions to accept a broader set of SMILES inputs (e.g., RDKit-compatible strings). Yowl continues maintenance and adds new features.
 
 ## Contributing
 
