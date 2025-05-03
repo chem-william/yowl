@@ -32,10 +32,9 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, Error> {
         }
         Some('t') => {
             scanner.pop();
-
             match scanner.peek() {
                 Some('e') => aromatic(BracketAromatic::Te, scanner),
-                _ => Ok(BracketSymbol::Aromatic(BracketAromatic::Te)),
+                _ => Err(missing_character(scanner)),
             }
         }
         Some('A') => {
