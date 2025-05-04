@@ -1,3 +1,6 @@
+[![Codecov](https://codecov.io/github/chem-william/yowl/coverage.svg?branch=main)](https://codecov.io/gh/chem-william/yowl)
+[![dependency status](https://deps.rs/repo/github/chem-william/yowl/status.svg)](https://deps.rs/repo/github/chem-william/yowl)
+
 # Yowl
 
 **Primitives for reading and writing SMILES strings in Rust.**
