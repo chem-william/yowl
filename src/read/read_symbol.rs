@@ -263,7 +263,27 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, Error> {
                 _ => Err(missing_character(scanner)),
             }
         }
-        Some('U') => element(Element::U, scanner),
+        Some('U') => {
+            scanner.pop();
+            match scanner.peek() {
+                Some('u') => {
+                    scanner.pop();
+                    match scanner.peek() {
+                        Some('n') => element(Element::Uun, scanner),
+                        Some('u') => element(Element::Uuu, scanner),
+                        Some('b') => element(Element::Uub, scanner),
+                        Some('t') => element(Element::Uut, scanner),
+                        Some('q') => element(Element::Uuq, scanner),
+                        Some('p') => element(Element::Uup, scanner),
+                        Some('h') => element(Element::Uuh, scanner),
+                        Some('s') => element(Element::Uus, scanner),
+                        Some('o') => element(Element::Uuo, scanner),
+                        _ => Err(missing_character(scanner)),
+                    }
+                }
+                _ => Ok(BracketSymbol::Element(Element::U)),
+            }
+        }
         Some('V') => element(Element::V, scanner),
         Some('W') => element(Element::W, scanner),
         Some('X') => {
