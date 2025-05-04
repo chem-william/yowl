@@ -245,6 +245,13 @@ mod read {
     }
 
     #[test]
+    fn invalid_single_quote() {
+        let mut writer = Writer::new();
+
+        assert_eq!(read("C['", &mut writer, None), Err(Error::Character(2)));
+    }
+
+    #[test]
     fn leading_paren() {
         let mut writer = Writer::new();
 
