@@ -14,6 +14,7 @@ pub fn read_organic(scanner: &mut Scanner) -> Result<Option<AtomKind>, Error> {
 
             match scanner.peek() {
                 Some('t') => aliphatic(Aliphatic::At, scanner),
+
                 _ => Err(missing_character(scanner)),
             }
         }
