@@ -1,6 +1,17 @@
 use super::{missing_character::missing_character, scanner::Scanner, Error};
 use crate::feature::Configuration;
 
+/// Reads the configuration of a molecule from the scanner.
+/// The configuration is specified using the following syntax:
+/// - `@` for counterclockwise tetrahedral chirality
+/// - `@@` for clockwise tetrahedral chirality
+/// - `@TH1` for counterclockwise tetrahedral chirality (same as `@`)
+/// - `@TH2` for clockwise tetrahedral chirality (same as `@@`)
+/// - `@AL1` for allene configuration 1 (same as `@`)
+/// - `@AL2` for allene configuration 2 (same as `@@`)
+///
+/// If only the configuration is specified (whether it's TH, AL, etc.), but not the specific chirality (@TH1, @AL2, etc.)
+/// then UnspecifiedXX is returned where `XX` specifies the configuration.
 pub fn read_configuration(scanner: &mut Scanner) -> Result<Option<Configuration>, Error> {
     Ok(Some(match scanner.peek() {
         Some('@') => {
@@ -21,7 +32,7 @@ pub fn read_configuration(scanner: &mut Scanner) -> Result<Option<Configuration>
 
                             allene(scanner)?
                         }
-                        _ => return Err(missing_character(scanner)),
+                        _ => unreachable!("Should've hit UnspecifiedAL"),
                     }
                 }
                 Some('O') => {
@@ -33,7 +44,7 @@ pub fn read_configuration(scanner: &mut Scanner) -> Result<Option<Configuration>
 
                             octahedral(scanner)?
                         }
-                        _ => return Err(missing_character(scanner)),
+                        _ => unreachable!("Should've hit UnspecifiedOH"),
                     }
                 }
                 Some('S') => {
@@ -45,7 +56,7 @@ pub fn read_configuration(scanner: &mut Scanner) -> Result<Option<Configuration>
 
                             square_planar(scanner)?
                         }
-                        _ => return Err(missing_character(scanner)),
+                        _ => unreachable!("Should've hit UnspecifiedSP"),
                     }
                 }
                 Some('T') => {
@@ -62,7 +73,7 @@ pub fn read_configuration(scanner: &mut Scanner) -> Result<Option<Configuration>
 
                             tetrahedral(scanner)?
                         }
-                        _ => return Err(missing_character(scanner)),
+                        _ => unreachable!("Should've hit UnspecifiedTB or TH"),
                     }
                 }
                 _ => Configuration::TH1,
@@ -84,7 +95,8 @@ fn tetrahedral(scanner: &mut Scanner) -> Result<Configuration, Error> {
 
             Configuration::TH2
         }
-        _ => return Err(missing_character(scanner)),
+        Some('3'..='9') => return Err(missing_character(scanner)),
+        _ => Configuration::UnspecifiedTH, // Stereochemistry not specified
     })
 }
 
@@ -100,7 +112,7 @@ fn allene(scanner: &mut Scanner) -> Result<Configuration, Error> {
 
             Configuration::AL2
         }
-        _ => return Err(missing_character(scanner)),
+        _ => Configuration::UnspecifiedAL,
     })
 }
 
@@ -121,99 +133,207 @@ fn square_planar(scanner: &mut Scanner) -> Result<Configuration, Error> {
 
             Configuration::SP3
         }
-        _ => return Err(missing_character(scanner)),
+        _ => Configuration::UnspecifiedSP, // Stereochemistry not specified
     })
 }
 
 fn trigonal_bipyramidal(scanner: &mut Scanner) -> Result<Configuration, Error> {
-    Ok(match scanner.pop() {
-        Some('1') => match scanner.peek() {
-            Some('0'..='9') => match scanner.pop() {
-                Some('0') => Configuration::TB10,
-                Some('1') => Configuration::TB11,
-                Some('2') => Configuration::TB12,
-                Some('3') => Configuration::TB13,
-                Some('4') => Configuration::TB14,
-                Some('5') => Configuration::TB15,
-                Some('6') => Configuration::TB16,
-                Some('7') => Configuration::TB17,
-                Some('8') => Configuration::TB18,
-                Some('9') => Configuration::TB19,
-                _ => unreachable!("TB1X"),
-            },
-            _ => Configuration::TB1,
-        },
-        Some('2') => match scanner.peek() {
-            Some('0') => {
-                scanner.pop();
+    Ok(match scanner.peek() {
+        Some('1') => {
+            scanner.pop();
 
-                Configuration::TB20
+            match scanner.peek() {
+                Some('0'..='9') => match scanner.pop() {
+                    Some('0') => Configuration::TB10,
+                    Some('1') => Configuration::TB11,
+                    Some('2') => Configuration::TB12,
+                    Some('3') => Configuration::TB13,
+                    Some('4') => Configuration::TB14,
+                    Some('5') => Configuration::TB15,
+                    Some('6') => Configuration::TB16,
+                    Some('7') => Configuration::TB17,
+                    Some('8') => Configuration::TB18,
+                    Some('9') => Configuration::TB19,
+                    _ => unreachable!("TB1X"),
+                },
+                _ => Configuration::TB1,
             }
-            _ => Configuration::TB2,
-        },
-        Some('3') => Configuration::TB3,
-        Some('4') => Configuration::TB4,
-        Some('5') => Configuration::TB5,
-        Some('6') => Configuration::TB6,
-        Some('7') => Configuration::TB7,
-        Some('8') => Configuration::TB8,
-        Some('9') => Configuration::TB9,
-        _ => return Err(missing_character(scanner)),
+        }
+        Some('2') => {
+            scanner.pop();
+
+            match scanner.peek() {
+                Some('0') => {
+                    scanner.pop();
+
+                    Configuration::TB20
+                }
+                _ => Configuration::TB2,
+            }
+        }
+        Some('3') => {
+            scanner.pop();
+
+            Configuration::TB3
+        }
+        Some('4') => {
+            scanner.pop();
+            Configuration::TB4
+        }
+        Some('5') => {
+            scanner.pop();
+            Configuration::TB5
+        }
+        Some('6') => {
+            scanner.pop();
+            Configuration::TB6
+        }
+        Some('7') => {
+            scanner.pop();
+            Configuration::TB7
+        }
+        Some('8') => {
+            scanner.pop();
+            Configuration::TB8
+        }
+        Some('9') => {
+            scanner.pop();
+            Configuration::TB9
+        }
+        _ => Configuration::UnspecifiedTB, // Stereochemistry not specified
     })
 }
 
 fn octahedral(scanner: &mut Scanner) -> Result<Configuration, Error> {
-    Ok(match scanner.pop() {
-        Some('1') => match scanner.peek() {
-            Some('0'..='9') => match scanner.pop() {
-                Some('0') => Configuration::OH10,
-                Some('1') => Configuration::OH11,
-                Some('2') => Configuration::OH12,
-                Some('3') => Configuration::OH13,
-                Some('4') => Configuration::OH14,
-                Some('5') => Configuration::OH15,
-                Some('6') => Configuration::OH16,
-                Some('7') => Configuration::OH17,
-                Some('8') => Configuration::OH18,
-                Some('9') => Configuration::OH19,
-                _ => unreachable!("OH1X"),
-            },
-            _ => Configuration::OH1,
-        },
-        Some('2') => match scanner.peek() {
-            Some('0'..='9') => match scanner.pop() {
-                Some('0') => Configuration::OH20,
-                Some('1') => Configuration::OH21,
-                Some('2') => Configuration::OH22,
-                Some('3') => Configuration::OH23,
-                Some('4') => Configuration::OH24,
-                Some('5') => Configuration::OH25,
-                Some('6') => Configuration::OH26,
-                Some('7') => Configuration::OH27,
-                Some('8') => Configuration::OH28,
-                Some('9') => Configuration::OH29,
-                _ => unreachable!("OH2X"),
-            },
-            _ => Configuration::OH2,
-        },
-        Some('3') => match scanner.peek() {
-            Some('0') => {
-                scanner.pop();
+    Ok(match scanner.peek() {
+        Some('1') => {
+            scanner.pop();
 
-                Configuration::OH30
+            match scanner.peek() {
+                Some('0'..='9') => match scanner.pop() {
+                    Some('0') => Configuration::OH10,
+                    Some('1') => Configuration::OH11,
+                    Some('2') => Configuration::OH12,
+                    Some('3') => Configuration::OH13,
+                    Some('4') => Configuration::OH14,
+                    Some('5') => Configuration::OH15,
+                    Some('6') => Configuration::OH16,
+                    Some('7') => Configuration::OH17,
+                    Some('8') => Configuration::OH18,
+                    Some('9') => Configuration::OH19,
+                    _ => unreachable!("OH1X"),
+                },
+                _ => Configuration::OH1,
             }
-            _ => Configuration::OH3,
-        },
-        Some('4') => Configuration::OH4,
-        Some('5') => Configuration::OH5,
-        Some('6') => Configuration::OH6,
-        Some('7') => Configuration::OH7,
-        Some('8') => Configuration::OH8,
-        Some('9') => Configuration::OH9,
-        _ => return Err(missing_character(scanner)),
+        }
+        Some('2') => {
+            scanner.pop();
+
+            match scanner.peek() {
+                Some('0'..='9') => match scanner.pop() {
+                    Some('0') => Configuration::OH20,
+                    Some('1') => Configuration::OH21,
+                    Some('2') => Configuration::OH22,
+                    Some('3') => Configuration::OH23,
+                    Some('4') => Configuration::OH24,
+                    Some('5') => Configuration::OH25,
+                    Some('6') => Configuration::OH26,
+                    Some('7') => Configuration::OH27,
+                    Some('8') => Configuration::OH28,
+                    Some('9') => Configuration::OH29,
+                    _ => unreachable!("OH2X"),
+                },
+                _ => Configuration::OH2,
+            }
+        }
+        Some('3') => {
+            scanner.pop();
+
+            match scanner.peek() {
+                Some('0') => {
+                    scanner.pop();
+
+                    Configuration::OH30
+                }
+                _ => Configuration::OH3,
+            }
+        }
+        Some('4') => {
+            scanner.pop();
+            Configuration::OH4
+        }
+        Some('5') => {
+            scanner.pop();
+            Configuration::OH5
+        }
+        Some('6') => {
+            scanner.pop();
+            Configuration::OH6
+        }
+        Some('7') => {
+            scanner.pop();
+            Configuration::OH7
+        }
+        Some('8') => {
+            scanner.pop();
+            Configuration::OH8
+        }
+        Some('9') => {
+            scanner.pop();
+            Configuration::OH9
+        }
+        _ => Configuration::UnspecifiedOH, // Stereochemistry not specified
     })
 }
+#[test]
+fn unspecified_th() {
+    let mut scanner = Scanner::new("@TH");
 
+    assert_eq!(
+        read_configuration(&mut scanner),
+        Ok(Some(Configuration::UnspecifiedTH))
+    )
+}
+
+#[test]
+fn unspecified_al() {
+    let mut scanner = Scanner::new("@AL");
+
+    assert_eq!(
+        read_configuration(&mut scanner),
+        Ok(Some(Configuration::UnspecifiedAL))
+    )
+}
+
+#[test]
+fn unspecified_sp() {
+    let mut scanner = Scanner::new("@SP");
+
+    assert_eq!(
+        read_configuration(&mut scanner),
+        Ok(Some(Configuration::UnspecifiedSP))
+    )
+}
+
+#[test]
+fn unspecified_tb() {
+    let mut scanner = Scanner::new("@TB");
+
+    assert_eq!(
+        read_configuration(&mut scanner),
+        Ok(Some(Configuration::UnspecifiedTB))
+    )
+}
+
+#[test]
+fn unspecified_oh() {
+    let mut scanner = Scanner::new("@OH");
+
+    assert_eq!(
+        read_configuration(&mut scanner),
+        Ok(Some(Configuration::UnspecifiedOH))
+    )
+}
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -260,12 +380,32 @@ mod tests {
     }
 
     #[test]
+    fn th_unspecified() {
+        let mut scanner = Scanner::new("@TH");
+
+        assert_eq!(
+            read_configuration(&mut scanner),
+            Ok(Some(Configuration::UnspecifiedTH))
+        )
+    }
+
+    #[test]
     fn al_1() {
         let mut scanner = Scanner::new("@AL1");
 
         assert_eq!(
             read_configuration(&mut scanner),
             Ok(Some(Configuration::AL1))
+        )
+    }
+
+    #[test]
+    fn al_2() {
+        let mut scanner = Scanner::new("@AL2");
+
+        assert_eq!(
+            read_configuration(&mut scanner),
+            Ok(Some(Configuration::AL2))
         )
     }
 
@@ -300,6 +440,16 @@ mod tests {
     }
 
     #[test]
+    fn tb_7() {
+        let mut scanner = Scanner::new("@TB7");
+
+        assert_eq!(
+            read_configuration(&mut scanner),
+            Ok(Some(Configuration::TB7))
+        )
+    }
+
+    #[test]
     fn tb_10() {
         let mut scanner = Scanner::new("@TB10");
 
@@ -310,12 +460,32 @@ mod tests {
     }
 
     #[test]
+    fn tb_19() {
+        let mut scanner = Scanner::new("@TB19");
+
+        assert_eq!(
+            read_configuration(&mut scanner),
+            Ok(Some(Configuration::TB19))
+        )
+    }
+
+    #[test]
     fn tb_20() {
         let mut scanner = Scanner::new("@TB20");
 
         assert_eq!(
             read_configuration(&mut scanner),
             Ok(Some(Configuration::TB20))
+        )
+    }
+
+    #[test]
+    fn tb_unspecified() {
+        let mut scanner = Scanner::new("@TB");
+
+        assert_eq!(
+            read_configuration(&mut scanner),
+            Ok(Some(Configuration::UnspecifiedTB))
         )
     }
 
@@ -410,6 +580,16 @@ mod tests {
     }
 
     #[test]
+    fn oh_unspecified() {
+        let mut scanner = Scanner::new("@OH");
+
+        assert_eq!(
+            read_configuration(&mut scanner),
+            Ok(Some(Configuration::UnspecifiedOH))
+        )
+    }
+
+    #[test]
     fn sp_1() {
         let mut scanner = Scanner::new("@SP1");
 
@@ -420,12 +600,32 @@ mod tests {
     }
 
     #[test]
+    fn sp_2() {
+        let mut scanner = Scanner::new("@SP2");
+
+        assert_eq!(
+            read_configuration(&mut scanner),
+            Ok(Some(Configuration::SP2))
+        )
+    }
+
+    #[test]
     fn sp_3() {
         let mut scanner = Scanner::new("@SP3");
 
         assert_eq!(
             read_configuration(&mut scanner),
             Ok(Some(Configuration::SP3))
+        )
+    }
+
+    #[test]
+    fn sp_unspecified() {
+        let mut scanner = Scanner::new("@SP");
+
+        assert_eq!(
+            read_configuration(&mut scanner),
+            Ok(Some(Configuration::UnspecifiedSP))
         )
     }
 }
