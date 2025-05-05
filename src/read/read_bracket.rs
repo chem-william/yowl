@@ -1,7 +1,8 @@
 use std::convert::TryInto;
 
 use super::{
-    error::ReadError, missing_character, read_charge, read_configuration, read_symbol, scanner::Scanner
+    error::ReadError, missing_character, read_charge, read_configuration, read_symbol,
+    scanner::Scanner,
 };
 use crate::feature::{AtomKind, Number, VirtualHydrogen};
 
