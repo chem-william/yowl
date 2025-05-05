@@ -25,13 +25,11 @@ impl Scanner {
     }
 
     pub fn pop(&mut self) -> Option<&char> {
-        match self.characters.get(self.cursor) {
-            Some(result) => {
-                self.cursor += 1;
-
-                Some(result)
-            }
-            None => None,
+        if let Some(result) = self.characters.get(self.cursor) {
+            self.cursor += 1;
+            Some(result)
+        } else {
+            None
         }
     }
 }
