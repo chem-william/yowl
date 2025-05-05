@@ -44,9 +44,9 @@ impl TryFrom<&BracketAromatic> for Aromatic {
     }
 }
 
-impl Into<Aliphatic> for &Aromatic {
-    fn into(self) -> Aliphatic {
-        match self {
+impl From<&Aromatic> for Aliphatic {
+    fn from(val: &Aromatic) -> Self {
+        match val {
             Aromatic::B => Aliphatic::B,
             Aromatic::C => Aliphatic::C,
             Aromatic::N => Aliphatic::N,
