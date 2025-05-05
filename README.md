@@ -116,7 +116,7 @@ fn main() -> Result<(), Error> {
     read("c1c([37Cl])cccc1", &mut builder, None)?;
 
     let atoms = builder.build().expect("atoms");
-    let mut writer = Writer::new();
+    let mut writer = Writer::default();
 
     walk(atoms, &mut writer).expect("walk");
 
