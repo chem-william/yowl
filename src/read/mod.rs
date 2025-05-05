@@ -1,6 +1,5 @@
 mod error;
 mod missing_character;
-mod read;
 mod read_bond;
 mod read_bracket;
 mod read_charge;
@@ -8,12 +7,12 @@ mod read_configuration;
 mod read_organic;
 mod read_rnum;
 mod read_symbol;
+mod reader;
 mod scanner;
 mod trace;
 
 pub use error::Error;
 pub(crate) use missing_character::missing_character;
-pub use read::read;
 pub(crate) use read_bond::read_bond;
 pub(crate) use read_bracket::read_bracket;
 pub(crate) use read_charge::read_charge;
@@ -21,5 +20,6 @@ pub(crate) use read_configuration::read_configuration;
 pub(crate) use read_organic::read_organic;
 pub(crate) use read_rnum::read_rnum;
 pub(crate) use read_symbol::read_symbol;
+pub use reader::read;
 pub(crate) use scanner::Scanner;
 pub use trace::Trace;
