@@ -28,10 +28,11 @@ impl Atom {
     /// This value is independent of an atom's aromaticity marking.
     pub fn subvalence(&self) -> u8 {
         let hcount: u8 = match &self.kind {
-            AtomKind::Bracket { hcount, .. } => match hcount {
-                Some(hcount) => hcount.into(),
-                None => 0,
-            },
+            AtomKind::Bracket {
+                hcount: Some(hcount),
+                ..
+            } => hcount.into(),
+            AtomKind::Bracket { hcount: None, .. } => 0,
             _ => 0,
         };
         let valence = self
