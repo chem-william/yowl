@@ -9,7 +9,7 @@ pub struct Atom {
 }
 
 impl Atom {
-    /// Consutrcts an Atom without bonds.
+    /// Constructs an Atom without bonds.
     pub fn new(kind: AtomKind) -> Self {
         Self {
             kind,
