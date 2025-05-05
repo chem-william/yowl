@@ -21,7 +21,7 @@ fn benchmark_smiles_parsing(c: &mut Criterion) {
     c.bench_function("parse_smiles", |b| {
         b.iter(|| {
             for smiles in &smiles_strings {
-                let mut builder = Builder::new();
+                let mut builder = Builder::default();
                 read(smiles, &mut builder, None).unwrap();
             }
         });
