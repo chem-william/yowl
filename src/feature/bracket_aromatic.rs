@@ -17,9 +17,9 @@ pub enum BracketAromatic {
     Te,
 }
 
-impl Into<Element> for &BracketAromatic {
-    fn into(self) -> Element {
-        match self {
+impl From<&BracketAromatic> for Element {
+    fn from(val: &BracketAromatic) -> Self {
+        match val {
             BracketAromatic::As => Element::As,
             BracketAromatic::B => Element::B,
             BracketAromatic::C => Element::C,
