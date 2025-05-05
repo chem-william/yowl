@@ -12,7 +12,7 @@ impl TryFrom<u16> for Number {
 
     fn try_from(value: u16) -> Result<Self, Self::Error> {
         if value < 1000 {
-            return Ok(Number { value });
+            Ok(Number { value })
         } else {
             Err(())
         }
