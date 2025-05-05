@@ -76,7 +76,7 @@ mod tests {
     fn is_done_given_not_done() {
         let scanner = Scanner::new("a");
 
-        assert!(scanner.is_done());
+        assert!(!scanner.is_done());
     }
 
     #[test]
