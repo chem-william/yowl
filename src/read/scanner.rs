@@ -27,7 +27,7 @@ impl Scanner {
     pub fn pop(&mut self) -> Option<&char> {
         match self.characters.get(self.cursor) {
             Some(result) => {
-                self.cursor = self.cursor + 1;
+                self.cursor += 1;
 
                 Some(result)
             }
