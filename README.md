@@ -29,7 +29,7 @@ use yowl::feature::{AtomKind, BondKind, Aliphatic};
 use yowl::read::{read, Error};
 
 fn main() -> Result<(), Error> {
-    let mut builder = Builder::new();
+    let mut builder = Builder::default();
 
     read("CC(=O)N", &mut builder, None)?;
 
@@ -75,7 +75,7 @@ use yowl::graph::Builder;
 use yowl::read::{read, Error, Trace};
 
 fn main() -> Result<(), Error> {
-    let mut builder = Builder::new();
+    let mut builder = Builder::default();
     let mut trace = Trace::new();
 
     //    012345678901234
@@ -95,7 +95,7 @@ use yowl::graph::Builder;
 use yowl::read::{read, Error};
 
 fn main() {
-    let mut builder = Builder::new();
+    let mut builder = Builder::default();
 
     assert_eq!(read("OCCXC", &mut builder, None), Err(Error::Character(3)));
 }
@@ -111,7 +111,7 @@ use yowl::write::Writer;
 use yowl::walk::walk;
 
 fn main() -> Result<(), Error> {
-    let mut builder = Builder::new();
+    let mut builder = Builder::default();
 
     read("c1c([37Cl])cccc1", &mut builder, None)?;
 

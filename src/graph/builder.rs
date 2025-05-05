@@ -12,7 +12,7 @@ use crate::walk::Follower;
 /// use yowl::feature::{ AtomKind, BondKind };
 ///
 /// fn main() {
-///     let mut builder = Builder::new();
+///     let mut builder = Builder::default();
 ///
 ///     builder.root(AtomKind::Star);
 ///     builder.extend(BondKind::Double, AtomKind::Star);
@@ -33,7 +33,7 @@ use crate::walk::Follower;
 ///     ]))
 /// }
 /// ```
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Default)]
 pub struct Builder {
     stack: Vec<usize>,
     graph: Vec<Node>,
@@ -43,16 +43,6 @@ pub struct Builder {
 }
 
 impl Builder {
-    pub fn new() -> Self {
-        Self {
-            stack: Vec::new(),
-            graph: Vec::new(),
-            opens: HashMap::new(),
-            errors: Vec::new(),
-            rid: 0,
-        }
-    }
-
     /// Builds the representation created by using the `Follower` trait
     /// methods.
     pub fn build(self) -> Result<Vec<Atom>, Error> {
@@ -199,7 +189,7 @@ mod errors {
 
     #[test]
     fn join_incompatible() {
-        let mut builder = Builder::new();
+        let mut builder = Builder::default();
 
         builder.root(AtomKind::Star);
         builder.join(BondKind::Up, Rnum::R1);
@@ -212,7 +202,7 @@ mod errors {
 
     #[test]
     fn join_unbalanced() {
-        let mut builder = Builder::new();
+        let mut builder = Builder::default();
 
         builder.root(AtomKind::Star);
         builder.join(BondKind::Elided, Rnum::R1);
@@ -233,7 +223,7 @@ mod build {
 
     #[test]
     fn p1() {
-        let mut builder = Builder::new();
+        let mut builder = Builder::default();
 
         builder.root(AtomKind::Star);
 
@@ -248,7 +238,7 @@ mod build {
 
     #[test]
     fn p2() {
-        let mut builder = Builder::new();
+        let mut builder = Builder::default();
 
         builder.root(AtomKind::Star);
         builder.extend(BondKind::Elided, AtomKind::Star);
@@ -270,7 +260,7 @@ mod build {
 
     #[test]
     fn p3() {
-        let mut builder = Builder::new();
+        let mut builder = Builder::default();
 
         builder.root(AtomKind::Star);
         builder.extend(BondKind::Elided, AtomKind::Star);
@@ -300,7 +290,7 @@ mod build {
 
     #[test]
     fn p3_branched() {
-        let mut builder = Builder::new();
+        let mut builder = Builder::default();
 
         builder.root(AtomKind::Star);
         builder.extend(BondKind::Elided, AtomKind::Star);
@@ -331,7 +321,7 @@ mod build {
 
     #[test]
     fn c3_elided_elided() {
-        let mut builder = Builder::new();
+        let mut builder = Builder::default();
 
         builder.root(AtomKind::Star);
         builder.join(BondKind::Elided, Rnum::R1);
@@ -369,7 +359,7 @@ mod build {
 
     #[test]
     fn c3_single_elided() {
-        let mut builder = Builder::new();
+        let mut builder = Builder::default();
 
         builder.root(AtomKind::Star);
         builder.join(BondKind::Single, Rnum::R1);
@@ -407,7 +397,7 @@ mod build {
 
     #[test]
     fn tetrahedral_root() {
-        let mut builder = Builder::new();
+        let mut builder = Builder::default();
 
         builder.root(AtomKind::Bracket {
             isotope: None,
@@ -466,7 +456,7 @@ mod build {
 
     #[test]
     fn tetrahedral_child() {
-        let mut builder = Builder::new();
+        let mut builder = Builder::default();
 
         builder.root(AtomKind::Star);
         builder.extend(
@@ -527,7 +517,7 @@ mod build {
 
     #[test]
     fn tetrahedral_child_hydrogen() {
-        let mut builder = Builder::new();
+        let mut builder = Builder::default();
 
         builder.root(AtomKind::Star);
         builder.extend(
