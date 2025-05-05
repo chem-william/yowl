@@ -34,6 +34,14 @@ impl Scanner {
     }
 }
 
+impl Iterator for Scanner {
+    type Item = char;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.pop().copied()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
