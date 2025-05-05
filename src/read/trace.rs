@@ -17,7 +17,7 @@ pub struct Trace {
 impl Trace {
     /// Returns the cursor range associated with atom identifier `id`.
     pub fn atom(&self, id: usize) -> Option<Range<usize>> {
-        self.atoms.get(id).map(|cursor| cursor.clone())
+        self.atoms.get(id).cloned()
     }
 
     /// Returns the cursor associated with the bond between
@@ -26,13 +26,13 @@ impl Trace {
     /// two different cursors will be reported for (`sid`, `tid`)
     /// and (`tid`, `sid`).
     pub fn bond(&self, sid: usize, tid: usize) -> Option<usize> {
-        self.bonds.get(&(sid, tid)).map(|cursor| *cursor)
+        self.bonds.get(&(sid, tid)).cloned()
     }
 
     /// Returns the `Rnum` associated with ring closure digit
     /// identifier `rid`.
     pub fn rnum(&self, rid: usize) -> Option<Range<usize>> {
-        self.rnums.get(rid).map(|cursor| cursor.clone())
+        self.rnums.get(rid).cloned()
     }
 
     /// Adds a root atom.
