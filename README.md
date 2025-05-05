@@ -1,3 +1,6 @@
+[![Codecov](https://codecov.io/github/chem-william/yowl/coverage.svg?branch=main)](https://codecov.io/gh/chem-william/yowl)
+[![dependency status](https://deps.rs/repo/github/chem-william/yowl/status.svg)](https://deps.rs/repo/github/chem-william/yowl)
+
 # Yowl
 
 **Primitives for reading and writing SMILES strings in Rust.**
@@ -24,10 +27,10 @@ Parse acetamide into an adjacency representation:
 ```rust
 use yowl::graph::{Builder, Atom, Bond};
 use yowl::feature::{AtomKind, BondKind, Aliphatic};
-use yowl::read::{read, Error};
+use yowl::read::{read, ReadError};
 
-fn main() -> Result<(), Error> {
-    let mut builder = Builder::new();
+fn main() -> Result<(), ReadError> {
+    let mut builder = Builder::default();
 
     read("CC(=O)N", &mut builder, None)?;
 
@@ -70,11 +73,12 @@ An optional `Trace` type maps adjacency features to a cursor position in the ori
 
 ```rust
 use yowl::graph::Builder;
-use yowl::read::{read, Error, Trace};
+use yowl::read::{read, Trace};
+use yowl::read::ReadError;
 
-fn main() -> Result<(), Error> {
-    let mut builder = Builder::new();
-    let mut trace = Trace::new();
+fn main() -> Result<(), ReadError> {
+    let mut builder = Builder::default();
+    let mut trace = Trace::default();
 
     //    012345678901234
     read("C(C)C(C)(C)(C)C", &mut builder, Some(&mut trace))?;
@@ -90,12 +94,12 @@ Syntax errors are mapped to the cursor at which they occur.
 
 ```rust
 use yowl::graph::Builder;
-use yowl::read::{read, Error};
+use yowl::read::{read, ReadError};
 
 fn main() {
-    let mut builder = Builder::new();
+    let mut builder = Builder::default();
 
-    assert_eq!(read("OCCXC", &mut builder, None), Err(Error::Character(3)));
+    assert_eq!(read("OCCXC", &mut builder, None), Err(ReadError::Character(3)));
 }
 ```
 
@@ -104,17 +108,17 @@ An adjacency can be written using `write`.
 ```rust
 use yowl::graph::{Builder, Atom, Bond};
 use yowl::feature::{AtomKind, BondKind, Aliphatic};
-use yowl::read::{read, Error};
+use yowl::read::{read, ReadError};
 use yowl::write::Writer;
 use yowl::walk::walk;
 
-fn main() -> Result<(), Error> {
-    let mut builder = Builder::new();
+fn main() -> Result<(), ReadError> {
+    let mut builder = Builder::default();
 
     read("c1c([37Cl])cccc1", &mut builder, None)?;
 
     let atoms = builder.build().expect("atoms");
-    let mut writer = Writer::new();
+    let mut writer = Writer::default();
 
     walk(atoms, &mut writer).expect("walk");
 

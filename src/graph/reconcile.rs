@@ -7,9 +7,9 @@ pub fn reconcile(left: BondKind, right: BondKind) -> Option<(BondKind, BondKind)
         } else {
             Some((left, right))
         }
-    } else if left == BondKind::Up && right == BondKind::Down {
-        Some((left, right))
-    } else if left == BondKind::Down && right == BondKind::Up {
+    } else if (left == BondKind::Up && right == BondKind::Down)
+        || (left == BondKind::Down && right == BondKind::Up)
+    {
         Some((left, right))
     } else if left == BondKind::Elided {
         match right {

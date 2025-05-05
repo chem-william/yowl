@@ -1,18 +1,17 @@
-use super::{
-    missing_character, read_bond, read_bracket, read_organic, read_rnum, Error, Scanner, Trace,
-};
+use super::{missing_character, read_bond, read_bracket, read_organic, read_rnum, Scanner, Trace};
 use crate::feature::{AtomKind, BondKind};
+use crate::read::error::ReadError;
 use crate::walk::Follower;
 
 /// Reads a string using a `Follower` and optional `Trace`.
 ///
 /// ```
 /// use yowl::write::Writer;
-/// use yowl::read::{ read, Error, Trace };
+/// use yowl::read::{read, Trace, ReadError};
 ///
-/// fn main() -> Result<(), Error> {
-///     let mut writer = Writer::new();
-///     let mut trace = Trace::new();
+/// fn main() -> Result<(), ReadError> {
+///     let mut writer = Writer::default();
+///     let mut trace = Trace::default();
 ///
 ///     read("CC(=O)N", &mut writer, Some(&mut trace))?;
 ///
@@ -26,21 +25,19 @@ pub fn read<F: Follower>(
     smiles: &str,
     follower: &mut F,
     mut trace: Option<&mut Trace>,
-) -> Result<(), Error> {
+) -> Result<(), ReadError> {
     let mut scanner = Scanner::new(smiles);
 
     if read_smiles(None, &mut scanner, follower, &mut trace)?.is_some() {
         if scanner.is_done() {
             Ok(())
         } else {
-            Err(Error::Character(scanner.cursor()))
+            Err(ReadError::Character(scanner.cursor()))
         }
+    } else if scanner.is_done() {
+        Err(ReadError::EndOfLine)
     } else {
-        if scanner.is_done() {
-            Err(Error::EndOfLine)
-        } else {
-            Err(Error::Character(scanner.cursor()))
-        }
+        Err(ReadError::Character(scanner.cursor()))
     }
 }
 
@@ -50,7 +47,7 @@ fn read_smiles<F: Follower>(
     scanner: &mut Scanner,
     follower: &mut F,
     trace: &mut Option<&mut Trace>,
-) -> Result<Option<usize>, Error> {
+) -> Result<Option<usize>, ReadError> {
     let cursor = scanner.cursor();
     let atom_kind = match read_atom(scanner)? {
         Some(kind) => kind,
@@ -89,7 +86,7 @@ fn read_smiles<F: Follower>(
 }
 
 // <atom> ::= <organic> | <bracket> | <star>
-fn read_atom(scanner: &mut Scanner) -> Result<Option<AtomKind>, Error> {
+fn read_atom(scanner: &mut Scanner) -> Result<Option<AtomKind>, ReadError> {
     if let Some(organic) = read_organic(scanner)? {
         return Ok(Some(organic));
     }
@@ -106,7 +103,7 @@ fn read_body<F: Follower>(
     scanner: &mut Scanner,
     follower: &mut F,
     trace: &mut Option<&mut Trace>,
-) -> Result<Option<usize>, Error> {
+) -> Result<Option<usize>, ReadError> {
     if read_branch(scanner, follower, trace)? {
         return Ok(Some(0));
     }
@@ -123,7 +120,7 @@ fn read_branch<F: Follower>(
     scanner: &mut Scanner,
     follower: &mut F,
     trace: &mut Option<&mut Trace>,
-) -> Result<bool, Error> {
+) -> Result<bool, ReadError> {
     match scanner.peek() {
         Some('(') => {
             scanner.pop();
@@ -170,7 +167,7 @@ fn read_split<F: Follower>(
     scanner: &mut Scanner,
     follower: &mut F,
     trace: &mut Option<&mut Trace>,
-) -> Result<Option<usize>, Error> {
+) -> Result<Option<usize>, ReadError> {
     match scanner.peek() {
         Some('.') => {
             scanner.pop();
@@ -189,7 +186,7 @@ fn read_union<F: Follower>(
     scanner: &mut Scanner,
     follower: &mut F,
     trace: &mut Option<&mut Trace>,
-) -> Result<Option<usize>, Error> {
+) -> Result<Option<usize>, ReadError> {
     let bond_cursor = scanner.cursor();
     let bond_kind = read_bond(scanner);
 
@@ -239,112 +236,134 @@ mod read {
 
     #[test]
     fn blank() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
 
-        assert_eq!(read("", &mut writer, None), Err(Error::EndOfLine))
+        assert_eq!(read("", &mut writer, None), Err(ReadError::EndOfLine))
+    }
+
+    #[test]
+    fn invalid_single_quote() {
+        let mut writer = Writer::default();
+
+        assert_eq!(read("C['", &mut writer, None), Err(ReadError::Character(2)));
     }
 
     #[test]
     fn leading_paren() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
 
-        assert_eq!(read("(", &mut writer, None), Err(Error::Character(0)))
+        assert_eq!(read("(", &mut writer, None), Err(ReadError::Character(0)))
     }
 
     #[test]
     fn invalid_tail() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
 
-        assert_eq!(read("*?", &mut writer, None), Err(Error::Character(1)))
+        assert_eq!(read("*?", &mut writer, None), Err(ReadError::Character(1)))
     }
 
     #[test]
     fn trailing_bond() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
 
-        assert_eq!(read("*-", &mut writer, None), Err(Error::EndOfLine))
+        assert_eq!(read("*-", &mut writer, None), Err(ReadError::EndOfLine))
     }
 
     #[test]
     fn trailing_dot() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
 
-        assert_eq!(read("*.", &mut writer, None), Err(Error::EndOfLine))
+        assert_eq!(read("*.", &mut writer, None), Err(ReadError::EndOfLine))
     }
 
     #[test]
     fn cut_percent_single_digit() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
 
-        assert_eq!(read("*%1*", &mut writer, None), Err(Error::Character(3)))
+        assert_eq!(
+            read("*%1*", &mut writer, None),
+            Err(ReadError::Character(3))
+        )
     }
 
     #[test]
     fn open_paren_eol() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
 
-        assert_eq!(read("*(", &mut writer, None), Err(Error::EndOfLine))
+        assert_eq!(read("*(", &mut writer, None), Err(ReadError::EndOfLine))
     }
 
     #[test]
     fn missing_close_paren() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
 
-        assert_eq!(read("*(*", &mut writer, None), Err(Error::EndOfLine))
+        assert_eq!(read("*(*", &mut writer, None), Err(ReadError::EndOfLine))
     }
 
     #[test]
     fn bond_to_invalid() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
 
-        assert_eq!(read("*-X", &mut writer, None), Err(Error::Character(2)))
+        assert_eq!(read("*-X", &mut writer, None), Err(ReadError::Character(2)))
     }
 
     #[test]
     fn split_to_invalid() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
 
-        assert_eq!(read("*.X", &mut writer, None), Err(Error::Character(2)))
+        assert_eq!(read("*.X", &mut writer, None), Err(ReadError::Character(2)))
     }
 
     #[test]
     fn branch_invalid() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
 
-        assert_eq!(read("*(X)", &mut writer, None), Err(Error::Character(2)))
+        assert_eq!(
+            read("*(X)", &mut writer, None),
+            Err(ReadError::Character(2))
+        )
     }
 
     #[test]
     fn branch_rnum() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
 
-        assert_eq!(read("*(1)*", &mut writer, None), Err(Error::Character(2)))
+        assert_eq!(
+            read("*(1)*", &mut writer, None),
+            Err(ReadError::Character(2))
+        )
     }
 
     #[test]
     fn branch_bond_rnum() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
 
-        assert_eq!(read("*(-1)*", &mut writer, None), Err(Error::Character(3)))
+        assert_eq!(
+            read("*(-1)*", &mut writer, None),
+            Err(ReadError::Character(3))
+        )
     }
 
     #[test]
     fn dot_rnum() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
 
-        assert_eq!(read("*.1", &mut writer, None), Err(Error::Character(2)))
+        assert_eq!(read("*.1", &mut writer, None), Err(ReadError::Character(2)))
     }
 
     #[test]
     fn branch_split_invalid() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
 
-        assert_eq!(read("*(.X)", &mut writer, None), Err(Error::Character(3)))
+        assert_eq!(
+            read("*(.X)", &mut writer, None),
+            Err(ReadError::Character(3))
+        )
     }
 
     #[test]
     fn p1() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
 
         read("*", &mut writer, None).unwrap();
 
@@ -353,7 +372,7 @@ mod read {
 
     #[test]
     fn aliphatic_organic() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
 
         read("C", &mut writer, None).unwrap();
 
@@ -362,7 +381,7 @@ mod read {
 
     #[test]
     fn aromatic_organic() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
 
         read("c", &mut writer, None).unwrap();
 
@@ -371,7 +390,7 @@ mod read {
 
     #[test]
     fn bracket() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
 
         read("[CH4]", &mut writer, None).unwrap();
 
@@ -380,7 +399,7 @@ mod read {
 
     #[test]
     fn elided_rnum() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
 
         read("*1", &mut writer, None).unwrap();
 
@@ -389,7 +408,7 @@ mod read {
 
     #[test]
     fn single_rnum() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
 
         read("*-1", &mut writer, None).unwrap();
 
@@ -398,7 +417,7 @@ mod read {
 
     #[test]
     fn p1_p1() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
 
         read("*.*", &mut writer, None).unwrap();
 
@@ -407,7 +426,7 @@ mod read {
 
     #[test]
     fn p1_p2_branched_inner() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
 
         read("*(.*)*", &mut writer, None).unwrap();
 
@@ -416,7 +435,7 @@ mod read {
 
     #[test]
     fn p2() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
 
         read("*-*", &mut writer, None).unwrap();
 
@@ -425,7 +444,7 @@ mod read {
 
     #[test]
     fn p3() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
 
         read("**-*", &mut writer, None).unwrap();
 
@@ -434,7 +453,7 @@ mod read {
 
     #[test]
     fn p3_branched() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
 
         read("*(-*)=*", &mut writer, None).unwrap();
 
@@ -443,7 +462,7 @@ mod read {
 
     #[test]
     fn p4_branched_inside() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
 
         read("*(-**)=*", &mut writer, None).unwrap();
 
@@ -452,7 +471,7 @@ mod read {
 
     #[test]
     fn p4_branched_outside() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
 
         read("*(-*)=**", &mut writer, None).unwrap();
 
@@ -461,7 +480,7 @@ mod read {
 
     #[test]
     fn nested() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
 
         read("*(*(*-*)*)*", &mut writer, None).unwrap();
 
@@ -470,7 +489,7 @@ mod read {
 
     #[test]
     fn s4_inside() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
 
         read("*(-*)(=*)(#*)*", &mut writer, None).unwrap();
 
@@ -479,7 +498,7 @@ mod read {
 
     #[test]
     fn s4_outside() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
 
         read("**(-*)(=*)*", &mut writer, None).unwrap();
 
@@ -488,7 +507,7 @@ mod read {
 
     #[test]
     fn foo() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
 
         read("C(F)Cl", &mut writer, None).unwrap();
 
@@ -504,8 +523,8 @@ mod trace {
 
     #[test]
     fn p1() {
-        let mut trace = Trace::new();
-        let mut writer = Writer::new();
+        let mut trace = Trace::default();
+        let mut writer = Writer::default();
 
         read("*", &mut writer, Some(&mut trace)).unwrap();
 
@@ -514,8 +533,8 @@ mod trace {
 
     #[test]
     fn p2() {
-        let mut trace = Trace::new();
-        let mut writer = Writer::new();
+        let mut trace = Trace::default();
+        let mut writer = Writer::default();
 
         read("**", &mut writer, Some(&mut trace)).unwrap();
 
@@ -527,8 +546,8 @@ mod trace {
 
     #[test]
     fn p2_single() {
-        let mut trace = Trace::new();
-        let mut writer = Writer::new();
+        let mut trace = Trace::default();
+        let mut writer = Writer::default();
 
         read("*-*", &mut writer, Some(&mut trace)).unwrap();
 
@@ -540,8 +559,8 @@ mod trace {
 
     #[test]
     fn p3_branched() {
-        let mut trace = Trace::new();
-        let mut writer = Writer::new();
+        let mut trace = Trace::default();
+        let mut writer = Writer::default();
 
         //    01234
         read("*(*)*", &mut writer, Some(&mut trace)).unwrap();
@@ -557,8 +576,8 @@ mod trace {
 
     #[test]
     fn c3() {
-        let mut trace = Trace::new();
-        let mut writer = Writer::new();
+        let mut trace = Trace::default();
+        let mut writer = Writer::default();
 
         //    01234
         read("*1**1", &mut writer, Some(&mut trace)).unwrap();

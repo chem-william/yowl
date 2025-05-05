@@ -44,9 +44,9 @@ impl TryFrom<u8> for VirtualHydrogen {
     }
 }
 
-impl Into<u8> for &VirtualHydrogen {
-    fn into(self) -> u8 {
-        match self {
+impl From<&VirtualHydrogen> for u8 {
+    fn from(val: &VirtualHydrogen) -> Self {
+        match val {
             VirtualHydrogen::H0 => 0,
             VirtualHydrogen::H1 => 1,
             VirtualHydrogen::H2 => 2,

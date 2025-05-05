@@ -1,9 +1,9 @@
 use std::convert::TryInto;
 
-use super::{missing_character::missing_character, scanner::Scanner, Error};
+use super::{error::ReadError, missing_character::missing_character, scanner::Scanner};
 use crate::feature::Rnum;
 
-pub fn read_rnum(scanner: &mut Scanner) -> Result<Option<Rnum>, Error> {
+pub fn read_rnum(scanner: &mut Scanner) -> Result<Option<Rnum>, ReadError> {
     let mut digits = String::new();
 
     match scanner.peek() {
@@ -38,7 +38,7 @@ mod tests {
     fn percent_digit() {
         let mut scanner = Scanner::new("%0");
 
-        assert_eq!(read_rnum(&mut scanner), Err(Error::EndOfLine))
+        assert_eq!(read_rnum(&mut scanner), Err(ReadError::EndOfLine))
     }
 
     #[test]

@@ -1,9 +1,9 @@
-use super::{scanner::Scanner, Error};
+use super::{error::ReadError, scanner::Scanner};
 
-pub fn missing_character(scanner: &mut Scanner) -> Error {
+pub fn missing_character(scanner: &mut Scanner) -> ReadError {
     if scanner.is_done() {
-        Error::EndOfLine
+        ReadError::EndOfLine
     } else {
-        Error::Character(scanner.cursor())
+        ReadError::Character(scanner.cursor())
     }
 }

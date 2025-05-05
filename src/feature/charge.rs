@@ -1,4 +1,4 @@
-use std::convert::{Into, TryFrom};
+use std::convert::TryFrom;
 use std::fmt;
 
 /// An integer charge from -15 to +15.
@@ -76,9 +76,9 @@ impl TryFrom<i8> for Charge {
     }
 }
 
-impl Into<i8> for &Charge {
-    fn into(self) -> i8 {
-        match self {
+impl From<&Charge> for i8 {
+    fn from(val: &Charge) -> Self {
+        match val {
             Charge::MinusFifteen => -15,
             Charge::MinusFourteen => -14,
             Charge::MinusThirteen => -13,

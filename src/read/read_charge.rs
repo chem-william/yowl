@@ -1,9 +1,9 @@
 use std::convert::TryInto;
 
-use super::{scanner::Scanner, Error};
+use super::{error::ReadError, scanner::Scanner};
 use crate::feature::Charge;
 
-pub fn read_charge(scanner: &mut Scanner) -> Result<Option<Charge>, Error> {
+pub fn read_charge(scanner: &mut Scanner) -> Result<Option<Charge>, ReadError> {
     match scanner.peek() {
         Some('+') => {
             scanner.pop();

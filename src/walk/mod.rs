@@ -1,7 +1,7 @@
 mod error;
 mod follower;
-mod walk;
+mod walker;
 
 pub use error::Error;
 pub use follower::Follower;
-pub use walk::walk;
+pub use walker::walk;

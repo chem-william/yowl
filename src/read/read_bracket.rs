@@ -1,11 +1,11 @@
 use std::convert::TryInto;
 
 use super::{
-    missing_character, read_charge, read_configuration, read_symbol, scanner::Scanner, Error,
+    error::ReadError, missing_character, read_charge, read_configuration, read_symbol, scanner::Scanner
 };
 use crate::feature::{AtomKind, Number, VirtualHydrogen};
 
-pub fn read_bracket(scanner: &mut Scanner) -> Result<Option<AtomKind>, Error> {
+pub fn read_bracket(scanner: &mut Scanner) -> Result<Option<AtomKind>, ReadError> {
     if let Some('[') = scanner.peek() {
         scanner.pop();
     } else {
@@ -32,12 +32,12 @@ pub fn read_bracket(scanner: &mut Scanner) -> Result<Option<AtomKind>, Error> {
                 map,
             }))
         }
-        None => Err(Error::EndOfLine),
-        _ => Err(Error::Character(scanner.cursor())),
+        None => Err(ReadError::EndOfLine),
+        _ => Err(ReadError::Character(scanner.cursor())),
     }
 }
 
-fn read_hcount(scanner: &mut Scanner) -> Result<Option<VirtualHydrogen>, Error> {
+fn read_hcount(scanner: &mut Scanner) -> Result<Option<VirtualHydrogen>, ReadError> {
     match scanner.peek() {
         Some('H') => {
             scanner.pop();
@@ -63,7 +63,7 @@ fn read_hcount(scanner: &mut Scanner) -> Result<Option<VirtualHydrogen>, Error> 
     }
 }
 
-fn read_isotope(scanner: &mut Scanner) -> Result<Option<Number>, Error> {
+fn read_isotope(scanner: &mut Scanner) -> Result<Option<Number>, ReadError> {
     let mut digits = String::new();
 
     for _ in 0..3 {
@@ -80,7 +80,7 @@ fn read_isotope(scanner: &mut Scanner) -> Result<Option<Number>, Error> {
     }
 }
 
-fn read_map(scanner: &mut Scanner) -> Result<Option<Number>, Error> {
+fn read_map(scanner: &mut Scanner) -> Result<Option<Number>, ReadError> {
     match scanner.peek() {
         Some(':') => {
             scanner.pop();
@@ -92,7 +92,7 @@ fn read_map(scanner: &mut Scanner) -> Result<Option<Number>, Error> {
                     if next.is_ascii_digit() {
                         digits.push(*next);
                     } else {
-                        return Err(Error::Character(scanner.cursor() - 1));
+                        return Err(ReadError::Character(scanner.cursor() - 1));
                     }
                 }
                 None => return Err(missing_character(scanner)),
@@ -122,42 +122,42 @@ mod tests {
     fn overflow_map() {
         let mut scanner = Scanner::new("[*:1000]");
 
-        assert_eq!(read_bracket(&mut scanner), Err(Error::Character(6)))
+        assert_eq!(read_bracket(&mut scanner), Err(ReadError::Character(6)))
     }
 
     #[test]
     fn overflow_isotope() {
         let mut scanner = Scanner::new("[1000U]");
 
-        assert_eq!(read_bracket(&mut scanner), Err(Error::Character(4)))
+        assert_eq!(read_bracket(&mut scanner), Err(ReadError::Character(4)))
     }
 
     #[test]
     fn bracket_invalid() {
         let mut scanner = Scanner::new("[Q]");
 
-        assert_eq!(read_bracket(&mut scanner), Err(Error::Character(1)))
+        assert_eq!(read_bracket(&mut scanner), Err(ReadError::Character(1)))
     }
 
     #[test]
     fn no_close() {
         let mut scanner = Scanner::new("[C");
 
-        assert_eq!(read_bracket(&mut scanner), Err(Error::EndOfLine))
+        assert_eq!(read_bracket(&mut scanner), Err(ReadError::EndOfLine))
     }
 
     #[test]
     fn colon_but_no_map() {
         let mut scanner = Scanner::new("[C:]");
 
-        assert_eq!(read_bracket(&mut scanner), Err(Error::Character(3)))
+        assert_eq!(read_bracket(&mut scanner), Err(ReadError::Character(3)))
     }
 
     #[test]
     fn colon_eol() {
         let mut scanner = Scanner::new("[C:");
 
-        assert_eq!(read_bracket(&mut scanner), Err(Error::EndOfLine))
+        assert_eq!(read_bracket(&mut scanner), Err(ReadError::EndOfLine))
     }
 
     #[test]

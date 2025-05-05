@@ -27,7 +27,7 @@ use crate::graph::{Atom, JoinPool};
 ///             ]
 ///         }
 ///     ];
-///     let mut writer = Writer::new();
+///     let mut writer = Writer::default();
 ///
 ///     walk(atoms, &mut writer)?;
 ///
@@ -153,7 +153,7 @@ mod walk {
 
     #[test]
     fn half_bond() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
         let graph = vec![
             Atom {
                 kind: AtomKind::Star,
@@ -170,7 +170,7 @@ mod walk {
 
     #[test]
     fn duplicate_back_bond() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
         let graph = vec![
             Atom {
                 kind: AtomKind::Star,
@@ -190,7 +190,7 @@ mod walk {
 
     #[test]
     fn unknown_target() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
         let graph = vec![Atom {
             kind: AtomKind::Star,
             bonds: vec![Bond::new(BondKind::Elided, 1)],
@@ -201,7 +201,7 @@ mod walk {
 
     #[test]
     fn self_bond() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
         let graph = vec![Atom {
             kind: AtomKind::Star,
             bonds: vec![Bond::new(BondKind::Elided, 0)],
@@ -212,7 +212,7 @@ mod walk {
 
     #[test]
     fn incompatible_bond() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
         let graph = vec![
             Atom {
                 kind: AtomKind::Star,
@@ -229,7 +229,7 @@ mod walk {
 
     #[test]
     fn p1() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
         let graph = vec![Atom {
             kind: AtomKind::Star,
             bonds: vec![],
@@ -242,7 +242,7 @@ mod walk {
 
     #[test]
     fn p2() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
         let graph = vec![
             Atom {
                 kind: AtomKind::Star,
@@ -261,7 +261,7 @@ mod walk {
 
     #[test]
     fn p2_directional() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
         let graph = vec![
             Atom {
                 kind: AtomKind::Star,
@@ -280,7 +280,7 @@ mod walk {
 
     #[test]
     fn p1_p1() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
         let graph = vec![
             Atom {
                 kind: AtomKind::Star,
@@ -299,7 +299,7 @@ mod walk {
 
     #[test]
     fn p3() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
         let graph = vec![
             Atom {
                 kind: AtomKind::Star,
@@ -325,7 +325,7 @@ mod walk {
 
     #[test]
     fn p3_branched() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
         let graph = vec![
             Atom {
                 kind: AtomKind::Star,
@@ -351,7 +351,7 @@ mod walk {
 
     #[test]
     fn c3() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
         let graph = vec![
             Atom {
                 kind: AtomKind::Aliphatic(Aliphatic::C),
@@ -383,7 +383,7 @@ mod walk {
 
     #[test]
     fn tetrahedral_root() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
         let graph = vec![
             Atom {
                 kind: AtomKind::Bracket {
@@ -426,7 +426,7 @@ mod walk {
 
     #[test]
     fn tetrahedral_child_no_hydrogen() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
         let graph = vec![
             Atom {
                 kind: AtomKind::Star,
@@ -469,7 +469,7 @@ mod walk {
 
     #[test]
     fn tetrahedral_child_hydrogen() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
         let graph = vec![
             Atom {
                 kind: AtomKind::Star,
@@ -512,7 +512,7 @@ mod walk {
 
     #[test]
     fn tetrahedral_child_hydrogen_odd_input() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
         let graph = vec![
             Atom {
                 kind: AtomKind::Star,

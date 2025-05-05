@@ -122,6 +122,15 @@ pub enum Element {
     Lv,
     Ts,
     Og, // 11
+    Uun,
+    Uuu,
+    Uub,
+    Uut,
+    Uuq,
+    Uup,
+    Uuh,
+    Uus,
+    Uuo,
 }
 
 impl fmt::Display for Element {
@@ -248,6 +257,15 @@ impl fmt::Display for Element {
                 Element::Yb => "Yb",
                 Element::Zn => "Zn",
                 Element::Zr => "Zr",
+                Element::Uun => "Uun",
+                Element::Uuu => "Uuu",
+                Element::Uub => "Uub",
+                Element::Uut => "Uut",
+                Element::Uuq => "Uuq",
+                Element::Uup => "Uup",
+                Element::Uuh => "Uuh",
+                Element::Uus => "Uus",
+                Element::Uuo => "Uuo",
             }
         )
     }

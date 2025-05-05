@@ -25,14 +25,20 @@ impl Scanner {
     }
 
     pub fn pop(&mut self) -> Option<&char> {
-        match self.characters.get(self.cursor) {
-            Some(result) => {
-                self.cursor = self.cursor + 1;
-
-                Some(result)
-            }
-            None => None,
+        if let Some(result) = self.characters.get(self.cursor) {
+            self.cursor += 1;
+            Some(result)
+        } else {
+            None
         }
+    }
+}
+
+impl Iterator for Scanner {
+    type Item = char;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.pop().copied()
     }
 }
 
@@ -42,14 +48,14 @@ mod tests {
 
     #[test]
     fn cursor_given_empty() {
-        let scanner = Scanner::new(&"");
+        let scanner = Scanner::new("");
 
         assert_eq!(scanner.cursor(), 0);
     }
 
     #[test]
     fn cursor_given_not_done() {
-        let mut scanner = Scanner::new(&"abc");
+        let mut scanner = Scanner::new("abc");
 
         assert_eq!(scanner.pop(), Some(&'a'));
         assert_eq!(scanner.cursor(), 1);
@@ -57,7 +63,7 @@ mod tests {
 
     #[test]
     fn cursor_given_done() {
-        let mut scanner = Scanner::new(&"abc");
+        let mut scanner = Scanner::new("abc");
 
         assert_eq!(scanner.pop(), Some(&'a'));
         assert_eq!(scanner.pop(), Some(&'b'));
@@ -67,21 +73,21 @@ mod tests {
 
     #[test]
     fn is_done_given_done() {
-        let scanner = Scanner::new(&"");
+        let scanner = Scanner::new("");
 
-        assert_eq!(scanner.is_done(), true);
+        assert!(scanner.is_done());
     }
 
     #[test]
     fn is_done_given_not_done() {
-        let scanner = Scanner::new(&"a");
+        let scanner = Scanner::new("a");
 
-        assert_eq!(scanner.is_done(), false);
+        assert!(!scanner.is_done());
     }
 
     #[test]
     fn peek_given_not_done() {
-        let mut scanner = Scanner::new(&"abc");
+        let mut scanner = Scanner::new("abc");
 
         assert_eq!(scanner.pop(), Some(&'a'));
         assert_eq!(scanner.peek(), Some(&'b'));
@@ -89,7 +95,7 @@ mod tests {
 
     #[test]
     fn peek_given_done() {
-        let mut scanner = Scanner::new(&"abc");
+        let mut scanner = Scanner::new("abc");
 
         assert_eq!(scanner.pop(), Some(&'a'));
         assert_eq!(scanner.pop(), Some(&'b'));
@@ -99,14 +105,14 @@ mod tests {
 
     #[test]
     fn pop_given_not_done() {
-        let mut scanner = Scanner::new(&"abc");
+        let mut scanner = Scanner::new("abc");
 
         assert_eq!(scanner.pop(), Some(&'a'));
     }
 
     #[test]
     fn pop_given_done() {
-        let mut scanner = Scanner::new(&"a");
+        let mut scanner = Scanner::new("a");
 
         assert_eq!(scanner.pop(), Some(&'a'));
         assert_eq!(scanner.pop(), None);

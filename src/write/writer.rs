@@ -8,25 +8,19 @@ use crate::walk::Follower;
 /// use yowl::write::Writer;
 /// use yowl::feature::{ AtomKind, BondKind };
 ///
-/// fn main() {
-///     let mut writer = Writer::new();
+/// let mut writer = Writer::default();
 ///
-///     writer.root(AtomKind::Star);
-///     writer.extend(BondKind::Double, AtomKind::Star);
+/// writer.root(AtomKind::Star);
+/// writer.extend(BondKind::Double, AtomKind::Star);
 ///
-///     assert_eq!(writer.write(), "*=*")
-/// }
+/// assert_eq!(writer.write(), "*=*")
 /// ```
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Default)]
 pub struct Writer {
     stack: Vec<String>,
 }
 
 impl Writer {
-    pub fn new() -> Self {
-        Writer { stack: Vec::new() }
-    }
-
     pub fn write(self) -> String {
         self.stack.join("")
     }
@@ -72,7 +66,7 @@ mod write {
 
     #[test]
     fn p1() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
 
         writer.root(AtomKind::Star);
 
@@ -81,7 +75,7 @@ mod write {
 
     #[test]
     fn p2() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
 
         writer.root(AtomKind::Star);
         writer.extend(BondKind::Single, AtomKind::Star);
@@ -91,7 +85,7 @@ mod write {
 
     #[test]
     fn p1_p1() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
 
         writer.root(AtomKind::Star);
         writer.root(AtomKind::Star);
@@ -101,7 +95,7 @@ mod write {
 
     #[test]
     fn p3() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
 
         writer.root(AtomKind::Star);
         writer.extend(BondKind::Single, AtomKind::Star);
@@ -112,7 +106,7 @@ mod write {
 
     #[test]
     fn p3_branched() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
 
         writer.root(AtomKind::Star);
         writer.extend(BondKind::Elided, AtomKind::Aliphatic(Aliphatic::F));
@@ -124,7 +118,7 @@ mod write {
 
     #[test]
     fn c3() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
 
         writer.root(AtomKind::Star);
         writer.join(BondKind::Single, Rnum::R1);
@@ -137,7 +131,7 @@ mod write {
 
     #[test]
     fn c3_branched() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
 
         writer.root(AtomKind::Star);
         writer.extend(BondKind::Elided, AtomKind::Star);
@@ -151,7 +145,7 @@ mod write {
 
     #[test]
     fn nested_branch() {
-        let mut writer = Writer::new();
+        let mut writer = Writer::default();
 
         writer.root(AtomKind::Star);
         writer.extend(BondKind::Elided, AtomKind::Star);

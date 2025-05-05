@@ -61,6 +61,11 @@ pub enum Configuration {
     TB20,
     TH1,
     TH2,
+    UnspecifiedTH,
+    UnspecifiedAL,
+    UnspecifiedTB,
+    UnspecifiedOH,
+    UnspecifiedSP,
 }
 
 impl fmt::Display for Configuration {
@@ -126,6 +131,11 @@ impl fmt::Display for Configuration {
                 Configuration::SP1 => "@SP1",
                 Configuration::SP2 => "@SP2",
                 Configuration::SP3 => "@SP3",
+                Configuration::UnspecifiedTH => "@TH",
+                Configuration::UnspecifiedAL => "@AL",
+                Configuration::UnspecifiedTB => "@TB",
+                Configuration::UnspecifiedOH => "@OH",
+                Configuration::UnspecifiedSP => "@SP",
             }
         )
     }

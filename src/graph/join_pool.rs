@@ -1,4 +1,4 @@
-use std::cmp::{Ord, Ordering};
+use std::cmp::Ord;
 use std::collections::hash_map::Entry;
 use std::collections::{BinaryHeap, HashMap};
 use std::convert::TryInto;
@@ -6,14 +6,8 @@ use std::hash::{Hash, Hasher};
 
 use crate::feature::Rnum;
 
-#[derive(Eq, PartialEq, PartialOrd)]
+#[derive(Eq, PartialEq, PartialOrd, Ord)]
 struct Index(u16);
-
-impl Ord for Index {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.0.cmp(&other.0).reverse()
-    }
-}
 
 #[derive(Debug, Eq)]
 struct Pair(usize, usize);

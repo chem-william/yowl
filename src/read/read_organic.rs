@@ -1,7 +1,7 @@
-use super::{missing_character::missing_character, scanner::Scanner, Error};
+use super::{error::ReadError, missing_character::missing_character, scanner::Scanner};
 use crate::feature::{Aliphatic, Aromatic, AtomKind};
 
-pub fn read_organic(scanner: &mut Scanner) -> Result<Option<AtomKind>, Error> {
+pub fn read_organic(scanner: &mut Scanner) -> Result<Option<AtomKind>, ReadError> {
     match scanner.peek() {
         Some('b') => aromatic(Aromatic::B, scanner),
         Some('c') => aromatic(Aromatic::C, scanner),
@@ -14,6 +14,7 @@ pub fn read_organic(scanner: &mut Scanner) -> Result<Option<AtomKind>, Error> {
 
             match scanner.peek() {
                 Some('t') => aliphatic(Aliphatic::At, scanner),
+
                 _ => Err(missing_character(scanner)),
             }
         }
@@ -51,13 +52,13 @@ pub fn read_organic(scanner: &mut Scanner) -> Result<Option<AtomKind>, Error> {
     }
 }
 
-fn aromatic(aromatic: Aromatic, scanner: &mut Scanner) -> Result<Option<AtomKind>, Error> {
+fn aromatic(aromatic: Aromatic, scanner: &mut Scanner) -> Result<Option<AtomKind>, ReadError> {
     scanner.pop();
 
     Ok(Some(AtomKind::Aromatic(aromatic)))
 }
 
-fn aliphatic(aliphatic: Aliphatic, scanner: &mut Scanner) -> Result<Option<AtomKind>, Error> {
+fn aliphatic(aliphatic: Aliphatic, scanner: &mut Scanner) -> Result<Option<AtomKind>, ReadError> {
     scanner.pop();
 
     Ok(Some(AtomKind::Aliphatic(aliphatic)))
@@ -73,7 +74,7 @@ mod tests {
         let mut scanner = Scanner::new("Ax");
         let atom = read_organic(&mut scanner);
 
-        assert_eq!(atom, Err(Error::Character(1)))
+        assert_eq!(atom, Err(ReadError::Character(1)))
     }
 
     #[test]
@@ -81,7 +82,7 @@ mod tests {
         let mut scanner = Scanner::new("Tx");
         let atom = read_organic(&mut scanner);
 
-        assert_eq!(atom, Err(Error::Character(1)))
+        assert_eq!(atom, Err(ReadError::Character(1)))
     }
 
     #[test]
