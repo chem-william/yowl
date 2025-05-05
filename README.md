@@ -76,7 +76,7 @@ use yowl::read::{read, Error, Trace};
 
 fn main() -> Result<(), Error> {
     let mut builder = Builder::default();
-    let mut trace = Trace::new();
+    let mut trace = Trace::default();
 
     //    012345678901234
     read("C(C)C(C)(C)(C)C", &mut builder, Some(&mut trace))?;

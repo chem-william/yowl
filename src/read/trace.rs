@@ -5,7 +5,7 @@ use crate::feature::Rnum;
 
 /// Maps the features of an ajacency representation to cursors within a
 /// string representation.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Default)]
 pub struct Trace {
     atoms: Vec<Range<usize>>,
     bonds: HashMap<(usize, usize), usize>,
@@ -15,16 +15,6 @@ pub struct Trace {
 }
 
 impl Trace {
-    pub fn new() -> Self {
-        Self {
-            atoms: Vec::new(),
-            bonds: HashMap::new(),
-            stack: Vec::new(),
-            opens: HashMap::new(),
-            rnums: Vec::new(),
-        }
-    }
-
     /// Returns the cursor range associated with atom identifier `id`.
     pub fn atom(&self, id: usize) -> Option<Range<usize>> {
         self.atoms.get(id).map(|cursor| cursor.clone())
@@ -116,7 +106,7 @@ mod pop {
     #[test]
     #[should_panic(expected = "overpop")]
     fn overpop() {
-        let mut trace = Trace::new();
+        let mut trace = Trace::default();
 
         trace.root(0..1);
         trace.pop(1)
@@ -130,7 +120,7 @@ mod tests {
 
     #[test]
     fn p3() {
-        let mut trace = Trace::new();
+        let mut trace = Trace::default();
 
         trace.root(0..1);
         trace.extend(1, 1..2);
@@ -146,7 +136,7 @@ mod tests {
 
     #[test]
     fn p3_branch() {
-        let mut trace = Trace::new();
+        let mut trace = Trace::default();
 
         trace.root(0..1);
         trace.extend(1, 1..2);
@@ -164,7 +154,7 @@ mod tests {
 
     #[test]
     fn c3() {
-        let mut trace = Trace::new();
+        let mut trace = Trace::default();
 
         // *1**1
         // 01234

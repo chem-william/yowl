@@ -12,7 +12,7 @@ use crate::walk::Follower;
 ///
 /// fn main() -> Result<(), Error> {
 ///     let mut writer = Writer::default();
-///     let mut trace = Trace::new();
+///     let mut trace = Trace::default();
 ///
 ///     read("CC(=O)N", &mut writer, Some(&mut trace))?;
 ///
@@ -509,7 +509,7 @@ mod trace {
 
     #[test]
     fn p1() {
-        let mut trace = Trace::new();
+        let mut trace = Trace::default();
         let mut writer = Writer::default();
 
         read("*", &mut writer, Some(&mut trace)).unwrap();
@@ -519,7 +519,7 @@ mod trace {
 
     #[test]
     fn p2() {
-        let mut trace = Trace::new();
+        let mut trace = Trace::default();
         let mut writer = Writer::default();
 
         read("**", &mut writer, Some(&mut trace)).unwrap();
@@ -532,7 +532,7 @@ mod trace {
 
     #[test]
     fn p2_single() {
-        let mut trace = Trace::new();
+        let mut trace = Trace::default();
         let mut writer = Writer::default();
 
         read("*-*", &mut writer, Some(&mut trace)).unwrap();
@@ -545,7 +545,7 @@ mod trace {
 
     #[test]
     fn p3_branched() {
-        let mut trace = Trace::new();
+        let mut trace = Trace::default();
         let mut writer = Writer::default();
 
         //    01234
@@ -562,7 +562,7 @@ mod trace {
 
     #[test]
     fn c3() {
-        let mut trace = Trace::new();
+        let mut trace = Trace::default();
         let mut writer = Writer::default();
 
         //    01234
