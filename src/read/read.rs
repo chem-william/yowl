@@ -35,12 +35,10 @@ pub fn read<F: Follower>(
         } else {
             Err(Error::Character(scanner.cursor()))
         }
+    } else if scanner.is_done() {
+        Err(Error::EndOfLine)
     } else {
-        if scanner.is_done() {
-            Err(Error::EndOfLine)
-        } else {
-            Err(Error::Character(scanner.cursor()))
-        }
+        Err(Error::Character(scanner.cursor()))
     }
 }
 
