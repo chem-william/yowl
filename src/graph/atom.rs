@@ -27,47 +27,38 @@ impl Atom {
     /// that can be added to this Atom without exceeding a valence target.
     /// This value is independent of an atom's aromaticity marking.
     pub fn subvalence(&self) -> u8 {
-        let hcount: u8 = match &self.kind {
+        let hcount = match &self.kind {
             AtomKind::Bracket {
-                hcount: Some(hcount),
-                ..
-            } => hcount.into(),
-            AtomKind::Bracket { hcount: None, .. } => 0,
+                hcount: Some(h), ..
+            } => h.into(),
             _ => 0,
         };
+
         let valence = self
             .bonds
             .iter()
             .fold(hcount, |sum, bond| sum + bond.order());
-        let targets = self
-            .kind
+        self.kind
             .targets()
             .iter()
-            .find(|&&target| target >= valence);
-
-        let target = match targets {
-            Some(target) => target,
-            None => return 0,
-        };
-
-        target - valence
+            .find(|&&target| target >= valence)
+            .map_or(0, |&target| target - valence)
     }
 
     /// Returns the number of implicit or virtual hydrogens at this Atom,
     /// accounting for aromaticity.
     pub fn suppressed_hydrogens(&self) -> u8 {
+        let subvalence = self.subvalence();
         match &self.kind {
             AtomKind::Star => 0,
             AtomKind::Aromatic(_) => {
-                let subvalence = self.subvalence();
-
                 if subvalence > 1 {
-                    self.subvalence() - 1
+                    subvalence - 1
                 } else {
                     0
                 }
             }
-            AtomKind::Aliphatic(_) => self.subvalence(),
+            AtomKind::Aliphatic(_) => subvalence,
             AtomKind::Bracket { hcount, .. } => match hcount {
                 Some(hcount) => hcount.into(),
                 None => 0,
