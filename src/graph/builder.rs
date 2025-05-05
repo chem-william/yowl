@@ -11,27 +11,25 @@ use crate::walk::Follower;
 /// use yowl::graph::{ Atom, Bond, Builder };
 /// use yowl::feature::{ AtomKind, BondKind };
 ///
-/// fn main() {
-///     let mut builder = Builder::default();
+/// let mut builder = Builder::default();
 ///
-///     builder.root(AtomKind::Star);
-///     builder.extend(BondKind::Double, AtomKind::Star);
+/// builder.root(AtomKind::Star);
+/// builder.extend(BondKind::Double, AtomKind::Star);
 ///
-///     assert_eq!(builder.build(), Ok(vec![
-///         Atom {
-///             kind: AtomKind::Star,
-///             bonds: vec![
-///                 Bond::new(BondKind::Double, 1)
-///             ]
-///         },
-///         Atom {
-///             kind: AtomKind::Star,
-///             bonds: vec![
-///                 Bond::new(BondKind::Double, 0)
-///             ]
-///         }
-///     ]))
-/// }
+/// assert_eq!(builder.build(), Ok(vec![
+///     Atom {
+///         kind: AtomKind::Star,
+///         bonds: vec![
+///             Bond::new(BondKind::Double, 1)
+///         ]
+///     },
+///     Atom {
+///         kind: AtomKind::Star,
+///         bonds: vec![
+///             Bond::new(BondKind::Double, 0)
+///         ]
+///     }
+/// ]))
 /// ```
 #[derive(Debug, PartialEq, Default)]
 pub struct Builder {

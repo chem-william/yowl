@@ -8,14 +8,12 @@ use crate::walk::Follower;
 /// use yowl::write::Writer;
 /// use yowl::feature::{ AtomKind, BondKind };
 ///
-/// fn main() {
-///     let mut writer = Writer::default();
+/// let mut writer = Writer::default();
 ///
-///     writer.root(AtomKind::Star);
-///     writer.extend(BondKind::Double, AtomKind::Star);
+/// writer.root(AtomKind::Star);
+/// writer.extend(BondKind::Double, AtomKind::Star);
 ///
-///     assert_eq!(writer.write(), "*=*")
-/// }
+/// assert_eq!(writer.write(), "*=*")
 /// ```
 #[derive(Debug, PartialEq, Default)]
 pub struct Writer {
