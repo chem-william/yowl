@@ -11,7 +11,7 @@ mod reader;
 mod scanner;
 mod trace;
 
-pub use error::Error;
+pub use error::ReadError;
 pub(crate) use missing_character::missing_character;
 pub(crate) use read_bond::read_bond;
 pub(crate) use read_bracket::read_bracket;

@@ -6,6 +6,7 @@ edition = "2021"
 readme = "README.md"
 
 [dependencies]
+thiserror = "2.0.12"
 
 [dev-dependencies]
 pretty_assertions = "1.4.1"

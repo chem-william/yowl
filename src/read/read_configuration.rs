@@ -1,4 +1,4 @@
-use super::{missing_character::missing_character, scanner::Scanner, Error};
+use super::{error::ReadError, missing_character::missing_character, scanner::Scanner};
 use crate::feature::Configuration;
 
 /// Reads the configuration of a molecule from the scanner.
@@ -12,7 +12,7 @@ use crate::feature::Configuration;
 ///
 /// If only the configuration is specified (whether it's TH, AL, etc.), but not the specific chirality (@TH1, @AL2, etc.)
 /// then UnspecifiedXX is returned where `XX` specifies the configuration.
-pub fn read_configuration(scanner: &mut Scanner) -> Result<Option<Configuration>, Error> {
+pub fn read_configuration(scanner: &mut Scanner) -> Result<Option<Configuration>, ReadError> {
     Ok(Some(match scanner.peek() {
         Some('@') => {
             scanner.pop();
@@ -83,7 +83,7 @@ pub fn read_configuration(scanner: &mut Scanner) -> Result<Option<Configuration>
     }))
 }
 
-fn tetrahedral(scanner: &mut Scanner) -> Result<Configuration, Error> {
+fn tetrahedral(scanner: &mut Scanner) -> Result<Configuration, ReadError> {
     Ok(match scanner.peek() {
         Some('1') => {
             scanner.pop();
@@ -100,7 +100,7 @@ fn tetrahedral(scanner: &mut Scanner) -> Result<Configuration, Error> {
     })
 }
 
-fn allene(scanner: &mut Scanner) -> Result<Configuration, Error> {
+fn allene(scanner: &mut Scanner) -> Result<Configuration, ReadError> {
     Ok(match scanner.peek() {
         Some('1') => {
             scanner.pop();
@@ -116,7 +116,7 @@ fn allene(scanner: &mut Scanner) -> Result<Configuration, Error> {
     })
 }
 
-fn square_planar(scanner: &mut Scanner) -> Result<Configuration, Error> {
+fn square_planar(scanner: &mut Scanner) -> Result<Configuration, ReadError> {
     Ok(match scanner.peek() {
         Some('1') => {
             scanner.pop();
@@ -137,7 +137,7 @@ fn square_planar(scanner: &mut Scanner) -> Result<Configuration, Error> {
     })
 }
 
-fn trigonal_bipyramidal(scanner: &mut Scanner) -> Result<Configuration, Error> {
+fn trigonal_bipyramidal(scanner: &mut Scanner) -> Result<Configuration, ReadError> {
     Ok(match scanner.peek() {
         Some('1') => {
             scanner.pop();
@@ -204,7 +204,7 @@ fn trigonal_bipyramidal(scanner: &mut Scanner) -> Result<Configuration, Error> {
     })
 }
 
-fn octahedral(scanner: &mut Scanner) -> Result<Configuration, Error> {
+fn octahedral(scanner: &mut Scanner) -> Result<Configuration, ReadError> {
     Ok(match scanner.peek() {
         Some('1') => {
             scanner.pop();

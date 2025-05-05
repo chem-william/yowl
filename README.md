@@ -26,9 +26,9 @@ Parse acetamide into an adjacency representation:
 ```rust
 use yowl::graph::{Builder, Atom, Bond};
 use yowl::feature::{AtomKind, BondKind, Aliphatic};
-use yowl::read::{read, Error};
+use yowl::read::{read, ReadError};
 
-fn main() -> Result<(), Error> {
+fn main() -> Result<(), ReadError> {
     let mut builder = Builder::default();
 
     read("CC(=O)N", &mut builder, None)?;
@@ -72,9 +72,10 @@ An optional `Trace` type maps adjacency features to a cursor position in the ori
 
 ```rust
 use yowl::graph::Builder;
-use yowl::read::{read, Error, Trace};
+use yowl::read::{read, Trace};
+use yowl::read::ReadError;
 
-fn main() -> Result<(), Error> {
+fn main() -> Result<(), ReadError> {
     let mut builder = Builder::default();
     let mut trace = Trace::default();
 
@@ -92,12 +93,12 @@ Syntax errors are mapped to the cursor at which they occur.
 
 ```rust
 use yowl::graph::Builder;
-use yowl::read::{read, Error};
+use yowl::read::{read, ReadError};
 
 fn main() {
     let mut builder = Builder::default();
 
-    assert_eq!(read("OCCXC", &mut builder, None), Err(Error::Character(3)));
+    assert_eq!(read("OCCXC", &mut builder, None), Err(ReadError::Character(3)));
 }
 ```
 
@@ -106,11 +107,11 @@ An adjacency can be written using `write`.
 ```rust
 use yowl::graph::{Builder, Atom, Bond};
 use yowl::feature::{AtomKind, BondKind, Aliphatic};
-use yowl::read::{read, Error};
+use yowl::read::{read, ReadError};
 use yowl::write::Writer;
 use yowl::walk::walk;
 
-fn main() -> Result<(), Error> {
+fn main() -> Result<(), ReadError> {
     let mut builder = Builder::default();
 
     read("c1c([37Cl])cccc1", &mut builder, None)?;

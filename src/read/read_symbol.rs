@@ -1,7 +1,7 @@
-use super::{missing_character::missing_character, scanner::Scanner, Error};
+use super::{error::ReadError, missing_character::missing_character, scanner::Scanner};
 use crate::feature::{BracketAromatic, BracketSymbol, Element};
 
-pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, Error> {
+pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, ReadError> {
     match scanner.peek() {
         Some('*') => {
             scanner.pop();
@@ -315,13 +315,13 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, Error> {
     }
 }
 
-fn aromatic(aromatic: BracketAromatic, scanner: &mut Scanner) -> Result<BracketSymbol, Error> {
+fn aromatic(aromatic: BracketAromatic, scanner: &mut Scanner) -> Result<BracketSymbol, ReadError> {
     scanner.pop();
 
     Ok(BracketSymbol::Aromatic(aromatic))
 }
 
-fn element(element: Element, scanner: &mut Scanner) -> Result<BracketSymbol, Error> {
+fn element(element: Element, scanner: &mut Scanner) -> Result<BracketSymbol, ReadError> {
     scanner.pop();
 
     Ok(BracketSymbol::Element(element))
@@ -335,28 +335,28 @@ mod follower {
     fn blank() {
         let mut scanner = Scanner::new("");
 
-        assert_eq!(read_symbol(&mut scanner), Err(Error::EndOfLine))
+        assert_eq!(read_symbol(&mut scanner), Err(ReadError::EndOfLine))
     }
 
     #[test]
     fn j_eol() {
         let mut scanner = Scanner::new("J");
 
-        assert_eq!(read_symbol(&mut scanner), Err(Error::Character(0)))
+        assert_eq!(read_symbol(&mut scanner), Err(ReadError::Character(0)))
     }
 
     #[test]
     fn lower_a_eol() {
         let mut scanner = Scanner::new("a");
 
-        assert_eq!(read_symbol(&mut scanner), Err(Error::EndOfLine))
+        assert_eq!(read_symbol(&mut scanner), Err(ReadError::EndOfLine))
     }
 
     #[test]
     fn lower_ax_eol() {
         let mut scanner = Scanner::new("ax");
 
-        assert_eq!(read_symbol(&mut scanner), Err(Error::Character(1)))
+        assert_eq!(read_symbol(&mut scanner), Err(ReadError::Character(1)))
     }
 
     #[test]
@@ -387,7 +387,7 @@ mod follower {
     fn upper_a_eol() {
         let mut scanner = Scanner::new(&"A");
 
-        assert_eq!(read_symbol(&mut scanner), Err(Error::EndOfLine));
+        assert_eq!(read_symbol(&mut scanner), Err(ReadError::EndOfLine));
         assert_eq!(scanner.cursor(), 1);
     }
 
@@ -395,7 +395,7 @@ mod follower {
     fn a_unknown() {
         let mut scanner = Scanner::new(&"Ax");
 
-        assert_eq!(read_symbol(&mut scanner), Err(Error::Character(1)));
+        assert_eq!(read_symbol(&mut scanner), Err(ReadError::Character(1)));
         assert_eq!(scanner.cursor(), 1);
     }
 
