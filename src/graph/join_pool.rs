@@ -40,14 +40,13 @@ impl JoinPool {
     }
 
     pub fn hit(&mut self, sid: usize, tid: usize) -> Rnum {
-        let next = match self.replaced.pop() {
-            Some(next) => next.0,
-            None => {
-                let next = self.counter;
-                self.counter += 1;
+        let next = if let Some(next) = self.replaced.pop() {
+            next.0
+        } else {
+            let next = self.counter;
+            self.counter += 1;
 
-                next
-            }
+            next
         };
 
         match self.borrowed.entry(Pair(sid, tid)) {

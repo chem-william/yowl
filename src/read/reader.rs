@@ -54,27 +54,23 @@ fn read_smiles<F: Follower>(
         None => return Ok(None),
     };
 
-    match input {
-        Some(bond_kind) => {
-            if let Some(trace) = trace {
-                if bond_kind == BondKind::Elided {
-                    trace.extend(cursor, cursor..scanner.cursor())
-                } else {
-                    trace.extend(cursor - 1, cursor..scanner.cursor())
-                }
+    if let Some(bond_kind) = input {
+        if let Some(trace) = trace {
+            if bond_kind == BondKind::Elided {
+                trace.extend(cursor, cursor..scanner.cursor())
+            } else {
+                trace.extend(cursor - 1, cursor..scanner.cursor())
             }
-
-            follower.extend(bond_kind, atom_kind)
         }
-        None => {
-            follower.root(atom_kind);
 
-            if let Some(trace) = trace {
-                trace.root(cursor..scanner.cursor())
-            }
+        follower.extend(bond_kind, atom_kind)
+    } else {
+        follower.root(atom_kind);
+
+        if let Some(trace) = trace {
+            trace.root(cursor..scanner.cursor())
         }
     }
-
     let mut result = 1;
 
     loop {
@@ -128,22 +124,19 @@ fn read_branch<F: Follower>(
         _ => return Ok(false),
     }
 
-    let length = match scanner.peek() {
-        Some('.') => {
-            scanner.pop();
+    let length = if let Some('.') = scanner.peek() {
+        scanner.pop();
 
-            match read_smiles(None, scanner, follower, trace)? {
-                Some(length) => length,
-                None => return Err(missing_character(scanner)),
-            }
+        match read_smiles(None, scanner, follower, trace)? {
+            Some(length) => length,
+            None => return Err(missing_character(scanner)),
         }
-        _ => {
-            let bond_kind = read_bond(scanner);
+    } else {
+        let bond_kind = read_bond(scanner);
 
-            match read_smiles(Some(bond_kind), scanner, follower, trace)? {
-                Some(length) => length,
-                None => return Err(missing_character(scanner)),
-            }
+        match read_smiles(Some(bond_kind), scanner, follower, trace)? {
+            Some(length) => length,
+            None => return Err(missing_character(scanner)),
         }
     };
 

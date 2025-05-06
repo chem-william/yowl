@@ -66,7 +66,7 @@ fn walk_root<F: Follower>(
     let mut chain = Vec::new();
 
     for bond in parent.bonds.into_iter().rev() {
-        stack.push((pid, bond))
+        stack.push((pid, bond));
     }
 
     follower.root(parent.kind);
@@ -90,11 +90,11 @@ fn walk_root<F: Follower>(
 
             chain.pop();
 
-            popcount += 1
+            popcount += 1;
         }
 
         if popcount > 0 {
-            follower.pop(popcount)
+            follower.pop(popcount);
         }
 
         match atoms.remove(&bond.tid) {
