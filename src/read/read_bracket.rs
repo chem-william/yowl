@@ -1,27 +1,43 @@
 use std::convert::TryInto;
 
+use logos::Lexer;
+
 use super::{
-    error::ReadError, missing_character, read_charge, read_configuration, read_symbol, scanner::Scanner
+    error::ReadError, missing_character, read_charge, read_configuration, read_symbol,
+    scanner::Scanner, token::Token,
 };
 use crate::feature::{AtomKind, Number, VirtualHydrogen};
 
-pub fn read_bracket(scanner: &mut Scanner) -> Result<Option<AtomKind>, ReadError> {
-    if let Some('[') = scanner.peek() {
-        scanner.pop();
-    } else {
-        return Ok(None);
+pub fn read_bracket(lexer: &mut Lexer<Token>) -> Result<Option<AtomKind>, ReadError> {
+    if let Some(token) = lexer.next() {
+        match token {
+            Ok(Token::BracketLeft) => {
+                let isotope = read_isotope(lexer)?;
+                let symbol = read_symbol(lexer)?;
+                let configuration = read_configuration(lexer)?;
+                let hcount = read_hcount(lexer)?;
+                let charge = read_charge(lexer)?;
+                let map = read_map(lexer)?;
+            }
+            _ => unreachable!("read_bracket"),
+        }
     }
+    // if let Some('[') = lexer.peek() {
+    //     lexer.pop();
+    // } else {
+    //     return Ok(None);
+    // }
 
-    let isotope = read_isotope(scanner)?;
-    let symbol = read_symbol(scanner)?;
-    let configuration = read_configuration(scanner)?;
-    let hcount = read_hcount(scanner)?;
-    let charge = read_charge(scanner)?;
-    let map = read_map(scanner)?;
+    // let isotope = read_isotope(lexer)?;
+    // let symbol = read_symbol(lexer)?;
+    // let configuration = read_configuration(lexer)?;
+    // let hcount = read_hcount(lexer)?;
+    // let charge = read_charge(lexer)?;
+    // let map = read_map(lexer)?;
 
-    match scanner.peek() {
+    match lexer.peek() {
         Some(']') => {
-            scanner.pop();
+            lexer.pop();
 
             Ok(Some(AtomKind::Bracket {
                 isotope,
@@ -33,7 +49,7 @@ pub fn read_bracket(scanner: &mut Scanner) -> Result<Option<AtomKind>, ReadError
             }))
         }
         None => Err(ReadError::EndOfLine),
-        _ => Err(ReadError::Character(scanner.cursor())),
+        _ => Err(ReadError::Character(lexer.cursor())),
     }
 }
 
@@ -63,20 +79,21 @@ fn read_hcount(scanner: &mut Scanner) -> Result<Option<VirtualHydrogen>, ReadErr
     }
 }
 
-fn read_isotope(scanner: &mut Scanner) -> Result<Option<Number>, ReadError> {
-    let mut digits = String::new();
-
-    for _ in 0..3 {
-        match scanner.peek() {
-            Some('0'..='9') => digits.push(*scanner.pop().expect("digit")),
-            _ => break,
+fn read_isotope(lexer: &mut Lexer<Token>) -> Result<Option<Number>, ReadError> {
+    match lexer.next() {
+        Some(Ok(Token::Integer(number))) => {
+            let slice = lexer.slice();
+            match slice.parse::<u16>() {
+                Ok(val) => {
+                    match number::try_from(val) {
+                        Ok(num) => Ok(Some(num)),
+                        Err(_) => Err(ReadError::Character(lexer.span().end)),
+                    }
+                }
+                Err(_) => Err(ReadError::Character(lexer.span().start)),
+            }
         }
-    }
-
-    if digits.is_empty() {
-        Ok(None)
-    } else {
-        Ok(Some(digits.try_into().expect("number")))
+        _ => Ok(None),
     }
 }
 
