@@ -1,7 +1,9 @@
 use super::{missing_character, read_bond, read_bracket, read_organic, read_rnum, Scanner, Trace};
 use crate::feature::{AtomKind, BondKind};
 use crate::read::error::ReadError;
+use crate::read::token::Token;
 use crate::walk::Follower;
+use logos::{Lexer, Logos};
 
 /// Reads a string using a `Follower` and optional `Trace`.
 ///
@@ -26,30 +28,31 @@ pub fn read<F: Follower>(
     follower: &mut F,
     mut trace: Option<&mut Trace>,
 ) -> Result<(), ReadError> {
-    let mut scanner = Scanner::new(smiles);
+    // let mut scanner = Scanner::new(smiles);
+    let mut lexer = Token::lexer(smiles);
 
-    if read_smiles(None, &mut scanner, follower, &mut trace)?.is_some() {
-        if scanner.is_done() {
+    if read_smiles(None, &mut lexer, follower, &mut trace)?.is_some() {
+        if let Some(_) = lexer.next() {
             Ok(())
         } else {
-            Err(ReadError::Character(scanner.cursor()))
+            Err(ReadError::Character(lexer.span().start))
         }
-    } else if scanner.is_done() {
+    } else if lexer.next().is_none() {
         Err(ReadError::EndOfLine)
     } else {
-        Err(ReadError::Character(scanner.cursor()))
+        Err(ReadError::Character(lexer.span().start))
     }
 }
 
 // <smiles> ::= <atom> <body>*
 fn read_smiles<F: Follower>(
     input: Option<BondKind>,
-    scanner: &mut Scanner,
+    lexer: &mut Lexer<Token>,
     follower: &mut F,
     trace: &mut Option<&mut Trace>,
 ) -> Result<Option<usize>, ReadError> {
-    let cursor = scanner.cursor();
-    let atom_kind = match read_atom(scanner)? {
+    let cursor = lexer.span();
+    let atom_kind = match read_atom(lexer)? {
         Some(kind) => kind,
         None => return Ok(None),
     };
@@ -58,9 +61,9 @@ fn read_smiles<F: Follower>(
         Some(bond_kind) => {
             if let Some(trace) = trace {
                 if bond_kind == BondKind::Elided {
-                    trace.extend(cursor, cursor..scanner.cursor())
+                    trace.extend(cursor, cursor..lexer.cursor())
                 } else {
-                    trace.extend(cursor - 1, cursor..scanner.cursor())
+                    trace.extend(cursor - 1, cursor..lexer.cursor())
                 }
             }
 
@@ -70,7 +73,7 @@ fn read_smiles<F: Follower>(
             follower.root(atom_kind);
 
             if let Some(trace) = trace {
-                trace.root(cursor..scanner.cursor())
+                trace.root(cursor..lexer.cursor())
             }
         }
     }
@@ -78,7 +81,7 @@ fn read_smiles<F: Follower>(
     let mut result = 1;
 
     loop {
-        match read_body(scanner, follower, trace)? {
+        match read_body(lexer, follower, trace)? {
             Some(length) => result += length,
             None => break Ok(Some(result)),
         }
@@ -86,16 +89,16 @@ fn read_smiles<F: Follower>(
 }
 
 // <atom> ::= <organic> | <bracket> | <star>
-fn read_atom(scanner: &mut Scanner) -> Result<Option<AtomKind>, ReadError> {
-    if let Some(organic) = read_organic(scanner)? {
+fn read_atom(lexer: &mut Lexer<Token>) -> Result<Option<AtomKind>, ReadError> {
+    if let Some(organic) = read_organic(lexer)? {
         return Ok(Some(organic));
     }
 
-    if let Some(bracket) = read_bracket(scanner)? {
+    if let Some(bracket) = read_bracket(lexer)? {
         return Ok(Some(bracket));
     }
 
-    Ok(read_star(scanner))
+    Ok(read_star(lexer))
 }
 
 // <body> ::= <branch> | <split> | <union>

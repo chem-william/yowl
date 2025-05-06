@@ -1,82 +1,83 @@
-use super::scanner::Scanner;
+use logos::Lexer;
+
+use super::token::Token;
 use crate::feature::BondKind;
 
-pub fn read_bond(scanner: &mut Scanner) -> BondKind {
-    let result = match scanner.peek() {
-        Some('-') => BondKind::Single,
-        Some('=') => BondKind::Double,
-        Some('#') => BondKind::Triple,
-        Some('$') => BondKind::Quadruple,
-        Some(':') => BondKind::Aromatic,
-        Some('/') => BondKind::Up,
-        Some('\\') => BondKind::Down,
-        _ => BondKind::Elided,
-    };
-
-    if result != BondKind::Elided {
-        scanner.pop();
+pub fn read_bond(lexer: &mut Lexer<Token>) -> BondKind {
+    if let Some(token) = lexer.next() {
+        match token {
+            Ok(Token::SingleBond) => BondKind::Single,
+            Ok(Token::DoubleBond) => BondKind::Double,
+            Ok(Token::TripleBond) => BondKind::Triple,
+            Ok(Token::QuadrupleBond) => BondKind::Quadruple,
+            Ok(Token::AromaticBond) => BondKind::Aromatic,
+            Ok(Token::UpBond) => BondKind::Up,
+            Ok(Token::DownBond) => BondKind::Down,
+            _ => todo!(),
+        }
+    } else {
+        BondKind::Elided
     }
-
-    result
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use logos::Logos;
 
     #[test]
     fn elided() {
-        let mut scanner = Scanner::new("X");
+        let mut lexer = Token::lexer("X");
 
-        assert_eq!(read_bond(&mut scanner), BondKind::Elided)
+        assert_eq!(read_bond(&mut lexer), BondKind::Elided)
     }
 
     #[test]
     fn single() {
-        let mut scanner = Scanner::new("-");
+        let mut lexer = Token::lexer("-");
 
-        assert_eq!(read_bond(&mut scanner), BondKind::Single);
+        assert_eq!(read_bond(&mut lexer), BondKind::Single);
     }
 
     #[test]
     fn double() {
-        let mut scanner = Scanner::new("=");
+        let mut lexer = Token::lexer("=");
 
-        assert_eq!(read_bond(&mut scanner), BondKind::Double);
+        assert_eq!(read_bond(&mut lexer), BondKind::Double);
     }
 
     #[test]
     fn triple() {
-        let mut scanner = Scanner::new("#");
+        let mut lexer = Token::lexer("#");
 
-        assert_eq!(read_bond(&mut scanner), BondKind::Triple);
+        assert_eq!(read_bond(&mut lexer), BondKind::Triple);
     }
 
     #[test]
     fn quadruple() {
-        let mut scanner = Scanner::new("$");
+        let mut lexer = Token::lexer("$");
 
-        assert_eq!(read_bond(&mut scanner), BondKind::Quadruple);
+        assert_eq!(read_bond(&mut lexer), BondKind::Quadruple);
     }
 
     #[test]
     fn aromatic() {
-        let mut scanner = Scanner::new(":");
+        let mut lexer = Token::lexer(":");
 
-        assert_eq!(read_bond(&mut scanner), BondKind::Aromatic);
+        assert_eq!(read_bond(&mut lexer), BondKind::Aromatic);
     }
 
     #[test]
     fn up() {
-        let mut scanner = Scanner::new("/");
+        let mut lexer = Token::lexer("/");
 
-        assert_eq!(read_bond(&mut scanner), BondKind::Up);
+        assert_eq!(read_bond(&mut lexer), BondKind::Up);
     }
 
     #[test]
     fn down() {
-        let mut scanner = Scanner::new("\\");
+        let mut lexer = Token::lexer("\\");
 
-        assert_eq!(read_bond(&mut scanner), BondKind::Down);
+        assert_eq!(read_bond(&mut lexer), BondKind::Down);
     }
 }

@@ -6,6 +6,7 @@ edition = "2021"
 readme = "README.md"
 
 [dependencies]
+logos = "0.15.0"
 thiserror = "2.0.12"
 
 [dev-dependencies]

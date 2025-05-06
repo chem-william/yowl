@@ -9,6 +9,7 @@ mod read_rnum;
 mod read_symbol;
 mod reader;
 mod scanner;
+mod token;
 mod trace;
 
 pub use error::ReadError;

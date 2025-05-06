@@ -1,28 +1,28 @@
 use std::convert::TryInto;
 
-use super::{error::ReadError, missing_character::missing_character, scanner::Scanner};
+use logos::Lexer;
+
+use super::{error::ReadError, token::Token};
 use crate::feature::Rnum;
 
-pub fn read_rnum(scanner: &mut Scanner) -> Result<Option<Rnum>, ReadError> {
+pub fn read_rnum(lexer: &mut Lexer<Token>) -> Result<Option<Rnum>, ReadError> {
     let mut digits = String::new();
 
-    match scanner.peek() {
-        Some('0'..='9') => {
-            digits.push(*scanner.pop().unwrap());
-        }
-        Some('%') => {
-            scanner.pop();
-
-            for _ in 0..=1 {
-                match scanner.peek() {
-                    Some('0'..='9') => {
-                        digits.push(*scanner.pop().expect("scanner done"));
+    if let Some(token) = lexer.next() {
+        match token {
+            Ok(Token::Integer) => digits.push_str(lexer.slice()),
+            Ok(Token::Percentage) => {
+                for _ in 0..=1 {
+                    if let Some(token) = lexer.next() {
+                        match token {
+                            Ok(Token::Integer) => digits.push_str(lexer.slice()),
+                            _ => return Err(ReadError::Character(lexer.span().start)),
+                        }
                     }
-                    _ => return Err(missing_character(scanner)),
                 }
             }
+            _ => return Ok(None),
         }
-        _ => return Ok(None),
     }
 
     let rnum = digits.parse::<u16>().expect("rnum to u16");
@@ -33,39 +33,40 @@ pub fn read_rnum(scanner: &mut Scanner) -> Result<Option<Rnum>, ReadError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use logos::Logos;
 
     #[test]
     fn percent_digit() {
-        let mut scanner = Scanner::new("%0");
+        let mut lexer = Token::lexer("%0");
 
-        assert_eq!(read_rnum(&mut scanner), Err(ReadError::EndOfLine))
+        assert_eq!(read_rnum(&mut lexer), Err(ReadError::EndOfLine))
     }
 
     #[test]
     fn zero() {
-        let mut scanner = Scanner::new("0");
+        let mut lexer = Token::lexer("0");
 
-        assert_eq!(read_rnum(&mut scanner), Ok(Some(Rnum::R0)))
+        assert_eq!(read_rnum(&mut lexer), Ok(Some(Rnum::R0)))
     }
 
     #[test]
     fn nine() {
-        let mut scanner = Scanner::new("9");
+        let mut lexer = Token::lexer("9");
 
-        assert_eq!(read_rnum(&mut scanner), Ok(Some(Rnum::R9)))
+        assert_eq!(read_rnum(&mut lexer), Ok(Some(Rnum::R9)))
     }
 
     #[test]
     fn percent_zero_zero() {
-        let mut scanner = Scanner::new("%00");
+        let mut lexer = Token::lexer("%00");
 
-        assert_eq!(read_rnum(&mut scanner), Ok(Some(Rnum::R0)))
+        assert_eq!(read_rnum(&mut lexer), Ok(Some(Rnum::R0)))
     }
 
     #[test]
     fn percent_nine_nine() {
-        let mut scanner = Scanner::new("%99");
+        let mut lexer = Token::lexer("%99");
 
-        assert_eq!(read_rnum(&mut scanner), Ok(Some(Rnum::R99)))
+        assert_eq!(read_rnum(&mut lexer), Ok(Some(Rnum::R99)))
     }
 }

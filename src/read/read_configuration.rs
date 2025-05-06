@@ -1,4 +1,6 @@
-use super::{error::ReadError, missing_character::missing_character, scanner::Scanner};
+use logos::Lexer;
+
+use super::{error::ReadError, missing_character::missing_character, token::Token};
 use crate::feature::Configuration;
 
 /// Reads the configuration of a molecule from the scanner.
@@ -12,619 +14,500 @@ use crate::feature::Configuration;
 ///
 /// If only the configuration is specified (whether it's TH, AL, etc.), but not the specific chirality (@TH1, @AL2, etc.)
 /// then UnspecifiedXX is returned where `XX` specifies the configuration.
-pub fn read_configuration(scanner: &mut Scanner) -> Result<Option<Configuration>, ReadError> {
-    Ok(Some(match scanner.peek() {
-        Some('@') => {
-            scanner.pop();
-
-            match scanner.peek() {
-                Some('@') => {
-                    scanner.pop();
-
-                    Configuration::TH2
+pub fn read_configuration(lexer: &mut Lexer<Token>) -> Result<Option<Configuration>, ReadError> {
+    if let Some(token) = lexer.next() {
+        match token {
+            Ok(Token::Ampersand) => {
+                if let Some(token) = lexer.next() {
+                    match token {
+                        Ok(Token::Ampersand) => Ok(Some(Configuration::TH2)),
+                        Ok(Token::AL) => Ok(Some(allene(lexer)?)),
+                        Ok(Token::OH) => Ok(Some(octahedral(lexer)?)),
+                        Ok(Token::SP) => Ok(Some(square_planar(lexer)?)),
+                        Ok(Token::TB) => Ok(Some(trigonal_bipyramidal(lexer)?)),
+                        Ok(Token::TH) => Ok(Some(tetrahedral(lexer)?)),
+                        _ => Ok(Some(Configuration::TH1)),
+                    }
+                } else {
+                    todo!("read_configuration")
                 }
-                Some('A') => {
-                    scanner.pop();
+            }
+            _ => Ok(None),
+        }
+    } else {
+        return Err(ReadError::EndOfLine);
+    }
+}
 
-                    match scanner.peek() {
-                        Some('L') => {
-                            scanner.pop();
+fn tetrahedral(lexer: &mut Lexer<Token>) -> Result<Configuration, ReadError> {
+    if let Some(token) = lexer.next() {
+        match token {
+            Ok(Token::Integer(number)) => match number {
+                1 => Ok(Configuration::TH1),
+                2 => Ok(Configuration::TH2),
+                3..=9 => return Err(ReadError::Character(lexer.span().start)),
+                _ => unreachable!("allene"),
+            },
+            _ => Ok(Configuration::UnspecifiedTH),
+        }
+    } else {
+        return Err(ReadError::EndOfLine);
+    }
+}
 
-                            allene(scanner)?
+fn allene(lexer: &mut Lexer<Token>) -> Result<Configuration, ReadError> {
+    if let Some(token) = lexer.next() {
+        match token {
+            Ok(Token::Integer(number)) => match number {
+                1 => Ok(Configuration::AL1),
+                2 => Ok(Configuration::AL2),
+                _ => unreachable!(),
+            },
+            _ => Ok(Configuration::UnspecifiedAL),
+        }
+    } else {
+        return Err(ReadError::EndOfLine);
+    }
+}
+
+fn square_planar(lexer: &mut Lexer<Token>) -> Result<Configuration, ReadError> {
+    if let Some(token) = lexer.next() {
+        match token {
+            Ok(Token::Integer(number)) => match number {
+                1 => Ok(Configuration::SP1),
+                2 => Ok(Configuration::SP2),
+                3 => Ok(Configuration::SP3),
+                _ => Err(ReadError::Character(lexer.span().start)),
+            },
+            _ => Ok(Configuration::UnspecifiedSP),
+        }
+    } else {
+        return Err(ReadError::EndOfLine);
+    }
+}
+
+fn trigonal_bipyramidal(lexer: &mut Lexer<Token>) -> Result<Configuration, ReadError> {
+    if let Some(token) = lexer.next() {
+        match token {
+            Ok(Token::Integer(number)) => match number {
+                1 => {
+                    if let Some(token) = lexer.next() {
+                        match token {
+                            Ok(Token::Integer(number)) => match number {
+                                0 => Ok(Configuration::TB10),
+                                1 => Ok(Configuration::TB11),
+                                2 => Ok(Configuration::TB12),
+                                3 => Ok(Configuration::TB13),
+                                4 => Ok(Configuration::TB14),
+                                5 => Ok(Configuration::TB15),
+                                6 => Ok(Configuration::TB16),
+                                7 => Ok(Configuration::TB17),
+                                8 => Ok(Configuration::TB18),
+                                9 => Ok(Configuration::TB19),
+                                _ => unreachable!("in TB10-19"),
+                            },
+                            _ => return Err(ReadError::Character(lexer.span().start)),
                         }
-                        _ => unreachable!("Should've hit UnspecifiedAL"),
+                    } else {
+                        return Err(ReadError::EndOfLine);
                     }
                 }
-                Some('O') => {
-                    scanner.pop();
-
-                    match scanner.peek() {
-                        Some('H') => {
-                            scanner.pop();
-
-                            octahedral(scanner)?
+                2 => {
+                    if let Some(token) = lexer.next() {
+                        match token {
+                            Ok(Token::Integer(number)) => match number {
+                                0 => Ok(Configuration::TB20),
+                                _ => Ok(Configuration::TB2),
+                            },
+                            _ => return Err(ReadError::Character(lexer.span().start)),
                         }
-                        _ => unreachable!("Should've hit UnspecifiedOH"),
+                    } else {
+                        return Err(ReadError::EndOfLine);
                     }
                 }
-                Some('S') => {
-                    scanner.pop();
+                3 => Ok(Configuration::TB3),
+                4 => Ok(Configuration::TB4),
+                5 => Ok(Configuration::TB5),
+                6 => Ok(Configuration::TB6),
+                7 => Ok(Configuration::TB7),
+                8 => Ok(Configuration::TB8),
+                9 => Ok(Configuration::TB9),
+                _ => Err(ReadError::Character(lexer.span().start)),
+            },
+            _ => return Err(ReadError::Character(lexer.span().start)),
+        }
+    } else {
+        return Err(ReadError::EndOfLine);
+    }
+}
 
-                    match scanner.peek() {
-                        Some('P') => {
-                            scanner.pop();
-
-                            square_planar(scanner)?
+fn octahedral(lexer: &mut Lexer<Token>) -> Result<Configuration, ReadError> {
+    if let Some(token) = lexer.next() {
+        match token {
+            Ok(Token::Integer(number)) => match number {
+                1 => {
+                    if let Some(token) = lexer.next() {
+                        match token {
+                            Ok(Token::Integer(number)) => match number {
+                                0 => Ok(Configuration::OH10),
+                                1 => Ok(Configuration::OH11),
+                                2 => Ok(Configuration::OH12),
+                                3 => Ok(Configuration::OH13),
+                                4 => Ok(Configuration::OH14),
+                                5 => Ok(Configuration::OH15),
+                                6 => Ok(Configuration::OH16),
+                                7 => Ok(Configuration::OH17),
+                                8 => Ok(Configuration::OH18),
+                                9 => Ok(Configuration::OH19),
+                                _ => unreachable!("OH1X"),
+                            },
+                            _ => return Err(ReadError::Character(lexer.span().start)),
                         }
-                        _ => unreachable!("Should've hit UnspecifiedSP"),
+                    } else {
+                        return Err(ReadError::EndOfLine);
                     }
                 }
-                Some('T') => {
-                    scanner.pop();
-
-                    match scanner.peek() {
-                        Some('B') => {
-                            scanner.pop();
-
-                            trigonal_bipyramidal(scanner)?
+                2 => {
+                    if let Some(token) = lexer.next() {
+                        match token {
+                            Ok(Token::Integer(number)) => match number {
+                                0 => Ok(Configuration::OH20),
+                                1 => Ok(Configuration::OH21),
+                                2 => Ok(Configuration::OH22),
+                                3 => Ok(Configuration::OH23),
+                                4 => Ok(Configuration::OH24),
+                                5 => Ok(Configuration::OH25),
+                                6 => Ok(Configuration::OH26),
+                                7 => Ok(Configuration::OH27),
+                                8 => Ok(Configuration::OH28),
+                                9 => Ok(Configuration::OH29),
+                                _ => unreachable!("OH2X"),
+                            },
+                            _ => Err(ReadError::Character(lexer.span().start)),
                         }
-                        Some('H') => {
-                            scanner.pop();
-
-                            tetrahedral(scanner)?
-                        }
-                        _ => unreachable!("Should've hit UnspecifiedTB or TH"),
+                    } else {
+                        return Err(ReadError::EndOfLine);
                     }
                 }
-                _ => Configuration::TH1,
-            }
-        }
-        _ => return Ok(None),
-    }))
-}
-
-fn tetrahedral(scanner: &mut Scanner) -> Result<Configuration, ReadError> {
-    Ok(match scanner.peek() {
-        Some('1') => {
-            scanner.pop();
-
-            Configuration::TH1
-        }
-        Some('2') => {
-            scanner.pop();
-
-            Configuration::TH2
-        }
-        Some('3'..='9') => return Err(missing_character(scanner)),
-        _ => Configuration::UnspecifiedTH, // Stereochemistry not specified
-    })
-}
-
-fn allene(scanner: &mut Scanner) -> Result<Configuration, ReadError> {
-    Ok(match scanner.peek() {
-        Some('1') => {
-            scanner.pop();
-
-            Configuration::AL1
-        }
-        Some('2') => {
-            scanner.pop();
-
-            Configuration::AL2
-        }
-        _ => Configuration::UnspecifiedAL,
-    })
-}
-
-fn square_planar(scanner: &mut Scanner) -> Result<Configuration, ReadError> {
-    Ok(match scanner.peek() {
-        Some('1') => {
-            scanner.pop();
-
-            Configuration::SP1
-        }
-        Some('2') => {
-            scanner.pop();
-
-            Configuration::SP2
-        }
-        Some('3') => {
-            scanner.pop();
-
-            Configuration::SP3
-        }
-        _ => Configuration::UnspecifiedSP, // Stereochemistry not specified
-    })
-}
-
-fn trigonal_bipyramidal(scanner: &mut Scanner) -> Result<Configuration, ReadError> {
-    Ok(match scanner.peek() {
-        Some('1') => {
-            scanner.pop();
-
-            match scanner.peek() {
-                Some('0'..='9') => match scanner.pop() {
-                    Some('0') => Configuration::TB10,
-                    Some('1') => Configuration::TB11,
-                    Some('2') => Configuration::TB12,
-                    Some('3') => Configuration::TB13,
-                    Some('4') => Configuration::TB14,
-                    Some('5') => Configuration::TB15,
-                    Some('6') => Configuration::TB16,
-                    Some('7') => Configuration::TB17,
-                    Some('8') => Configuration::TB18,
-                    Some('9') => Configuration::TB19,
-                    _ => unreachable!("TB1X"),
-                },
-                _ => Configuration::TB1,
-            }
-        }
-        Some('2') => {
-            scanner.pop();
-
-            match scanner.peek() {
-                Some('0') => {
-                    scanner.pop();
-
-                    Configuration::TB20
+                3 => {
+                    if let Some(token) = lexer.next() {
+                        match token {
+                            Ok(Token::Integer(number)) => match number {
+                                0 => Ok(Configuration::OH30),
+                                _ => Ok(Configuration::OH3),
+                            },
+                            _ => unreachable!("octahedral - inner"),
+                        }
+                    } else {
+                        return Err(ReadError::EndOfLine);
+                    }
                 }
-                _ => Configuration::TB2,
-            }
+                4 => Ok(Configuration::OH4),
+                5 => Ok(Configuration::OH5),
+                6 => Ok(Configuration::OH6),
+                7 => Ok(Configuration::OH7),
+                8 => Ok(Configuration::OH8),
+                9 => Ok(Configuration::OH9),
+                _ => Ok(Configuration::UnspecifiedOH),
+            },
+            _ => unreachable!("octahedral"),
         }
-        Some('3') => {
-            scanner.pop();
-
-            Configuration::TB3
-        }
-        Some('4') => {
-            scanner.pop();
-            Configuration::TB4
-        }
-        Some('5') => {
-            scanner.pop();
-            Configuration::TB5
-        }
-        Some('6') => {
-            scanner.pop();
-            Configuration::TB6
-        }
-        Some('7') => {
-            scanner.pop();
-            Configuration::TB7
-        }
-        Some('8') => {
-            scanner.pop();
-            Configuration::TB8
-        }
-        Some('9') => {
-            scanner.pop();
-            Configuration::TB9
-        }
-        _ => Configuration::UnspecifiedTB, // Stereochemistry not specified
-    })
+    } else {
+        return Err(ReadError::EndOfLine);
+    }
 }
 
-fn octahedral(scanner: &mut Scanner) -> Result<Configuration, ReadError> {
-    Ok(match scanner.peek() {
-        Some('1') => {
-            scanner.pop();
-
-            match scanner.peek() {
-                Some('0'..='9') => match scanner.pop() {
-                    Some('0') => Configuration::OH10,
-                    Some('1') => Configuration::OH11,
-                    Some('2') => Configuration::OH12,
-                    Some('3') => Configuration::OH13,
-                    Some('4') => Configuration::OH14,
-                    Some('5') => Configuration::OH15,
-                    Some('6') => Configuration::OH16,
-                    Some('7') => Configuration::OH17,
-                    Some('8') => Configuration::OH18,
-                    Some('9') => Configuration::OH19,
-                    _ => unreachable!("OH1X"),
-                },
-                _ => Configuration::OH1,
-            }
-        }
-        Some('2') => {
-            scanner.pop();
-
-            match scanner.peek() {
-                Some('0'..='9') => match scanner.pop() {
-                    Some('0') => Configuration::OH20,
-                    Some('1') => Configuration::OH21,
-                    Some('2') => Configuration::OH22,
-                    Some('3') => Configuration::OH23,
-                    Some('4') => Configuration::OH24,
-                    Some('5') => Configuration::OH25,
-                    Some('6') => Configuration::OH26,
-                    Some('7') => Configuration::OH27,
-                    Some('8') => Configuration::OH28,
-                    Some('9') => Configuration::OH29,
-                    _ => unreachable!("OH2X"),
-                },
-                _ => Configuration::OH2,
-            }
-        }
-        Some('3') => {
-            scanner.pop();
-
-            match scanner.peek() {
-                Some('0') => {
-                    scanner.pop();
-
-                    Configuration::OH30
-                }
-                _ => Configuration::OH3,
-            }
-        }
-        Some('4') => {
-            scanner.pop();
-            Configuration::OH4
-        }
-        Some('5') => {
-            scanner.pop();
-            Configuration::OH5
-        }
-        Some('6') => {
-            scanner.pop();
-            Configuration::OH6
-        }
-        Some('7') => {
-            scanner.pop();
-            Configuration::OH7
-        }
-        Some('8') => {
-            scanner.pop();
-            Configuration::OH8
-        }
-        Some('9') => {
-            scanner.pop();
-            Configuration::OH9
-        }
-        _ => Configuration::UnspecifiedOH, // Stereochemistry not specified
-    })
-}
-#[test]
-fn unspecified_th() {
-    let mut scanner = Scanner::new("@TH");
-
-    assert_eq!(
-        read_configuration(&mut scanner),
-        Ok(Some(Configuration::UnspecifiedTH))
-    )
-}
-
-#[test]
-fn unspecified_al() {
-    let mut scanner = Scanner::new("@AL");
-
-    assert_eq!(
-        read_configuration(&mut scanner),
-        Ok(Some(Configuration::UnspecifiedAL))
-    )
-}
-
-#[test]
-fn unspecified_sp() {
-    let mut scanner = Scanner::new("@SP");
-
-    assert_eq!(
-        read_configuration(&mut scanner),
-        Ok(Some(Configuration::UnspecifiedSP))
-    )
-}
-
-#[test]
-fn unspecified_tb() {
-    let mut scanner = Scanner::new("@TB");
-
-    assert_eq!(
-        read_configuration(&mut scanner),
-        Ok(Some(Configuration::UnspecifiedTB))
-    )
-}
-
-#[test]
-fn unspecified_oh() {
-    let mut scanner = Scanner::new("@OH");
-
-    assert_eq!(
-        read_configuration(&mut scanner),
-        Ok(Some(Configuration::UnspecifiedOH))
-    )
-}
 #[cfg(test)]
-mod tests {
+mod test {
     use super::*;
+    use logos::Logos;
     use pretty_assertions::assert_eq;
 
     #[test]
-    fn counterclockwise() {
-        let mut scanner = Scanner::new("@");
+    fn unspecified_th() {
+        let mut lexer = Token::lexer("@TH");
 
         assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::TH1))
+            read_configuration(&mut lexer),
+            Ok(Some(Configuration::UnspecifiedTH))
         )
+    }
+
+    #[test]
+    fn unspecified_al() {
+        let mut lexer = Token::lexer("@AL");
+
+        assert_eq!(
+            read_configuration(&mut lexer),
+            Ok(Some(Configuration::UnspecifiedAL))
+        )
+    }
+
+    #[test]
+    fn unspecified_sp() {
+        let mut lexer = Token::lexer("@SP");
+
+        assert_eq!(
+            read_configuration(&mut lexer),
+            Ok(Some(Configuration::UnspecifiedSP))
+        )
+    }
+
+    #[test]
+    fn unspecified_tb() {
+        let mut lexer = Token::lexer("@TB");
+
+        assert_eq!(
+            read_configuration(&mut lexer),
+            Ok(Some(Configuration::UnspecifiedTB))
+        )
+    }
+
+    #[test]
+    fn unspecified_oh() {
+        let mut lexer = Token::lexer("@OH");
+
+        assert_eq!(
+            read_configuration(&mut lexer),
+            Ok(Some(Configuration::UnspecifiedOH))
+        )
+    }
+
+    #[test]
+    fn counterclockwise() {
+        let mut lexer = Token::lexer("@");
+
+        assert_eq!(read_configuration(&mut lexer), Ok(Some(Configuration::TH1)))
     }
 
     #[test]
     fn clockwise() {
-        let mut scanner = Scanner::new("@@");
+        let mut lexer = Token::lexer("@@");
 
-        assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::TH2))
-        )
+        assert_eq!(read_configuration(&mut lexer), Ok(Some(Configuration::TH2)))
     }
 
     #[test]
     fn th_1() {
-        let mut scanner = Scanner::new("@TH1");
+        let mut lexer = Token::lexer("@TH1");
 
-        assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::TH1))
-        )
+        assert_eq!(read_configuration(&mut lexer), Ok(Some(Configuration::TH1)))
     }
 
     #[test]
     fn th_2() {
-        let mut scanner = Scanner::new("@TH2");
+        let mut lexer = Token::lexer("@TH2");
 
-        assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::TH2))
-        )
+        assert_eq!(read_configuration(&mut lexer), Ok(Some(Configuration::TH2)))
     }
 
     #[test]
     fn th_unspecified() {
-        let mut scanner = Scanner::new("@TH");
+        let mut lexer = Token::lexer("@TH");
 
         assert_eq!(
-            read_configuration(&mut scanner),
+            read_configuration(&mut lexer),
             Ok(Some(Configuration::UnspecifiedTH))
         )
     }
 
     #[test]
     fn al_1() {
-        let mut scanner = Scanner::new("@AL1");
+        let mut lexer = Token::lexer("@AL1");
 
-        assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::AL1))
-        )
+        assert_eq!(read_configuration(&mut lexer), Ok(Some(Configuration::AL1)))
     }
 
     #[test]
     fn al_2() {
-        let mut scanner = Scanner::new("@AL2");
+        let mut lexer = Token::lexer("@AL2");
 
-        assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::AL2))
-        )
+        assert_eq!(read_configuration(&mut lexer), Ok(Some(Configuration::AL2)))
     }
 
     #[test]
     fn tb_1() {
-        let mut scanner = Scanner::new("@TB1");
+        let mut lexer = Token::lexer("@TB1");
 
-        assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::TB1))
-        )
+        assert_eq!(read_configuration(&mut lexer), Ok(Some(Configuration::TB1)))
     }
 
     #[test]
     fn tb_2() {
-        let mut scanner = Scanner::new("@TB2");
+        let mut lexer = Token::lexer("@TB2");
 
-        assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::TB2))
-        )
+        assert_eq!(read_configuration(&mut lexer), Ok(Some(Configuration::TB2)))
     }
 
     #[test]
     fn tb_5() {
-        let mut scanner = Scanner::new("@TB5");
+        let mut lexer = Token::lexer("@TB5");
 
-        assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::TB5))
-        )
+        assert_eq!(read_configuration(&mut lexer), Ok(Some(Configuration::TB5)))
     }
 
     #[test]
     fn tb_7() {
-        let mut scanner = Scanner::new("@TB7");
+        let mut lexer = Token::lexer("@TB7");
 
-        assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::TB7))
-        )
+        assert_eq!(read_configuration(&mut lexer), Ok(Some(Configuration::TB7)))
     }
 
     #[test]
     fn tb_10() {
-        let mut scanner = Scanner::new("@TB10");
+        let mut lexer = Token::lexer("@TB10");
 
         assert_eq!(
-            read_configuration(&mut scanner),
+            read_configuration(&mut lexer),
             Ok(Some(Configuration::TB10))
         )
     }
 
     #[test]
     fn tb_19() {
-        let mut scanner = Scanner::new("@TB19");
+        let mut lexer = Token::lexer("@TB19");
 
         assert_eq!(
-            read_configuration(&mut scanner),
+            read_configuration(&mut lexer),
             Ok(Some(Configuration::TB19))
         )
     }
 
     #[test]
     fn tb_20() {
-        let mut scanner = Scanner::new("@TB20");
+        let mut lexer = Token::lexer("@TB20");
 
         assert_eq!(
-            read_configuration(&mut scanner),
+            read_configuration(&mut lexer),
             Ok(Some(Configuration::TB20))
         )
     }
 
     #[test]
     fn tb_unspecified() {
-        let mut scanner = Scanner::new("@TB");
+        let mut lexer = Token::lexer("@TB");
 
         assert_eq!(
-            read_configuration(&mut scanner),
+            read_configuration(&mut lexer),
             Ok(Some(Configuration::UnspecifiedTB))
         )
     }
 
     #[test]
     fn oh_1() {
-        let mut scanner = Scanner::new("@OH1");
+        let mut lexer = Token::lexer("@OH1");
 
-        assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::OH1))
-        )
+        assert_eq!(read_configuration(&mut lexer), Ok(Some(Configuration::OH1)))
     }
 
     #[test]
     fn oh_2() {
-        let mut scanner = Scanner::new("@OH2");
+        let mut lexer = Token::lexer("@OH2");
 
-        assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::OH2))
-        )
+        assert_eq!(read_configuration(&mut lexer), Ok(Some(Configuration::OH2)))
     }
 
     #[test]
     fn oh_3() {
-        let mut scanner = Scanner::new("@OH3");
+        let mut lexer = Token::lexer("@OH3");
 
-        assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::OH3))
-        )
+        assert_eq!(read_configuration(&mut lexer), Ok(Some(Configuration::OH3)))
     }
 
     #[test]
     fn oh_5() {
-        let mut scanner = Scanner::new("@OH5");
+        let mut lexer = Token::lexer("@OH5");
 
-        assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::OH5))
-        )
+        assert_eq!(read_configuration(&mut lexer), Ok(Some(Configuration::OH5)))
     }
 
     #[test]
     fn oh_10() {
-        let mut scanner = Scanner::new("@OH10");
+        let mut lexer = Token::lexer("@OH10");
 
         assert_eq!(
-            read_configuration(&mut scanner),
+            read_configuration(&mut lexer),
             Ok(Some(Configuration::OH10))
         )
     }
 
     #[test]
     fn oh_15() {
-        let mut scanner = Scanner::new("@OH15");
+        let mut lexer = Token::lexer("@OH15");
 
         assert_eq!(
-            read_configuration(&mut scanner),
+            read_configuration(&mut lexer),
             Ok(Some(Configuration::OH15))
         )
     }
 
     #[test]
     fn oh_20() {
-        let mut scanner = Scanner::new("@OH20");
+        let mut lexer = Token::lexer("@OH20");
 
         assert_eq!(
-            read_configuration(&mut scanner),
+            read_configuration(&mut lexer),
             Ok(Some(Configuration::OH20))
         )
     }
 
     #[test]
     fn oh_25() {
-        let mut scanner = Scanner::new("@OH25");
+        let mut lexer = Token::lexer("@OH25");
 
         assert_eq!(
-            read_configuration(&mut scanner),
+            read_configuration(&mut lexer),
             Ok(Some(Configuration::OH25))
         )
     }
 
     #[test]
     fn oh_30() {
-        let mut scanner = Scanner::new("@OH30");
+        let mut lexer = Token::lexer("@OH30");
 
         assert_eq!(
-            read_configuration(&mut scanner),
+            read_configuration(&mut lexer),
             Ok(Some(Configuration::OH30))
         )
     }
 
     #[test]
     fn oh_unspecified() {
-        let mut scanner = Scanner::new("@OH");
+        let mut lexer = Token::lexer("@OH");
 
         assert_eq!(
-            read_configuration(&mut scanner),
+            read_configuration(&mut lexer),
             Ok(Some(Configuration::UnspecifiedOH))
         )
     }
 
     #[test]
     fn sp_1() {
-        let mut scanner = Scanner::new("@SP1");
+        let mut lexer = Token::lexer("@SP1");
 
-        assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::SP1))
-        )
+        assert_eq!(read_configuration(&mut lexer), Ok(Some(Configuration::SP1)))
     }
 
     #[test]
     fn sp_2() {
-        let mut scanner = Scanner::new("@SP2");
+        let mut lexer = Token::lexer("@SP2");
 
-        assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::SP2))
-        )
+        assert_eq!(read_configuration(&mut lexer), Ok(Some(Configuration::SP2)))
     }
 
     #[test]
     fn sp_3() {
-        let mut scanner = Scanner::new("@SP3");
+        let mut lexer = Token::lexer("@SP3");
 
-        assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::SP3))
-        )
+        assert_eq!(read_configuration(&mut lexer), Ok(Some(Configuration::SP3)))
     }
 
     #[test]
     fn sp_unspecified() {
-        let mut scanner = Scanner::new("@SP");
+        let mut lexer = Token::lexer("@SP");
 
         assert_eq!(
-            read_configuration(&mut scanner),
+            read_configuration(&mut lexer),
             Ok(Some(Configuration::UnspecifiedSP))
         )
     }
