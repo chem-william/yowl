@@ -53,10 +53,15 @@ fn roundtripping_smiles_strings() {
         "CC(=O)OCCC(/C)=C\\C[C@H](C(C)=C)CCC=C", // a pheromone of the Californian scale insect
         "CC[C@H](O1)CC[C@@]12CCCO2", // (2S,2R)-Chalgogran
         "OCCc1c(C)[n+](cs1)Cc2cnc(C)nc2N", // Thiamine
-        "[as]",        // aromatic As
-        "c1ccc[se]1",  // aromatic Se
-        "c1ccc[te]1",  // aromatic Te
-        "[si]1cccc[si]1", // aromatic Si
+        "[as]",        // Bracket aromatic As
+        "[b]",         // Bracket aromatic B
+        "[c]",         // Bracket aromatic C
+        "[o]",         // Bracket aromatic O
+        "[s]",         // Bracket aromatic S
+        "[p]",         // Bracket aromatic P
+        "c1ccc[se]1",  // Bracket aromatic Se
+        "c1ccc[te]1",  // Bracket aromatic Te
+        "[si]1cccc[si]1", // Bracket aromatic Si
         "[Uun][Uuu][Uub][Uut][Uuq][Uup][Uuh][Uus][Uuo]", // old placeholder names for new elements
         "[Db][Sg][Bh][Hs][Mt][Ds][Rg][Cn][Nh][Fl][Mc][Lv][Ts][Og]", // new names for new elements
         "C[Fe@TH](O)(Cl)F", // Unspecified TH stereochemistry
