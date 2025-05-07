@@ -1,0 +1,17 @@
+@software{richard_apodaca_2025_15360154,
+  author       = {Richard Apodaca and
+                  William},
+  title        = {chem-william/yowl: v0.1.0},
+  month        = may,
+  year         = 2025,
+  publisher    = {Zenodo},
+  version      = {v0.1.0},
+  doi          = {10.5281/zenodo.15360154},
+  url          = {https://doi.org/10.5281/zenodo.15360154},
+  swhid        = {swh:1:dir:12ec0125b4447d6ff0dfa8303e43f476c14a0064
+                   ;origin=https://doi.org/10.5281/zenodo.15360153;vi
+                   sit=swh:1:snp:e938d394dd6d3f715e79f5e9af0fae6707ac
+                   b52f;anchor=swh:1:rel:9d5681136fbbef03a6c106db4ab7
+                   e405bce4ae6c;path=chem-william-yowl-d4ebf46
+                  },
+}
