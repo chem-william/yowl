@@ -159,7 +159,7 @@ const fn any(
     isotope.is_some() || configuration.is_some() || charge.is_some() || map.is_some()
 }
 
-const fn elemental_targets(element: &Element, charge: Option<Charge>) -> &'static [u8] {
+fn elemental_targets(element: &Element, charge: Option<Charge>) -> &'static [u8] {
     match element {
         Element::B => match charge {
             Some(Charge::MinusThree) => &OXYGEN_TARGET,
