@@ -1,7 +1,6 @@
 use std::cmp::Ord;
 use std::collections::hash_map::Entry;
 use std::collections::{BinaryHeap, HashMap};
-use std::convert::TryInto;
 use std::hash::{Hash, Hasher};
 
 use crate::feature::Rnum;
@@ -55,12 +54,12 @@ impl JoinPool {
 
                 self.replaced.push(Index(result));
 
-                result.try_into().expect("rnum")
+                Rnum::new(result as u8)
             }
             Entry::Vacant(vacant) => {
                 vacant.insert(next);
 
-                next.try_into().expect("rnum")
+                Rnum::new(next as u8)
             }
         }
     }
@@ -89,37 +88,37 @@ mod hit {
     fn unknown() {
         let mut pool = JoinPool::new();
 
-        assert_eq!(pool.hit(1, 2), Rnum::R1);
-        assert_eq!(pool.hit(1, 5), Rnum::R2);
-        assert_eq!(pool.hit(13, 42), Rnum::R3)
+        assert_eq!(pool.hit(1, 2), Rnum::new(1));
+        assert_eq!(pool.hit(1, 5), Rnum::new(2));
+        assert_eq!(pool.hit(13, 42), Rnum::new(3))
     }
 
     #[test]
     fn known() {
         let mut pool = JoinPool::new();
 
-        assert_eq!(pool.hit(0, 1), Rnum::R1);
-        assert_eq!(pool.hit(1, 0), Rnum::R1)
+        assert_eq!(pool.hit(0, 1), Rnum::new(1));
+        assert_eq!(pool.hit(1, 0), Rnum::new(1))
     }
 
     #[test]
     fn unknown_with_one_returned() {
         let mut pool = JoinPool::new();
 
-        assert_eq!(pool.hit(0, 1), Rnum::R1);
-        assert_eq!(pool.hit(1, 0), Rnum::R1);
-        assert_eq!(pool.hit(13, 42), Rnum::R1)
+        assert_eq!(pool.hit(0, 1), Rnum::new(1));
+        assert_eq!(pool.hit(1, 0), Rnum::new(1));
+        assert_eq!(pool.hit(13, 42), Rnum::new(1))
     }
 
     #[test]
     fn unknown_with_two_returned() {
         let mut pool = JoinPool::new();
 
-        assert_eq!(pool.hit(0, 1), Rnum::R1);
-        assert_eq!(pool.hit(1, 3), Rnum::R2);
-        assert_eq!(pool.hit(2, 4), Rnum::R3);
-        assert_eq!(pool.hit(3, 1), Rnum::R2);
-        assert_eq!(pool.hit(1, 0), Rnum::R1);
-        assert_eq!(pool.hit(3, 5), Rnum::R1)
+        assert_eq!(pool.hit(0, 1), Rnum::new(1));
+        assert_eq!(pool.hit(1, 3), Rnum::new(2));
+        assert_eq!(pool.hit(2, 4), Rnum::new(3));
+        assert_eq!(pool.hit(3, 1), Rnum::new(2));
+        assert_eq!(pool.hit(1, 0), Rnum::new(1));
+        assert_eq!(pool.hit(3, 5), Rnum::new(1))
     }
 }

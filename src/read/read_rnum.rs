@@ -45,27 +45,27 @@ mod tests {
     fn zero() {
         let mut scanner = Scanner::new("0");
 
-        assert_eq!(read_rnum(&mut scanner), Ok(Some(Rnum::R0)))
+        assert_eq!(read_rnum(&mut scanner), Ok(Some(Rnum::new(0))))
     }
 
     #[test]
     fn nine() {
         let mut scanner = Scanner::new("9");
 
-        assert_eq!(read_rnum(&mut scanner), Ok(Some(Rnum::R9)))
+        assert_eq!(read_rnum(&mut scanner), Ok(Some(Rnum::new(9))))
     }
 
     #[test]
     fn percent_zero_zero() {
         let mut scanner = Scanner::new("%00");
 
-        assert_eq!(read_rnum(&mut scanner), Ok(Some(Rnum::R0)))
+        assert_eq!(read_rnum(&mut scanner), Ok(Some(Rnum::new(0))))
     }
 
     #[test]
     fn percent_nine_nine() {
         let mut scanner = Scanner::new("%99");
 
-        assert_eq!(read_rnum(&mut scanner), Ok(Some(Rnum::R99)))
+        assert_eq!(read_rnum(&mut scanner), Ok(Some(Rnum::new(99))))
     }
 }

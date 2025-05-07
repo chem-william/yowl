@@ -190,10 +190,10 @@ mod errors {
         let mut builder = Builder::default();
 
         builder.root(AtomKind::Star);
-        builder.join(BondKind::Up, Rnum::R1);
+        builder.join(BondKind::Up, Rnum::new(1));
         builder.extend(BondKind::Elided, AtomKind::Star);
         builder.extend(BondKind::Elided, AtomKind::Star);
-        builder.join(BondKind::Up, Rnum::R1);
+        builder.join(BondKind::Up, Rnum::new(1));
 
         assert_eq!(builder.build(), Err(Error::Join(2, 0)))
     }
@@ -203,11 +203,11 @@ mod errors {
         let mut builder = Builder::default();
 
         builder.root(AtomKind::Star);
-        builder.join(BondKind::Elided, Rnum::R1);
+        builder.join(BondKind::Elided, Rnum::new(1));
         builder.extend(BondKind::Elided, AtomKind::Star);
         builder.extend(BondKind::Elided, AtomKind::Star);
-        builder.join(BondKind::Elided, Rnum::R1);
-        builder.join(BondKind::Elided, Rnum::R2);
+        builder.join(BondKind::Elided, Rnum::new(1));
+        builder.join(BondKind::Elided, Rnum::new(2));
 
         assert_eq!(builder.build(), Err(Error::Rnum(2)))
     }
@@ -322,10 +322,10 @@ mod build {
         let mut builder = Builder::default();
 
         builder.root(AtomKind::Star);
-        builder.join(BondKind::Elided, Rnum::R1);
+        builder.join(BondKind::Elided, Rnum::new(1));
         builder.extend(BondKind::Elided, AtomKind::Star);
         builder.extend(BondKind::Elided, AtomKind::Star);
-        builder.join(BondKind::Elided, Rnum::R1);
+        builder.join(BondKind::Elided, Rnum::new(1));
 
         assert_eq!(
             builder.build(),
@@ -360,10 +360,10 @@ mod build {
         let mut builder = Builder::default();
 
         builder.root(AtomKind::Star);
-        builder.join(BondKind::Single, Rnum::R1);
+        builder.join(BondKind::Single, Rnum::new(1));
         builder.extend(BondKind::Elided, AtomKind::Star);
         builder.extend(BondKind::Elided, AtomKind::Star);
-        builder.join(BondKind::Elided, Rnum::R1);
+        builder.join(BondKind::Elided, Rnum::new(1));
 
         assert_eq!(
             builder.build(),

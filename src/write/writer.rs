@@ -121,10 +121,10 @@ mod write {
         let mut writer = Writer::default();
 
         writer.root(AtomKind::Star);
-        writer.join(BondKind::Single, Rnum::R1);
+        writer.join(BondKind::Single, Rnum::new(1));
         writer.extend(BondKind::Single, AtomKind::Star);
         writer.extend(BondKind::Double, AtomKind::Star);
-        writer.join(BondKind::Single, Rnum::R1);
+        writer.join(BondKind::Single, Rnum::new(1));
 
         assert_eq!(writer.write(), "*-1-*=*-1")
     }
@@ -136,9 +136,9 @@ mod write {
         writer.root(AtomKind::Star);
         writer.extend(BondKind::Elided, AtomKind::Star);
         writer.extend(BondKind::Elided, AtomKind::Star);
-        writer.join(BondKind::Elided, Rnum::R1);
+        writer.join(BondKind::Elided, Rnum::new(1));
         writer.pop(2);
-        writer.join(BondKind::Elided, Rnum::R1);
+        writer.join(BondKind::Elided, Rnum::new(1));
 
         assert_eq!(writer.write(), "*(**1)1")
     }
