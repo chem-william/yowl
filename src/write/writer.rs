@@ -37,7 +37,7 @@ impl Follower for Writer {
 
     fn extend(&mut self, bond_kind: BondKind, atom_kind: AtomKind) {
         self.stack
-            .push(bond_kind.to_string() + &atom_kind.to_string())
+            .push(bond_kind.to_string() + &atom_kind.to_string());
     }
 
     fn join(&mut self, bond_kind: BondKind, rnum: Rnum) {

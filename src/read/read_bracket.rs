@@ -11,11 +11,11 @@ pub fn read_bracket(scanner: &mut Scanner) -> Result<Option<AtomKind>, ReadError
         return Ok(None);
     }
 
-    let isotope = read_isotope(scanner)?;
+    let isotope = read_isotope(scanner);
     let symbol = read_symbol(scanner)?;
-    let configuration = read_configuration(scanner)?;
-    let hcount = read_hcount(scanner)?;
-    let charge = read_charge(scanner)?;
+    let configuration = read_configuration(scanner);
+    let hcount = read_hcount(scanner);
+    let charge = read_charge(scanner);
     let map = read_map(scanner)?;
 
     match scanner.peek() {
@@ -36,33 +36,33 @@ pub fn read_bracket(scanner: &mut Scanner) -> Result<Option<AtomKind>, ReadError
     }
 }
 
-fn read_hcount(scanner: &mut Scanner) -> Result<Option<VirtualHydrogen>, ReadError> {
+fn read_hcount(scanner: &mut Scanner) -> Option<VirtualHydrogen> {
     match scanner.peek() {
         Some('H') => {
             scanner.pop();
 
             match scanner.peek() {
                 Some('0'..='9') => match scanner.pop() {
-                    Some('0') => Ok(Some(VirtualHydrogen::H0)),
-                    Some('1') => Ok(Some(VirtualHydrogen::H1)),
-                    Some('2') => Ok(Some(VirtualHydrogen::H2)),
-                    Some('3') => Ok(Some(VirtualHydrogen::H3)),
-                    Some('4') => Ok(Some(VirtualHydrogen::H4)),
-                    Some('5') => Ok(Some(VirtualHydrogen::H5)),
-                    Some('6') => Ok(Some(VirtualHydrogen::H6)),
-                    Some('7') => Ok(Some(VirtualHydrogen::H7)),
-                    Some('8') => Ok(Some(VirtualHydrogen::H8)),
-                    Some('9') => Ok(Some(VirtualHydrogen::H9)),
-                    _ => Ok(Some(VirtualHydrogen::H1)),
+                    Some('0') => Some(VirtualHydrogen::H0),
+                    Some('1') => Some(VirtualHydrogen::H1),
+                    Some('2') => Some(VirtualHydrogen::H2),
+                    Some('3') => Some(VirtualHydrogen::H3),
+                    Some('4') => Some(VirtualHydrogen::H4),
+                    Some('5') => Some(VirtualHydrogen::H5),
+                    Some('6') => Some(VirtualHydrogen::H6),
+                    Some('7') => Some(VirtualHydrogen::H7),
+                    Some('8') => Some(VirtualHydrogen::H8),
+                    Some('9') => Some(VirtualHydrogen::H9),
+                    _ => Some(VirtualHydrogen::H1),
                 },
-                _ => Ok(Some(VirtualHydrogen::H1)),
+                _ => Some(VirtualHydrogen::H1),
             }
         }
-        _ => Ok(None),
+        _ => None,
     }
 }
 
-fn read_isotope(scanner: &mut Scanner) -> Result<Option<u16>, ReadError> {
+fn read_isotope(scanner: &mut Scanner) -> Option<u16> {
     let mut digits = String::new();
 
     for _ in 0..3 {
@@ -73,9 +73,9 @@ fn read_isotope(scanner: &mut Scanner) -> Result<Option<u16>, ReadError> {
     }
 
     if digits.is_empty() {
-        Ok(None)
+        None
     } else {
-        Ok(Some(digits.parse::<u16>().expect("number")))
+        Some(digits.parse::<u16>().expect("number"))
     }
 }
 

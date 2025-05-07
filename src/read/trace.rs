@@ -26,7 +26,7 @@ impl Trace {
     /// two different cursors will be reported for (`sid`, `tid`)
     /// and (`tid`, `sid`).
     pub fn bond(&self, sid: usize, tid: usize) -> Option<usize> {
-        self.bonds.get(&(sid, tid)).cloned()
+        self.bonds.get(&(sid, tid)).copied()
     }
 
     /// Returns the `Rnum` associated with ring closure digit

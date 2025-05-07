@@ -1,22 +1,22 @@
 use std::convert::TryInto;
 
-use super::{error::ReadError, scanner::Scanner};
+use super::scanner::Scanner;
 use crate::feature::Charge;
 
-pub fn read_charge(scanner: &mut Scanner) -> Result<Option<Charge>, ReadError> {
+pub fn read_charge(scanner: &mut Scanner) -> Option<Charge> {
     match scanner.peek() {
         Some('+') => {
             scanner.pop();
 
             match fifteen(scanner) {
-                Some(value) => Ok(Some(value.try_into().expect("charge"))),
+                Some(value) => Some(value.try_into().expect("charge")),
                 None => match scanner.peek() {
                     Some('+') => {
                         scanner.pop();
 
-                        Ok(Some(Charge::Two))
+                        Some(Charge::Two)
                     }
-                    _ => Ok(Some(Charge::One)),
+                    _ => Some(Charge::One),
                 },
             }
         }
@@ -24,18 +24,18 @@ pub fn read_charge(scanner: &mut Scanner) -> Result<Option<Charge>, ReadError> {
             scanner.pop();
 
             match fifteen(scanner) {
-                Some(value) => Ok(Some((-value).try_into().expect("charge"))),
+                Some(value) => Some((-value).try_into().expect("charge")),
                 None => match scanner.peek() {
                     Some('-') => {
                         scanner.pop();
 
-                        Ok(Some(Charge::MinusTwo))
+                        Some(Charge::MinusTwo)
                     }
-                    _ => Ok(Some(Charge::MinusOne)),
+                    _ => Some(Charge::MinusOne),
                 },
             }
         }
-        _ => Ok(None),
+        _ => None,
     }
 }
 

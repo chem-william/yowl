@@ -1,4 +1,4 @@
-use super::{error::ReadError, missing_character::missing_character, scanner::Scanner};
+use super::scanner::Scanner;
 use crate::feature::Configuration;
 
 /// Reads the configuration of a molecule from the scanner.
@@ -12,8 +12,8 @@ use crate::feature::Configuration;
 ///
 /// If only the configuration is specified (whether it's TH, AL, etc.), but not the specific chirality (@TH1, @AL2, etc.)
 /// then UnspecifiedXX is returned where `XX` specifies the configuration.
-pub fn read_configuration(scanner: &mut Scanner) -> Result<Option<Configuration>, ReadError> {
-    Ok(Some(match scanner.peek() {
+pub fn read_configuration(scanner: &mut Scanner) -> Option<Configuration> {
+    Some(match scanner.peek() {
         Some('@') => {
             scanner.pop();
 
@@ -30,7 +30,7 @@ pub fn read_configuration(scanner: &mut Scanner) -> Result<Option<Configuration>
                         Some('L') => {
                             scanner.pop();
 
-                            allene(scanner)?
+                            allene(scanner)
                         }
                         _ => unreachable!("Should've hit UnspecifiedAL"),
                     }
@@ -42,7 +42,7 @@ pub fn read_configuration(scanner: &mut Scanner) -> Result<Option<Configuration>
                         Some('H') => {
                             scanner.pop();
 
-                            octahedral(scanner)?
+                            octahedral(scanner)
                         }
                         _ => unreachable!("Should've hit UnspecifiedOH"),
                     }
@@ -54,7 +54,7 @@ pub fn read_configuration(scanner: &mut Scanner) -> Result<Option<Configuration>
                         Some('P') => {
                             scanner.pop();
 
-                            square_planar(scanner)?
+                            square_planar(scanner)
                         }
                         _ => unreachable!("Should've hit UnspecifiedSP"),
                     }
@@ -66,12 +66,12 @@ pub fn read_configuration(scanner: &mut Scanner) -> Result<Option<Configuration>
                         Some('B') => {
                             scanner.pop();
 
-                            trigonal_bipyramidal(scanner)?
+                            trigonal_bipyramidal(scanner)
                         }
                         Some('H') => {
                             scanner.pop();
 
-                            tetrahedral(scanner)?
+                            tetrahedral(scanner)
                         }
                         _ => unreachable!("Should've hit UnspecifiedTB or TH"),
                     }
@@ -79,12 +79,12 @@ pub fn read_configuration(scanner: &mut Scanner) -> Result<Option<Configuration>
                 _ => Configuration::TH1,
             }
         }
-        _ => return Ok(None),
-    }))
+        _ => return None,
+    })
 }
 
-fn tetrahedral(scanner: &mut Scanner) -> Result<Configuration, ReadError> {
-    Ok(match scanner.peek() {
+fn tetrahedral(scanner: &mut Scanner) -> Configuration {
+    match scanner.peek() {
         Some('1') => {
             scanner.pop();
 
@@ -95,13 +95,12 @@ fn tetrahedral(scanner: &mut Scanner) -> Result<Configuration, ReadError> {
 
             Configuration::TH2
         }
-        Some('3'..='9') => return Err(missing_character(scanner)),
         _ => Configuration::UnspecifiedTH, // Stereochemistry not specified
-    })
+    }
 }
 
-fn allene(scanner: &mut Scanner) -> Result<Configuration, ReadError> {
-    Ok(match scanner.peek() {
+fn allene(scanner: &mut Scanner) -> Configuration {
+    match scanner.peek() {
         Some('1') => {
             scanner.pop();
 
@@ -113,11 +112,11 @@ fn allene(scanner: &mut Scanner) -> Result<Configuration, ReadError> {
             Configuration::AL2
         }
         _ => Configuration::UnspecifiedAL,
-    })
+    }
 }
 
-fn square_planar(scanner: &mut Scanner) -> Result<Configuration, ReadError> {
-    Ok(match scanner.peek() {
+fn square_planar(scanner: &mut Scanner) -> Configuration {
+    match scanner.peek() {
         Some('1') => {
             scanner.pop();
 
@@ -134,11 +133,11 @@ fn square_planar(scanner: &mut Scanner) -> Result<Configuration, ReadError> {
             Configuration::SP3
         }
         _ => Configuration::UnspecifiedSP, // Stereochemistry not specified
-    })
+    }
 }
 
-fn trigonal_bipyramidal(scanner: &mut Scanner) -> Result<Configuration, ReadError> {
-    Ok(match scanner.peek() {
+fn trigonal_bipyramidal(scanner: &mut Scanner) -> Configuration {
+    match scanner.peek() {
         Some('1') => {
             scanner.pop();
 
@@ -201,11 +200,11 @@ fn trigonal_bipyramidal(scanner: &mut Scanner) -> Result<Configuration, ReadErro
             Configuration::TB9
         }
         _ => Configuration::UnspecifiedTB, // Stereochemistry not specified
-    })
+    }
 }
 
-fn octahedral(scanner: &mut Scanner) -> Result<Configuration, ReadError> {
-    Ok(match scanner.peek() {
+fn octahedral(scanner: &mut Scanner) -> Configuration {
+    match scanner.peek() {
         Some('1') => {
             scanner.pop();
 
@@ -283,15 +282,16 @@ fn octahedral(scanner: &mut Scanner) -> Result<Configuration, ReadError> {
             Configuration::OH9
         }
         _ => Configuration::UnspecifiedOH, // Stereochemistry not specified
-    })
+    }
 }
+
 #[test]
 fn unspecified_th() {
     let mut scanner = Scanner::new("@TH");
 
     assert_eq!(
         read_configuration(&mut scanner),
-        Ok(Some(Configuration::UnspecifiedTH))
+        Some(Configuration::UnspecifiedTH)
     )
 }
 
@@ -301,7 +301,7 @@ fn unspecified_al() {
 
     assert_eq!(
         read_configuration(&mut scanner),
-        Ok(Some(Configuration::UnspecifiedAL))
+        Some(Configuration::UnspecifiedAL)
     )
 }
 
@@ -311,7 +311,7 @@ fn unspecified_sp() {
 
     assert_eq!(
         read_configuration(&mut scanner),
-        Ok(Some(Configuration::UnspecifiedSP))
+        Some(Configuration::UnspecifiedSP)
     )
 }
 
@@ -321,7 +321,7 @@ fn unspecified_tb() {
 
     assert_eq!(
         read_configuration(&mut scanner),
-        Ok(Some(Configuration::UnspecifiedTB))
+        Some(Configuration::UnspecifiedTB)
     )
 }
 
@@ -331,7 +331,7 @@ fn unspecified_oh() {
 
     assert_eq!(
         read_configuration(&mut scanner),
-        Ok(Some(Configuration::UnspecifiedOH))
+        Some(Configuration::UnspecifiedOH)
     )
 }
 #[cfg(test)]
@@ -343,40 +343,28 @@ mod tests {
     fn counterclockwise() {
         let mut scanner = Scanner::new("@");
 
-        assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::TH1))
-        )
+        assert_eq!(read_configuration(&mut scanner), Some(Configuration::TH1))
     }
 
     #[test]
     fn clockwise() {
         let mut scanner = Scanner::new("@@");
 
-        assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::TH2))
-        )
+        assert_eq!(read_configuration(&mut scanner), Some(Configuration::TH2))
     }
 
     #[test]
     fn th_1() {
         let mut scanner = Scanner::new("@TH1");
 
-        assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::TH1))
-        )
+        assert_eq!(read_configuration(&mut scanner), Some(Configuration::TH1))
     }
 
     #[test]
     fn th_2() {
         let mut scanner = Scanner::new("@TH2");
 
-        assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::TH2))
-        )
+        assert_eq!(read_configuration(&mut scanner), Some(Configuration::TH2))
     }
 
     #[test]
@@ -385,7 +373,7 @@ mod tests {
 
         assert_eq!(
             read_configuration(&mut scanner),
-            Ok(Some(Configuration::UnspecifiedTH))
+            Some(Configuration::UnspecifiedTH)
         )
     }
 
@@ -393,90 +381,63 @@ mod tests {
     fn al_1() {
         let mut scanner = Scanner::new("@AL1");
 
-        assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::AL1))
-        )
+        assert_eq!(read_configuration(&mut scanner), Some(Configuration::AL1))
     }
 
     #[test]
     fn al_2() {
         let mut scanner = Scanner::new("@AL2");
 
-        assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::AL2))
-        )
+        assert_eq!(read_configuration(&mut scanner), Some(Configuration::AL2))
     }
 
     #[test]
     fn tb_1() {
         let mut scanner = Scanner::new("@TB1");
 
-        assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::TB1))
-        )
+        assert_eq!(read_configuration(&mut scanner), Some(Configuration::TB1))
     }
 
     #[test]
     fn tb_2() {
         let mut scanner = Scanner::new("@TB2");
 
-        assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::TB2))
-        )
+        assert_eq!(read_configuration(&mut scanner), Some(Configuration::TB2))
     }
 
     #[test]
     fn tb_5() {
         let mut scanner = Scanner::new("@TB5");
 
-        assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::TB5))
-        )
+        assert_eq!(read_configuration(&mut scanner), Some(Configuration::TB5))
     }
 
     #[test]
     fn tb_7() {
         let mut scanner = Scanner::new("@TB7");
 
-        assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::TB7))
-        )
+        assert_eq!(read_configuration(&mut scanner), Some(Configuration::TB7))
     }
 
     #[test]
     fn tb_10() {
         let mut scanner = Scanner::new("@TB10");
 
-        assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::TB10))
-        )
+        assert_eq!(read_configuration(&mut scanner), Some(Configuration::TB10))
     }
 
     #[test]
     fn tb_19() {
         let mut scanner = Scanner::new("@TB19");
 
-        assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::TB19))
-        )
+        assert_eq!(read_configuration(&mut scanner), Some(Configuration::TB19))
     }
 
     #[test]
     fn tb_20() {
         let mut scanner = Scanner::new("@TB20");
 
-        assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::TB20))
-        )
+        assert_eq!(read_configuration(&mut scanner), Some(Configuration::TB20))
     }
 
     #[test]
@@ -485,7 +446,7 @@ mod tests {
 
         assert_eq!(
             read_configuration(&mut scanner),
-            Ok(Some(Configuration::UnspecifiedTB))
+            Some(Configuration::UnspecifiedTB)
         )
     }
 
@@ -493,90 +454,63 @@ mod tests {
     fn oh_1() {
         let mut scanner = Scanner::new("@OH1");
 
-        assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::OH1))
-        )
+        assert_eq!(read_configuration(&mut scanner), Some(Configuration::OH1))
     }
 
     #[test]
     fn oh_2() {
         let mut scanner = Scanner::new("@OH2");
 
-        assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::OH2))
-        )
+        assert_eq!(read_configuration(&mut scanner), Some(Configuration::OH2))
     }
 
     #[test]
     fn oh_3() {
         let mut scanner = Scanner::new("@OH3");
 
-        assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::OH3))
-        )
+        assert_eq!(read_configuration(&mut scanner), Some(Configuration::OH3))
     }
 
     #[test]
     fn oh_5() {
         let mut scanner = Scanner::new("@OH5");
 
-        assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::OH5))
-        )
+        assert_eq!(read_configuration(&mut scanner), Some(Configuration::OH5))
     }
 
     #[test]
     fn oh_10() {
         let mut scanner = Scanner::new("@OH10");
 
-        assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::OH10))
-        )
+        assert_eq!(read_configuration(&mut scanner), Some(Configuration::OH10))
     }
 
     #[test]
     fn oh_15() {
         let mut scanner = Scanner::new("@OH15");
 
-        assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::OH15))
-        )
+        assert_eq!(read_configuration(&mut scanner), Some(Configuration::OH15))
     }
 
     #[test]
     fn oh_20() {
         let mut scanner = Scanner::new("@OH20");
 
-        assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::OH20))
-        )
+        assert_eq!(read_configuration(&mut scanner), Some(Configuration::OH20))
     }
 
     #[test]
     fn oh_25() {
         let mut scanner = Scanner::new("@OH25");
 
-        assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::OH25))
-        )
+        assert_eq!(read_configuration(&mut scanner), Some(Configuration::OH25))
     }
 
     #[test]
     fn oh_30() {
         let mut scanner = Scanner::new("@OH30");
 
-        assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::OH30))
-        )
+        assert_eq!(read_configuration(&mut scanner), Some(Configuration::OH30))
     }
 
     #[test]
@@ -585,7 +519,7 @@ mod tests {
 
         assert_eq!(
             read_configuration(&mut scanner),
-            Ok(Some(Configuration::UnspecifiedOH))
+            Some(Configuration::UnspecifiedOH)
         )
     }
 
@@ -593,30 +527,21 @@ mod tests {
     fn sp_1() {
         let mut scanner = Scanner::new("@SP1");
 
-        assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::SP1))
-        )
+        assert_eq!(read_configuration(&mut scanner), Some(Configuration::SP1))
     }
 
     #[test]
     fn sp_2() {
         let mut scanner = Scanner::new("@SP2");
 
-        assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::SP2))
-        )
+        assert_eq!(read_configuration(&mut scanner), Some(Configuration::SP2))
     }
 
     #[test]
     fn sp_3() {
         let mut scanner = Scanner::new("@SP3");
 
-        assert_eq!(
-            read_configuration(&mut scanner),
-            Ok(Some(Configuration::SP3))
-        )
+        assert_eq!(read_configuration(&mut scanner), Some(Configuration::SP3))
     }
 
     #[test]
@@ -625,7 +550,7 @@ mod tests {
 
         assert_eq!(
             read_configuration(&mut scanner),
-            Ok(Some(Configuration::UnspecifiedSP))
+            Some(Configuration::UnspecifiedSP)
         )
     }
 }

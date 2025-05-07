@@ -59,7 +59,7 @@ fn read_smiles<F: Follower>(
             if bond_kind == BondKind::Elided {
                 trace.extend(cursor, cursor..scanner.cursor())
             } else {
-                trace.extend(cursor - 1, cursor..scanner.cursor())
+                trace.extend(cursor - 1, cursor..scanner.cursor());
             }
         }
 

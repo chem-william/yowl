@@ -51,7 +51,7 @@ fn walk_root<F: Follower>(
                 &mut chain,
             )?;
         } else {
-            process_ring_edge(sid, bond, pool, follower)?;
+            process_ring_edge(sid, bond, pool, follower)
         }
     }
     Ok(())
@@ -119,10 +119,10 @@ fn process_tree_edge<F: Follower>(
 /// Ensure the forward and back bonds match, respecting directionality.
 fn check_bond_compatibility(fwd: &Bond, back: Bond) -> Result<(), Error> {
     if fwd.is_directional() {
-        if fwd.kind != back.kind.reverse() {
-            Err(Error::IncompatibleBond(fwd.tid, back.tid))
-        } else {
+        if fwd.kind == back.kind.reverse() {
             Ok(())
+        } else {
+            Err(Error::IncompatibleBond(fwd.tid, back.tid))
         }
     } else if fwd.kind != back.kind {
         Err(Error::IncompatibleBond(fwd.tid, back.tid))
@@ -132,20 +132,13 @@ fn check_bond_compatibility(fwd: &Bond, back: Bond) -> Result<(), Error> {
 }
 
 /// Handle a ring edge: allocate or retrieve a ring number and join.
-fn process_ring_edge<F: Follower>(
-    sid: usize,
-    bond: Bond,
-    pool: &mut JoinPool,
-    follower: &mut F,
-) -> Result<(), Error> {
+fn process_ring_edge<F: Follower>(sid: usize, bond: Bond, pool: &mut JoinPool, follower: &mut F) {
     let ring_id = pool.hit(sid, bond.tid);
     // we force elision of single bonds as we're within a ring
     match bond.kind {
         BondKind::Single => follower.join(BondKind::Elided, ring_id),
         _ => follower.join(bond.kind, ring_id),
     }
-
-    Ok(())
 }
 
 #[cfg(test)]
