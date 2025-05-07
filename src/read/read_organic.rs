@@ -109,11 +109,22 @@ mod tests {
     }
 
     #[test]
-    fn aromatic_carbon() {
-        let mut scanner = Scanner::new("c");
-        let atom = read_organic(&mut scanner);
+    fn scan_aromatics() {
+        let aromatic_strings = ["b", "c", "n", "o", "p", "s"];
+        let aromatic_results = [
+            Aromatic::B,
+            Aromatic::C,
+            Aromatic::N,
+            Aromatic::O,
+            Aromatic::P,
+            Aromatic::S,
+        ];
+        for (inp, out) in aromatic_strings.iter().zip(aromatic_results) {
+            let mut scanner = Scanner::new(inp);
+            let atom = read_organic(&mut scanner);
 
-        assert_eq!(atom, Ok(Some(AtomKind::Aromatic(Aromatic::C))))
+            assert_eq!(atom, Ok(Some(AtomKind::Aromatic(out))))
+        }
     }
 
     #[test]
