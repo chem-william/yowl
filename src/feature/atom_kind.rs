@@ -25,7 +25,7 @@ impl AtomKind {
     /// self.
     ///
     /// This method is intended for clients building representations from
-    /// outside sources. It allows for a single, always valid bracketed AtomKind
+    /// outside sources. It allows for a single, always valid bracketed `AtomKind`
     /// to be constructed and debracketed, if possible. The logic to decide
     /// debracketability is encapsulated here.
     pub fn debracket(self, bond_order_sum: u8) -> Self {
@@ -109,8 +109,8 @@ impl AtomKind {
             Self::Aromatic(aromatic) => aromatic.targets(),
             Self::Bracket { symbol, charge, .. } => match symbol {
                 BracketSymbol::Star => &[],
-                BracketSymbol::Aromatic(aromatic) => elemental_targets(&aromatic.into(), charge),
-                BracketSymbol::Element(element) => elemental_targets(element, charge),
+                BracketSymbol::Aromatic(aromatic) => elemental_targets(&aromatic.into(), *charge),
+                BracketSymbol::Element(element) => elemental_targets(element, *charge),
             },
         }
     }
@@ -159,7 +159,7 @@ const fn any(
     isotope.is_some() || configuration.is_some() || charge.is_some() || map.is_some()
 }
 
-fn elemental_targets(element: &Element, charge: &Option<Charge>) -> &'static [u8] {
+fn elemental_targets(element: &Element, charge: Option<Charge>) -> &'static [u8] {
     match element {
         Element::B => match charge {
             Some(Charge::MinusThree) => &OXYGEN_TARGET,
@@ -211,8 +211,8 @@ impl fmt::Display for AtomKind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Self::Star => write!(f, "*"),
-            Self::Aliphatic(aliphatic) => write!(f, "{}", aliphatic),
-            Self::Aromatic(aromatic) => write!(f, "{}", aromatic),
+            Self::Aliphatic(aliphatic) => write!(f, "{aliphatic}"),
+            Self::Aromatic(aromatic) => write!(f, "{aromatic}"),
             Self::Bracket {
                 isotope,
                 symbol,
@@ -224,25 +224,25 @@ impl fmt::Display for AtomKind {
                 write!(f, "[")?;
 
                 if let Some(isotope) = isotope {
-                    write!(f, "{isotope}")?
+                    write!(f, "{isotope}")?;
                 }
 
                 write!(f, "{symbol}")?;
 
                 if let Some(configuration) = configuration {
-                    write!(f, "{configuration}")?
+                    write!(f, "{configuration}")?;
                 }
 
                 if let Some(hcount) = hcount {
-                    write!(f, "{hcount}")?
+                    write!(f, "{hcount}")?;
                 }
 
                 if let Some(charge) = charge {
-                    write!(f, "{charge}")?
+                    write!(f, "{charge}")?;
                 }
 
                 if let Some(map) = map {
-                    write!(f, ":{map}")?
+                    write!(f, ":{map}")?;
                 }
 
                 write!(f, "]")
