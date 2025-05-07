@@ -142,7 +142,7 @@ struct Node {
 }
 
 impl Node {
-    fn parent(kind: AtomKind) -> Self {
+    const fn parent(kind: AtomKind) -> Self {
         Self {
             kind,
             edges: Vec::new(),
@@ -168,7 +168,7 @@ struct Edge {
 }
 
 impl Edge {
-    fn new(kind: BondKind, target: Target) -> Self {
+    const fn new(kind: BondKind, target: Target) -> Self {
         Self { kind, target }
     }
 }

@@ -102,7 +102,7 @@ impl AtomKind {
     }
 
     /// Returns true if the kind was defined as being aromatic.
-    pub fn is_aromatic(&self) -> bool {
+    pub const fn is_aromatic(&self) -> bool {
         match self {
             Self::Star => false,
             Self::Aromatic(_) => true,
@@ -165,7 +165,7 @@ impl AtomKind {
     }
 }
 
-fn any(
+const fn any(
     isotope: &Option<u16>,
     configuration: &Option<Configuration>,
     charge: &Option<Charge>,

@@ -58,7 +58,7 @@ fn walk_root<F: Follower>(
 }
 
 /// Validate basic bond errors: unknown target or self-loop.
-fn validate_bond_indices(sid: usize, tid: usize, size: usize) -> Result<(), Error> {
+const fn validate_bond_indices(sid: usize, tid: usize, size: usize) -> Result<(), Error> {
     if tid >= size {
         Err(Error::UnknownTarget(sid, tid))
     } else if tid == sid {

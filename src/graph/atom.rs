@@ -10,7 +10,7 @@ pub struct Atom {
 
 impl Atom {
     /// Constructs an Atom without bonds.
-    pub fn new(kind: AtomKind) -> Self {
+    pub const fn new(kind: AtomKind) -> Self {
         Self {
             kind,
             bonds: vec![],
@@ -18,7 +18,7 @@ impl Atom {
     }
 
     /// Returns true if the atom was encoded as aromatic.
-    pub fn is_aromatic(&self) -> bool {
+    pub const fn is_aromatic(&self) -> bool {
         self.kind.is_aromatic()
     }
 

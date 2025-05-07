@@ -9,13 +9,13 @@ pub struct Bond {
 
 impl Bond {
     /// Constructs a Bond.
-    pub fn new(kind: BondKind, tid: usize) -> Self {
+    pub const fn new(kind: BondKind, tid: usize) -> Self {
         Self { kind, tid }
     }
 
     /// Returns the order of this Bond. Elided, Single, Up, Down,
     /// and Aromatic kinds return 1. The rest return the bond multiplicity.
-    pub fn order(&self) -> u8 {
+    pub const fn order(&self) -> u8 {
         match &self.kind {
             BondKind::Elided
             | BondKind::Single

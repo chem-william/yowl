@@ -21,7 +21,7 @@ pub enum Aliphatic {
 }
 
 impl Aliphatic {
-    pub fn targets(&self) -> &[u8] {
+    pub const fn targets(&self) -> &[u8] {
         match self {
             Self::B => &[3],
             Self::C => &[4],
