@@ -138,7 +138,7 @@ impl fmt::Display for Charge {
                 Charge::Two => "+2",
                 Charge::Three => "+3",
                 Charge::Four => "+4",
-                Charge::Five => " +5",
+                Charge::Five => "+5",
                 Charge::Six => "+6",
                 Charge::Seven => "+7",
                 Charge::Eight => "+8",
