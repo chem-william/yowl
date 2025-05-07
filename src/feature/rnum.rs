@@ -9,7 +9,7 @@ pub struct Rnum(u8);
 impl Rnum {
     pub fn new(n: u8) -> Self {
         assert!(n <= 99, "Rnum must be in 0..=99");
-        Rnum(n)
+        Self(n)
     }
 }
 
@@ -18,7 +18,7 @@ impl TryFrom<u16> for Rnum {
 
     fn try_from(value: u16) -> Result<Self, Self::Error> {
         if value <= 99 {
-            Ok(Rnum(value as u8))
+            Ok(Self(value as u8))
         } else {
             Err(())
         }

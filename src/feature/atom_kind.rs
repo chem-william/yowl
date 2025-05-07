@@ -28,12 +28,12 @@ impl AtomKind {
     /// outside sources. It allows for a single, always valid bracketed AtomKind
     /// to be constructed and debracketed, if possible. The logic to decide
     /// debracketability is encapsulated here.
-    pub fn debracket(self, bond_order_sum: u8) -> AtomKind {
+    pub fn debracket(self, bond_order_sum: u8) -> Self {
         let (isotope, symbol, configuration, hcount, charge, map) = match &self {
-            AtomKind::Star => return self,
-            AtomKind::Aliphatic(_) => return self,
-            AtomKind::Aromatic(_) => return self,
-            AtomKind::Bracket {
+            Self::Star => return self,
+            Self::Aliphatic(_) => return self,
+            Self::Aromatic(_) => return self,
+            Self::Bracket {
                 isotope,
                 symbol,
                 configuration,
@@ -48,16 +48,12 @@ impl AtomKind {
         }
 
         match symbol {
-            BracketSymbol::Star => match hcount {
-                Some(hcount) => {
-                    if hcount.is_zero() {
-                        AtomKind::Star
-                    } else {
-                        self
-                    }
-                }
-                None => AtomKind::Star,
-            },
+            BracketSymbol::Star => {
+                hcount.as_ref().map_or(
+                    Self::Star,
+                    |hcount| if hcount.is_zero() { Self::Star } else { self },
+                )
+            }
             BracketSymbol::Aromatic(aromatic) => {
                 let hcount = match hcount {
                     Some(hcount) => hcount.into(),
@@ -72,7 +68,7 @@ impl AtomKind {
 
                 for target in aromatic.targets() {
                     if valence == target - allowance {
-                        return AtomKind::Aromatic(aromatic);
+                        return Self::Aromatic(aromatic);
                     }
                 }
 
@@ -92,7 +88,7 @@ impl AtomKind {
 
                 for target in aliphatic.targets() {
                     if target == &valence {
-                        return AtomKind::Aliphatic(aliphatic);
+                        return Self::Aliphatic(aliphatic);
                     }
                 }
 
@@ -136,7 +132,7 @@ impl AtomKind {
     ///
     /// Panics given a Configuration other than TH1 or TH2.
     pub fn invert_configuration(&mut self) {
-        if let AtomKind::Bracket {
+        if let Self::Bracket {
             hcount,
             configuration,
             ..
@@ -225,10 +221,10 @@ static EMPTY_TARGET: [u8; 0] = [];
 impl fmt::Display for AtomKind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            AtomKind::Star => write!(f, "*"),
-            AtomKind::Aliphatic(aliphatic) => write!(f, "{}", aliphatic),
-            AtomKind::Aromatic(aromatic) => write!(f, "{}", aromatic),
-            AtomKind::Bracket {
+            Self::Star => write!(f, "*"),
+            Self::Aliphatic(aliphatic) => write!(f, "{}", aliphatic),
+            Self::Aromatic(aromatic) => write!(f, "{}", aromatic),
+            Self::Bracket {
                 isotope,
                 symbol,
                 hcount,

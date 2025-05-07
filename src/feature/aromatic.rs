@@ -47,12 +47,12 @@ impl TryFrom<&BracketAromatic> for Aromatic {
 impl From<&Aromatic> for Aliphatic {
     fn from(val: &Aromatic) -> Self {
         match val {
-            Aromatic::B => Aliphatic::B,
-            Aromatic::C => Aliphatic::C,
-            Aromatic::N => Aliphatic::N,
-            Aromatic::O => Aliphatic::O,
-            Aromatic::P => Aliphatic::P,
-            Aromatic::S => Aliphatic::S,
+            Aromatic::B => Self::B,
+            Aromatic::C => Self::C,
+            Aromatic::N => Self::N,
+            Aromatic::O => Self::O,
+            Aromatic::P => Self::P,
+            Aromatic::S => Self::S,
         }
     }
 }
