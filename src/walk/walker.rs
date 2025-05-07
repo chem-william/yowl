@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use super::{Error, Follower};
 use crate::graph::{Atom, JoinPool};
 
-/// Performans a depth-first traversal of `graph`.
+/// Performs a depth-first traversal of `graph`.
 ///
 /// ```
 /// use yowl::graph::{ Atom, Bond };
