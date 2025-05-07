@@ -1,5 +1,7 @@
 extern crate yowl;
 
+use std::fs;
+
 use yowl::feature::{Aliphatic, AtomKind, BondKind};
 use yowl::graph::{Atom, Bond, Builder};
 use yowl::read::read;
@@ -64,6 +66,27 @@ fn roundtripping_smiles_strings() {
     ];
 
     for smiles in all_smiles {
+        roundtrip_smiles!(smiles);
+    }
+}
+
+// wikidata SMILES taken from https://github.com/hobofan/smiles-parser
+// using the following query
+// SELECT ?item ?itemLabel ?smiles
+// WHERE
+// {
+//   ?item wdt:P31 wd:Q11173.
+//   ?item wdt:P233 ?value.
+//   ?item wdt:P233 ?smiles
+//   SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+// }
+// LIMIT 5000
+
+#[test]
+fn bunch_of_smiles() {
+    let contents =
+        fs::read_to_string("tests/parsed_smiles.smi").expect("'parse_smiles.smi' available");
+    for smiles in contents.split_whitespace() {
         roundtrip_smiles!(smiles);
     }
 }
