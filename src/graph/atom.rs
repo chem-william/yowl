@@ -60,7 +60,7 @@ impl Atom {
             }
             AtomKind::Aliphatic(_) => subvalence,
 
-            AtomKind::Bracket { hcount, .. } => hcount.as_ref().map_or(0, |hcount| hcount.into()),
+            AtomKind::Bracket { hcount, .. } => hcount.as_ref().map_or(0, std::convert::Into::into),
         }
     }
 }
