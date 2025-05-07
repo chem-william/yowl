@@ -60,7 +60,7 @@ fn roundtripping_smiles_strings() {
         "[Db][Sg][Bh][Hs][Mt][Ds][Rg][Cn][Nh][Fl][Mc][Lv][Ts][Og]", // new names for new elements
         "C[Fe@TH](O)(Cl)F", // Unspecified TH stereochemistry
         "C[Fe@TB](O)(Cl)(Br)F", // Unspecified TB stereochemistry
-        "C[Fe@SP](O)(Cl)FX", // Unspecified SP stereochemistry
+        "C[Fe@SP](O)(Cl)F", // Unspecified SP stereochemistry
     ];
 
     for smiles in all_smiles {
