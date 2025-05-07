@@ -55,10 +55,7 @@ impl AtomKind {
                 )
             }
             BracketSymbol::Aromatic(aromatic) => {
-                let hcount = match hcount {
-                    Some(hcount) => hcount.into(),
-                    None => 0,
-                };
+                let hcount = hcount.as_ref().map_or(0, |hcount| hcount.into());
                 let valence = bond_order_sum.checked_add(hcount).expect("valence");
                 let allowance = if hcount == 0 { 0 } else { 1 };
                 let aromatic = match Aromatic::try_from(aromatic) {
@@ -76,10 +73,7 @@ impl AtomKind {
             }
             BracketSymbol::Element(element) => {
                 let valence = bond_order_sum
-                    .checked_add(match hcount {
-                        Some(hcount) => hcount.into(),
-                        None => 0,
-                    })
+                    .checked_add(hcount.as_ref().map_or(0, |hcount| hcount.into()))
                     .expect("valence");
                 let aliphatic = match Aliphatic::try_from(element) {
                     Ok(aliphatic) => aliphatic,

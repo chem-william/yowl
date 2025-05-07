@@ -118,7 +118,7 @@ impl Follower for Builder {
             }
             Entry::Vacant(vacant) => {
                 let sid = *self.stack.last().expect("last on stack");
-                let rnum = vacant.key().clone();
+                let rnum = *vacant.key();
 
                 vacant.insert(sid);
                 self.graph[sid].add_edge(bond_kind, Target::Rnum(self.rid, sid, rnum));

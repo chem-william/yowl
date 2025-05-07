@@ -124,7 +124,7 @@ fn read_branch<F: Follower>(
         _ => return Ok(false),
     }
 
-    let length = if let Some('.') = scanner.peek() {
+    let length = if scanner.peek() == Some(&'.') {
         scanner.pop();
 
         match read_smiles(None, scanner, follower, trace)? {
@@ -168,10 +168,10 @@ fn read_split<F: Follower>(
         _ => return Ok(None),
     }
 
-    match read_smiles(None, scanner, follower, trace)? {
-        Some(length) => Ok(Some(length)),
-        None => Err(missing_character(scanner)),
-    }
+    (read_smiles(None, scanner, follower, trace)?).map_or_else(
+        || Err(missing_character(scanner)),
+        |length| Ok(Some(length)),
+    )
 }
 
 // <union> ::= <bond>? ( <smiles> | <rnum> )
@@ -192,7 +192,7 @@ fn read_union<F: Follower>(
     match read_rnum(scanner)? {
         Some(rnum) => {
             if let Some(trace) = trace {
-                trace.join(bond_cursor, cursor..scanner.cursor(), rnum.clone())
+                trace.join(bond_cursor, cursor..scanner.cursor(), rnum)
             }
 
             follower.join(bond_kind, rnum);

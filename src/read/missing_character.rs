@@ -1,6 +1,6 @@
 use super::{error::ReadError, scanner::Scanner};
 
-pub fn missing_character(scanner: &mut Scanner) -> ReadError {
+pub fn missing_character(scanner: &Scanner) -> ReadError {
     if scanner.is_done() {
         ReadError::EndOfLine
     } else {

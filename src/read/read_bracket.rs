@@ -5,7 +5,7 @@ use super::{
 use crate::feature::{AtomKind, VirtualHydrogen};
 
 pub fn read_bracket(scanner: &mut Scanner) -> Result<Option<AtomKind>, ReadError> {
-    if let Some('[') = scanner.peek() {
+    if scanner.peek() == Some(&'[') {
         scanner.pop();
     } else {
         return Ok(None);

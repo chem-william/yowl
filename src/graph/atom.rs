@@ -59,10 +59,8 @@ impl Atom {
                 }
             }
             AtomKind::Aliphatic(_) => subvalence,
-            AtomKind::Bracket { hcount, .. } => match hcount {
-                Some(hcount) => hcount.into(),
-                None => 0,
-            },
+
+            AtomKind::Bracket { hcount, .. } => hcount.as_ref().map_or(0, |hcount| hcount.into()),
         }
     }
 }
