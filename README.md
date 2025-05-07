@@ -106,11 +106,10 @@ fn main() {
 An adjacency can be written using `write`.
 
 ```rust
-use yowl::graph::{Builder, Atom, Bond};
-use yowl::feature::{AtomKind, BondKind, Aliphatic};
+use yowl::graph::Builder;
 use yowl::read::{read, ReadError};
-use yowl::write::Writer;
 use yowl::walk::walk;
+use yowl::write::Writer;
 
 fn main() -> Result<(), ReadError> {
     let mut builder = Builder::default();

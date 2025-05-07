@@ -4,7 +4,7 @@ use std::fmt;
 use super::{Aliphatic, BracketAromatic};
 
 /// Atomic symbols that can be aromatic.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Aromatic {
     B,
     C,

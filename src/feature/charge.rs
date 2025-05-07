@@ -2,7 +2,7 @@ use std::convert::TryFrom;
 use std::fmt;
 
 /// An integer charge from -15 to +15.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Charge {
     MinusFifteen,
     MinusFourteen,

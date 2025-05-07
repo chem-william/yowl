@@ -4,7 +4,7 @@ use std::fmt;
 use super::{Aliphatic, Aromatic, BracketSymbol, Charge, Configuration, Element, VirtualHydrogen};
 
 /// Minimal context-sensitive representation of an atom kind.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum AtomKind {
     Star,
     Aliphatic(Aliphatic),
