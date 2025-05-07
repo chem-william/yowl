@@ -1,10 +1,8 @@
-use std::convert::TryInto;
-
 use super::{
     error::ReadError, missing_character, read_charge, read_configuration, read_symbol,
     scanner::Scanner,
 };
-use crate::feature::{AtomKind, Number, VirtualHydrogen};
+use crate::feature::{AtomKind, VirtualHydrogen};
 
 pub fn read_bracket(scanner: &mut Scanner) -> Result<Option<AtomKind>, ReadError> {
     if let Some('[') = scanner.peek() {
@@ -64,7 +62,7 @@ fn read_hcount(scanner: &mut Scanner) -> Result<Option<VirtualHydrogen>, ReadErr
     }
 }
 
-fn read_isotope(scanner: &mut Scanner) -> Result<Option<Number>, ReadError> {
+fn read_isotope(scanner: &mut Scanner) -> Result<Option<u16>, ReadError> {
     let mut digits = String::new();
 
     for _ in 0..3 {
@@ -77,11 +75,11 @@ fn read_isotope(scanner: &mut Scanner) -> Result<Option<Number>, ReadError> {
     if digits.is_empty() {
         Ok(None)
     } else {
-        Ok(Some(digits.try_into().expect("number")))
+        Ok(Some(digits.parse::<u16>().expect("number")))
     }
 }
 
-fn read_map(scanner: &mut Scanner) -> Result<Option<Number>, ReadError> {
+fn read_map(scanner: &mut Scanner) -> Result<Option<u16>, ReadError> {
     match scanner.peek() {
         Some(':') => {
             scanner.pop();
@@ -106,7 +104,7 @@ fn read_map(scanner: &mut Scanner) -> Result<Option<Number>, ReadError> {
                 }
             }
 
-            Ok(Some(digits.try_into().expect("number")))
+            Ok(Some(digits.parse::<u16>().expect("number")))
         }
         _ => Ok(None),
     }
@@ -117,7 +115,6 @@ mod tests {
     use super::*;
     use crate::feature::{BracketAromatic, BracketSymbol, Charge, Configuration};
     use pretty_assertions::assert_eq;
-    use std::convert::TryInto;
 
     #[test]
     fn overflow_map() {

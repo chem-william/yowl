@@ -1,9 +1,7 @@
 use std::convert::TryFrom;
 use std::fmt;
 
-use super::{
-    Aliphatic, Aromatic, BracketSymbol, Charge, Configuration, Element, Number, VirtualHydrogen,
-};
+use super::{Aliphatic, Aromatic, BracketSymbol, Charge, Configuration, Element, VirtualHydrogen};
 
 /// Minimal context-sensitive representation of an atom kind.
 #[derive(Debug, PartialEq)]
@@ -12,12 +10,12 @@ pub enum AtomKind {
     Aliphatic(Aliphatic),
     Aromatic(Aromatic),
     Bracket {
-        isotope: Option<Number>,
+        isotope: Option<u16>,
         symbol: BracketSymbol,
         configuration: Option<Configuration>,
         hcount: Option<VirtualHydrogen>,
         charge: Option<Charge>,
-        map: Option<Number>,
+        map: Option<u16>,
     },
 }
 
@@ -168,10 +166,10 @@ impl AtomKind {
 }
 
 fn any(
-    isotope: &Option<Number>,
+    isotope: &Option<u16>,
     configuration: &Option<Configuration>,
     charge: &Option<Charge>,
-    map: &Option<Number>,
+    map: &Option<u16>,
 ) -> bool {
     isotope.is_some() || configuration.is_some() || charge.is_some() || map.is_some()
 }
