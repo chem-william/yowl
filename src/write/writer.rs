@@ -15,7 +15,7 @@ use crate::walk::Follower;
 ///
 /// assert_eq!(writer.write(), "*=*")
 /// ```
-#[derive(Debug, PartialEq, Default)]
+#[derive(Debug, PartialEq, Eq, Default)]
 pub struct Writer {
     stack: Vec<String>,
 }

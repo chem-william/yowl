@@ -1,7 +1,7 @@
 use crate::feature::BondKind;
 
 /// A bond from a graph-like Atom to an Atom ID.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct Bond {
     pub kind: BondKind,
     pub tid: usize,

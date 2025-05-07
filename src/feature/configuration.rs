@@ -2,7 +2,7 @@ use std::fmt;
 
 /// Representation of a configurational template. Most applications
 /// will use only `TH1` (counterclockwise) and `TH2` (clockwise).
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum Configuration {
     AL1,
     AL2,

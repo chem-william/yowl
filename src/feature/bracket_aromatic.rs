@@ -3,7 +3,7 @@ use std::fmt;
 use super::Element;
 
 /// Eligible symbols for aromatic bracket atoms.
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum BracketAromatic {
     B,
     C,
