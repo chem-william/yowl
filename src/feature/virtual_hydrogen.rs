@@ -3,7 +3,7 @@ use std::fmt;
 
 /// Represents the virtual hydrogen count on a bracket atom.
 /// See: [Hydrogen Suppression in SMILES](https://depth-first.com/articles/2020/06/08/hydrogen-suppression-in-smiles/).
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum VirtualHydrogen {
     H0,
     H1,

@@ -4,7 +4,7 @@ use std::fmt;
 use super::Element;
 
 /// Atomic symbols that can be aliphatic.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Aliphatic {
     B,
     C,

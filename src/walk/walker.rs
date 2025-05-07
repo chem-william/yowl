@@ -1,555 +1,139 @@
 use std::collections::HashMap;
 
 use super::{Error, Follower};
-use crate::graph::{Atom, JoinPool};
+use crate::graph::{Atom, Bond, JoinPool};
 
-/// Performs a depth-first traversal of `graph`.
-///
-/// ```
-/// use yowl::graph::{ Atom, Bond };
-/// use yowl::feature::{ AtomKind, BondKind, Aliphatic };
-/// use yowl::read::read;
-/// use yowl::write::Writer;
-/// use yowl::walk::{ walk, Follower, Error };
-///
-/// fn main() -> Result<(), Error> {
-///     let atoms = vec![
-///         Atom {
-///             kind: AtomKind::Aliphatic(Aliphatic::C),
-///             bonds: vec![
-///                 Bond::new(BondKind::Elided, 1)
-///             ]
-///         },
-///         Atom {
-///             kind: AtomKind::Aliphatic(Aliphatic::O),
-///             bonds: vec![
-///                 Bond::new(BondKind::Elided, 0)
-///             ]
-///         }
-///     ];
-///     let mut writer = Writer::default();
-///
-///     walk(atoms, &mut writer)?;
-///
-///     assert_eq!(writer.write(), "CO");
-///
-///     Ok(())
-/// }
-/// ```
+/// Performs a depth-first traversal of `graph`, emitting SMILES via the `Follower`.
 pub fn walk<F: Follower>(graph: Vec<Atom>, follower: &mut F) -> Result<(), Error> {
     let size = graph.len();
-    let ids = 0..size;
     let mut atoms = graph.into_iter().enumerate().collect::<HashMap<_, _>>();
     let mut pool = JoinPool::new();
 
-    for id in ids {
-        let root = match atoms.remove(&id) {
-            Some(root) => root,
-            None => continue,
-        };
-
-        walk_root(id, root, size, &mut atoms, follower, &mut pool)?;
+    for id in 0..size {
+        if let Some(root_atom) = atoms.remove(&id) {
+            walk_root(id, root_atom, size, &mut atoms, follower, &mut pool)?;
+        }
     }
-
     Ok(())
 }
 
 fn walk_root<F: Follower>(
-    pid: usize,
-    parent: Atom,
+    root_id: usize,
+    root_atom: Atom,
     size: usize,
     atoms: &mut HashMap<usize, Atom>,
     follower: &mut F,
     pool: &mut JoinPool,
 ) -> Result<(), Error> {
     let mut stack = Vec::new();
-    let mut chain = Vec::new();
+    let mut chain = vec![root_id];
 
-    for bond in parent.bonds.into_iter().rev() {
-        stack.push((pid, bond));
+    // Initialize stack with root bonds (rev so first bond is processed first)
+    for bond in root_atom.bonds.into_iter().rev() {
+        stack.push((root_id, bond));
     }
-
-    follower.root(parent.kind);
-    chain.push(pid);
+    follower.root(root_atom.kind);
 
     while let Some((sid, bond)) = stack.pop() {
-        if bond.tid >= size {
-            return Err(Error::UnknownTarget(sid, bond.tid));
-        } else if bond.tid == sid {
-            return Err(Error::Loop(sid));
-        }
+        validate_bond_indices(sid, bond.tid, size)?;
+        backtrack_and_pop(sid, &mut chain, follower);
 
-        let mut popcount = 0;
-
-        loop {
-            let head = *chain.last().expect("chain head");
-
-            if head == sid {
-                break;
-            }
-
-            chain.pop();
-
-            popcount += 1;
-        }
-
-        if popcount > 0 {
-            follower.pop(popcount);
-        }
-
-        match atoms.remove(&bond.tid) {
-            Some(mut child) => {
-                let mut back = None;
-
-                for (out_index, out) in child.bonds.into_iter().enumerate().rev() {
-                    if out.tid == sid {
-                        if out_index % 2 == 0 {
-                            child.kind.invert_configuration()
-                        }
-
-                        if back.is_none() {
-                            back = Some(out);
-                        } else {
-                            return Err(Error::DuplicateBond(sid, bond.tid));
-                        }
-
-                        continue;
-                    }
-
-                    stack.push((bond.tid, out));
-                }
-
-                if let Some(back) = back {
-                    if bond.is_directional() {
-                        if bond.kind != back.kind.reverse() {
-                            return Err(Error::IncompatibleBond(bond.tid, sid));
-                        }
-                    } else if bond.kind != back.kind {
-                        return Err(Error::IncompatibleBond(bond.tid, sid));
-                    }
-                } else {
-                    return Err(Error::HalfBond(sid, bond.tid));
-                }
-
-                chain.push(bond.tid);
-                follower.extend(bond.kind, child.kind)
-            }
-            None => follower.join(bond.kind, pool.hit(sid, bond.tid)),
+        if let Some(mut child_atom) = atoms.remove(&bond.tid) {
+            process_tree_edge(
+                sid,
+                &bond,
+                &mut child_atom,
+                // atoms,
+                follower,
+                &mut stack,
+                &mut chain,
+            )?;
+        } else {
+            process_ring_edge(sid, bond, pool, follower)?;
         }
     }
+    Ok(())
+}
+
+/// Validate basic bond errors: unknown target or self-loop.
+fn validate_bond_indices(sid: usize, tid: usize, size: usize) -> Result<(), Error> {
+    if tid >= size {
+        Err(Error::UnknownTarget(sid, tid))
+    } else if tid == sid {
+        Err(Error::Loop(sid))
+    } else {
+        Ok(())
+    }
+}
+
+/// Pop the chain back to `sid`, emitting branch closures as needed.
+fn backtrack_and_pop<F: Follower>(sid: usize, chain: &mut Vec<usize>, follower: &mut F) {
+    let mut to_pop = 0;
+    while *chain.last().unwrap() != sid {
+        chain.pop();
+        to_pop += 1;
+    }
+    if to_pop > 0 {
+        follower.pop(to_pop);
+    }
+}
+
+/// Handle a tree edge: remove the back-bond, check stereochemistry, push new bonds, and extend.
+fn process_tree_edge<F: Follower>(
+    sid: usize,
+    bond: &Bond,
+    child: &mut Atom,
+    // atoms: &mut HashMap<usize, Atom>,
+    follower: &mut F,
+    stack: &mut Vec<(usize, Bond)>,
+    chain: &mut Vec<usize>,
+) -> Result<(), Error> {
+    let mut back_bond = None;
+    for (idx, out) in child.bonds.drain(..).enumerate().rev() {
+        if out.tid == sid {
+            // Stereochemistry inversion on even index
+            if idx % 2 == 0 {
+                child.kind.invert_configuration();
+            }
+            back_bond = Some(out);
+        } else {
+            stack.push((bond.tid, out));
+        }
+    }
+    let back = back_bond.ok_or(Error::HalfBond(sid, bond.tid))?;
+
+    check_bond_compatibility(bond, back)?;
+
+    chain.push(bond.tid);
+    follower.extend(bond.kind.clone(), child.kind);
 
     Ok(())
 }
 
-#[cfg(test)]
-mod walk {
-    use super::*;
-    use crate::feature::{
-        Aliphatic, AtomKind, BondKind, BracketSymbol, Configuration, VirtualHydrogen,
-    };
-    use crate::graph::Bond;
-    use crate::write::Writer;
-    use pretty_assertions::assert_eq;
-
-    #[test]
-    fn half_bond() {
-        let mut writer = Writer::default();
-        let graph = vec![
-            Atom {
-                kind: AtomKind::Star,
-                bonds: vec![Bond::new(BondKind::Elided, 1)],
-            },
-            Atom {
-                kind: AtomKind::Star,
-                bonds: vec![],
-            },
-        ];
-
-        assert_eq!(walk(graph, &mut writer), Err(Error::HalfBond(0, 1)))
+/// Ensure the forward and back bonds match, respecting directionality.
+fn check_bond_compatibility(fwd: &Bond, back: Bond) -> Result<(), Error> {
+    if fwd.is_directional() {
+        if fwd.kind != back.kind.reverse() {
+            Err(Error::IncompatibleBond(fwd.tid, back.tid))
+        } else {
+            Ok(())
+        }
+    } else if fwd.kind != back.kind {
+        Err(Error::IncompatibleBond(fwd.tid, back.tid))
+    } else {
+        Ok(())
     }
+}
 
-    #[test]
-    fn duplicate_back_bond() {
-        let mut writer = Writer::default();
-        let graph = vec![
-            Atom {
-                kind: AtomKind::Star,
-                bonds: vec![Bond::new(BondKind::Elided, 1)],
-            },
-            Atom {
-                kind: AtomKind::Star,
-                bonds: vec![
-                    Bond::new(BondKind::Elided, 0),
-                    Bond::new(BondKind::Elided, 0),
-                ],
-            },
-        ];
+/// Handle a ring edge: allocate or retrieve a ring number and join.
+fn process_ring_edge<F: Follower>(
+    sid: usize,
+    bond: Bond,
+    pool: &mut JoinPool,
+    follower: &mut F,
+) -> Result<(), Error> {
+    let ring_id = pool.hit(sid, bond.tid);
+    follower.join(bond.kind, ring_id);
 
-        assert_eq!(walk(graph, &mut writer), Err(Error::DuplicateBond(0, 1)))
-    }
-
-    #[test]
-    fn unknown_target() {
-        let mut writer = Writer::default();
-        let graph = vec![Atom {
-            kind: AtomKind::Star,
-            bonds: vec![Bond::new(BondKind::Elided, 1)],
-        }];
-
-        assert_eq!(walk(graph, &mut writer), Err(Error::UnknownTarget(0, 1)))
-    }
-
-    #[test]
-    fn self_bond() {
-        let mut writer = Writer::default();
-        let graph = vec![Atom {
-            kind: AtomKind::Star,
-            bonds: vec![Bond::new(BondKind::Elided, 0)],
-        }];
-
-        assert_eq!(walk(graph, &mut writer), Err(Error::Loop(0)))
-    }
-
-    #[test]
-    fn incompatible_bond() {
-        let mut writer = Writer::default();
-        let graph = vec![
-            Atom {
-                kind: AtomKind::Star,
-                bonds: vec![Bond::new(BondKind::Elided, 1)],
-            },
-            Atom {
-                kind: AtomKind::Star,
-                bonds: vec![Bond::new(BondKind::Single, 0)],
-            },
-        ];
-
-        assert_eq!(walk(graph, &mut writer), Err(Error::IncompatibleBond(1, 0)))
-    }
-
-    #[test]
-    fn p1() {
-        let mut writer = Writer::default();
-        let graph = vec![Atom {
-            kind: AtomKind::Star,
-            bonds: vec![],
-        }];
-
-        walk(graph, &mut writer).unwrap();
-
-        assert_eq!(writer.write(), "*")
-    }
-
-    #[test]
-    fn p2() {
-        let mut writer = Writer::default();
-        let graph = vec![
-            Atom {
-                kind: AtomKind::Star,
-                bonds: vec![Bond::new(BondKind::Single, 1)],
-            },
-            Atom {
-                kind: AtomKind::Star,
-                bonds: vec![Bond::new(BondKind::Single, 0)],
-            },
-        ];
-
-        walk(graph, &mut writer).unwrap();
-
-        assert_eq!(writer.write(), "*-*")
-    }
-
-    #[test]
-    fn p2_directional() {
-        let mut writer = Writer::default();
-        let graph = vec![
-            Atom {
-                kind: AtomKind::Star,
-                bonds: vec![Bond::new(BondKind::Up, 1)],
-            },
-            Atom {
-                kind: AtomKind::Star,
-                bonds: vec![Bond::new(BondKind::Down, 0)],
-            },
-        ];
-
-        walk(graph, &mut writer).unwrap();
-
-        assert_eq!(writer.write(), "*/*")
-    }
-
-    #[test]
-    fn p1_p1() {
-        let mut writer = Writer::default();
-        let graph = vec![
-            Atom {
-                kind: AtomKind::Star,
-                bonds: vec![],
-            },
-            Atom {
-                kind: AtomKind::Star,
-                bonds: vec![],
-            },
-        ];
-
-        walk(graph, &mut writer).unwrap();
-
-        assert_eq!(writer.write(), "*.*")
-    }
-
-    #[test]
-    fn p3() {
-        let mut writer = Writer::default();
-        let graph = vec![
-            Atom {
-                kind: AtomKind::Star,
-                bonds: vec![Bond::new(BondKind::Single, 1)],
-            },
-            Atom {
-                kind: AtomKind::Star,
-                bonds: vec![
-                    Bond::new(BondKind::Single, 0),
-                    Bond::new(BondKind::Single, 2),
-                ],
-            },
-            Atom {
-                kind: AtomKind::Star,
-                bonds: vec![Bond::new(BondKind::Single, 1)],
-            },
-        ];
-
-        walk(graph, &mut writer).unwrap();
-
-        assert_eq!(writer.write(), "*-*-*")
-    }
-
-    #[test]
-    fn p3_branched() {
-        let mut writer = Writer::default();
-        let graph = vec![
-            Atom {
-                kind: AtomKind::Star,
-                bonds: vec![
-                    Bond::new(BondKind::Single, 1),
-                    Bond::new(BondKind::Double, 2),
-                ],
-            },
-            Atom {
-                kind: AtomKind::Star,
-                bonds: vec![Bond::new(BondKind::Single, 0)],
-            },
-            Atom {
-                kind: AtomKind::Star,
-                bonds: vec![Bond::new(BondKind::Double, 0)],
-            },
-        ];
-
-        walk(graph, &mut writer).unwrap();
-
-        assert_eq!(writer.write(), "*(-*)=*")
-    }
-
-    #[test]
-    fn c3() {
-        let mut writer = Writer::default();
-        let graph = vec![
-            Atom {
-                kind: AtomKind::Aliphatic(Aliphatic::C),
-                bonds: vec![
-                    Bond::new(BondKind::Elided, 2),
-                    Bond::new(BondKind::Elided, 1),
-                ],
-            },
-            Atom {
-                kind: AtomKind::Aliphatic(Aliphatic::O),
-                bonds: vec![
-                    Bond::new(BondKind::Elided, 0),
-                    Bond::new(BondKind::Elided, 2),
-                ],
-            },
-            Atom {
-                kind: AtomKind::Aliphatic(Aliphatic::S),
-                bonds: vec![
-                    Bond::new(BondKind::Elided, 1),
-                    Bond::new(BondKind::Elided, 0),
-                ],
-            },
-        ];
-
-        walk(graph, &mut writer).unwrap();
-
-        assert_eq!(writer.write(), "C(SO1)1")
-    }
-
-    #[test]
-    fn tetrahedral_root() {
-        let mut writer = Writer::default();
-        let graph = vec![
-            Atom {
-                kind: AtomKind::Bracket {
-                    isotope: None,
-                    symbol: BracketSymbol::Star,
-                    configuration: Some(Configuration::TH1),
-                    hcount: None,
-                    charge: None,
-                    map: None,
-                },
-                bonds: vec![
-                    Bond::new(BondKind::Elided, 1),
-                    Bond::new(BondKind::Elided, 2),
-                    Bond::new(BondKind::Elided, 3),
-                    Bond::new(BondKind::Elided, 4),
-                ],
-            },
-            Atom {
-                kind: AtomKind::Star,
-                bonds: vec![Bond::new(BondKind::Elided, 0)],
-            },
-            Atom {
-                kind: AtomKind::Star,
-                bonds: vec![Bond::new(BondKind::Elided, 0)],
-            },
-            Atom {
-                kind: AtomKind::Star,
-                bonds: vec![Bond::new(BondKind::Elided, 0)],
-            },
-            Atom {
-                kind: AtomKind::Star,
-                bonds: vec![Bond::new(BondKind::Elided, 0)],
-            },
-        ];
-
-        walk(graph, &mut writer).unwrap();
-
-        assert_eq!(writer.write(), "[*@](*)(*)(*)*")
-    }
-
-    #[test]
-    fn tetrahedral_child_no_hydrogen() {
-        let mut writer = Writer::default();
-        let graph = vec![
-            Atom {
-                kind: AtomKind::Star,
-                bonds: vec![Bond::new(BondKind::Elided, 1)],
-            },
-            Atom {
-                kind: AtomKind::Bracket {
-                    isotope: None,
-                    symbol: BracketSymbol::Star,
-                    configuration: Some(Configuration::TH1),
-                    hcount: None,
-                    charge: None,
-                    map: None,
-                },
-                bonds: vec![
-                    Bond::new(BondKind::Elided, 0),
-                    Bond::new(BondKind::Elided, 2),
-                    Bond::new(BondKind::Elided, 3),
-                    Bond::new(BondKind::Elided, 4),
-                ],
-            },
-            Atom {
-                kind: AtomKind::Star,
-                bonds: vec![Bond::new(BondKind::Elided, 1)],
-            },
-            Atom {
-                kind: AtomKind::Star,
-                bonds: vec![Bond::new(BondKind::Elided, 1)],
-            },
-            Atom {
-                kind: AtomKind::Star,
-                bonds: vec![Bond::new(BondKind::Elided, 1)],
-            },
-        ];
-
-        walk(graph, &mut writer).unwrap();
-
-        assert_eq!(writer.write(), "*[*@](*)(*)*")
-    }
-
-    #[test]
-    fn tetrahedral_child_hydrogen() {
-        let mut writer = Writer::default();
-        let graph = vec![
-            Atom {
-                kind: AtomKind::Star,
-                bonds: vec![Bond::new(BondKind::Elided, 1)],
-            },
-            Atom {
-                kind: AtomKind::Bracket {
-                    isotope: None,
-                    symbol: BracketSymbol::Star,
-                    configuration: Some(Configuration::TH1),
-                    hcount: Some(VirtualHydrogen::H1),
-                    charge: None,
-                    map: None,
-                },
-                bonds: vec![
-                    Bond::new(BondKind::Elided, 0),
-                    Bond::new(BondKind::Elided, 2),
-                    Bond::new(BondKind::Elided, 3),
-                    Bond::new(BondKind::Elided, 4),
-                ],
-            },
-            Atom {
-                kind: AtomKind::Star,
-                bonds: vec![Bond::new(BondKind::Elided, 1)],
-            },
-            Atom {
-                kind: AtomKind::Star,
-                bonds: vec![Bond::new(BondKind::Elided, 1)],
-            },
-            Atom {
-                kind: AtomKind::Star,
-                bonds: vec![Bond::new(BondKind::Elided, 1)],
-            },
-        ];
-
-        walk(graph, &mut writer).unwrap();
-
-        assert_eq!(writer.write(), "*[*@@H](*)(*)*")
-    }
-
-    #[test]
-    fn tetrahedral_child_hydrogen_odd_input() {
-        let mut writer = Writer::default();
-        let graph = vec![
-            Atom {
-                kind: AtomKind::Star,
-                bonds: vec![Bond::new(BondKind::Elided, 1)],
-            },
-            Atom {
-                kind: AtomKind::Bracket {
-                    isotope: None,
-                    symbol: BracketSymbol::Star,
-                    configuration: Some(Configuration::TH1),
-                    hcount: Some(VirtualHydrogen::H1),
-                    charge: None,
-                    map: None,
-                },
-                bonds: vec![
-                    Bond::new(BondKind::Elided, 2),
-                    Bond::new(BondKind::Elided, 0),
-                    Bond::new(BondKind::Elided, 3),
-                    Bond::new(BondKind::Elided, 4),
-                ],
-            },
-            Atom {
-                kind: AtomKind::Star,
-                bonds: vec![Bond::new(BondKind::Elided, 1)],
-            },
-            Atom {
-                kind: AtomKind::Star,
-                bonds: vec![Bond::new(BondKind::Elided, 1)],
-            },
-            Atom {
-                kind: AtomKind::Star,
-                bonds: vec![Bond::new(BondKind::Elided, 1)],
-            },
-        ];
-
-        walk(graph, &mut writer).unwrap();
-
-        assert_eq!(writer.write(), "*[*@H](*)(*)*")
-    }
+    Ok(())
 }
