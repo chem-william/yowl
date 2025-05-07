@@ -1,12 +1,8 @@
-use std::cmp::Ord;
 use std::collections::hash_map::Entry;
 use std::collections::{BinaryHeap, HashMap};
 use std::hash::{Hash, Hasher};
 
 use crate::feature::Rnum;
-
-#[derive(Eq, PartialEq, PartialOrd, Ord)]
-struct Index(u16);
 
 #[derive(Debug, Eq)]
 struct Pair(usize, usize);
@@ -26,7 +22,7 @@ impl Hash for Pair {
 pub struct JoinPool {
     counter: u16,
     borrowed: HashMap<Pair, u16>,
-    replaced: BinaryHeap<Index>,
+    replaced: BinaryHeap<u16>,
 }
 
 impl JoinPool {
@@ -40,7 +36,7 @@ impl JoinPool {
 
     pub fn hit(&mut self, sid: usize, tid: usize) -> Rnum {
         let next = if let Some(next) = self.replaced.pop() {
-            next.0
+            next
         } else {
             let next = self.counter;
             self.counter += 1;
@@ -52,7 +48,7 @@ impl JoinPool {
             Entry::Occupied(occupied) => {
                 let result = occupied.remove();
 
-                self.replaced.push(Index(result));
+                self.replaced.push(result);
 
                 Rnum::new(result as u8)
             }
