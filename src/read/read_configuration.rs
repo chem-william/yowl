@@ -11,7 +11,7 @@ use crate::feature::Configuration;
 /// - `@AL2` for allene configuration 2 (same as `@@`)
 ///
 /// If only the configuration is specified (whether it's TH, AL, etc.), but not the specific chirality (@TH1, @AL2, etc.)
-/// then UnspecifiedXX is returned where `XX` specifies the configuration.
+/// then `UnspecifiedXX` is returned where `XX` specifies the configuration.
 pub fn read_configuration(scanner: &mut Scanner) -> Option<Configuration> {
     Some(match scanner.peek() {
         Some('@') => {

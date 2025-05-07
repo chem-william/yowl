@@ -20,9 +20,8 @@ impl Aromatic {
         match self {
             Self::B => &[3],
             Self::C => &[4],
-            Self::N => &[3, 5],
+            Self::N | Self::P => &[3, 5],
             Self::O => &[2],
-            Self::P => &[3, 5],
             Self::S => &[2, 4, 6],
         }
     }

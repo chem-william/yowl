@@ -2,7 +2,7 @@ use std::fmt;
 
 /// A kind of bond. Elided bonds are not present in the corresponding
 /// string representation.
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum BondKind {
     Elided,
     Single,

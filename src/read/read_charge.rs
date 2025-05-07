@@ -76,62 +76,62 @@ mod tests {
     fn none() {
         let mut scanner = Scanner::new("X");
 
-        assert_eq!(read_charge(&mut scanner), Ok(None))
+        assert_eq!(read_charge(&mut scanner), None)
     }
 
     #[test]
     fn minus_x() {
         let mut scanner = Scanner::new("-X");
 
-        assert_eq!(read_charge(&mut scanner), Ok(Some(Charge::MinusOne)))
+        assert_eq!(read_charge(&mut scanner), Some(Charge::MinusOne))
     }
 
     #[test]
     fn minus_2_x() {
         let mut scanner = Scanner::new("-1X");
 
-        assert_eq!(read_charge(&mut scanner), Ok(Some(Charge::MinusOne)))
+        assert_eq!(read_charge(&mut scanner), Some(Charge::MinusOne))
     }
 
     #[test]
     fn minus_minus_x() {
         let mut scanner = Scanner::new("--X");
 
-        assert_eq!(read_charge(&mut scanner), Ok(Some(Charge::MinusTwo)))
+        assert_eq!(read_charge(&mut scanner), Some(Charge::MinusTwo))
     }
 
     #[test]
     fn minus_15_x() {
         let mut scanner = Scanner::new("-15X");
 
-        assert_eq!(read_charge(&mut scanner), Ok(Some(Charge::MinusFifteen)))
+        assert_eq!(read_charge(&mut scanner), Some(Charge::MinusFifteen))
     }
 
     #[test]
     fn plus_x() {
         let mut scanner = Scanner::new("+X");
 
-        assert_eq!(read_charge(&mut scanner), Ok(Some(Charge::One)))
+        assert_eq!(read_charge(&mut scanner), Some(Charge::One))
     }
 
     #[test]
     fn plus_plus_x() {
         let mut scanner = Scanner::new("++X");
 
-        assert_eq!(read_charge(&mut scanner), Ok(Some(Charge::Two)))
+        assert_eq!(read_charge(&mut scanner), Some(Charge::Two))
     }
 
     #[test]
     fn plus_2_x() {
         let mut scanner = Scanner::new("+2X");
 
-        assert_eq!(read_charge(&mut scanner), Ok(Some(Charge::Two)))
+        assert_eq!(read_charge(&mut scanner), Some(Charge::Two))
     }
 
     #[test]
     fn plus_15_x() {
         let mut scanner = Scanner::new("+15X");
 
-        assert_eq!(read_charge(&mut scanner), Ok(Some(Charge::Fifteen)))
+        assert_eq!(read_charge(&mut scanner), Some(Charge::Fifteen))
     }
 }

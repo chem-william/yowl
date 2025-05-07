@@ -1,18 +1,15 @@
 use crate::feature::BondKind;
 
-pub fn reconcile(left: BondKind, right: BondKind) -> Option<(BondKind, BondKind)> {
-    use BondKind::*;
+pub fn reconcile(left: BondKind, right: &BondKind) -> Option<(BondKind, BondKind)> {
+    use BondKind::{Down, Elided, Up};
     match (&left, &right) {
         (Up, Up) | (Down, Down) => None,
-        (Up, Down) | (Down, Up) => Some((left.clone(), right.clone())),
+        (Up, Down) | (Down, Up) => Some((left, *right)),
         (Elided, Elided) => Some((Elided, Elided)),
-        (Elided, Up) => Some((Down, Up)),
-        (Elided, Down) => Some((Up, Down)),
-        (Elided, other) => Some((other.clone(), other.clone())),
-        (Up, Elided) => Some((Up, Down)),
-        (Down, Elided) => Some((Down, Up)),
-        (other, Elided) => Some((other.clone(), other.clone())),
-        (a, b) if a == b => Some((a.clone(), b.clone())),
+        (Elided, Up) | (Down, Elided) => Some((Down, Up)),
+        (Elided, Down) | (Up, Elided) => Some((Up, Down)),
+        (other, Elided) | (Elided, &other) => Some((*other, *other)),
+        (a, b) if a == *b => Some((*a, **b)),
         _ => None,
     }
 }
@@ -24,23 +21,23 @@ mod tests {
 
     #[test]
     fn single_double() {
-        assert_eq!(reconcile(BondKind::Single, BondKind::Double), None)
+        assert_eq!(reconcile(BondKind::Single, &BondKind::Double), None)
     }
 
     #[test]
     fn up_up() {
-        assert_eq!(reconcile(BondKind::Up, BondKind::Up), None)
+        assert_eq!(reconcile(BondKind::Up, &BondKind::Up), None)
     }
 
     #[test]
     fn down_down() {
-        assert_eq!(reconcile(BondKind::Down, BondKind::Down), None)
+        assert_eq!(reconcile(BondKind::Down, &BondKind::Down), None)
     }
 
     #[test]
     fn elided_elided() {
         assert_eq!(
-            reconcile(BondKind::Elided, BondKind::Elided),
+            reconcile(BondKind::Elided, &BondKind::Elided),
             Some((BondKind::Elided, BondKind::Elided))
         )
     }
@@ -48,7 +45,7 @@ mod tests {
     #[test]
     fn elided_single() {
         assert_eq!(
-            reconcile(BondKind::Elided, BondKind::Single),
+            reconcile(BondKind::Elided, &BondKind::Single),
             Some((BondKind::Single, BondKind::Single))
         )
     }
@@ -56,7 +53,7 @@ mod tests {
     #[test]
     fn elided_up() {
         assert_eq!(
-            reconcile(BondKind::Elided, BondKind::Up),
+            reconcile(BondKind::Elided, &BondKind::Up),
             Some((BondKind::Down, BondKind::Up))
         )
     }
@@ -64,7 +61,7 @@ mod tests {
     #[test]
     fn elided_down() {
         assert_eq!(
-            reconcile(BondKind::Elided, BondKind::Down),
+            reconcile(BondKind::Elided, &BondKind::Down),
             Some((BondKind::Up, BondKind::Down))
         )
     }
@@ -72,7 +69,7 @@ mod tests {
     #[test]
     fn up_elided() {
         assert_eq!(
-            reconcile(BondKind::Up, BondKind::Elided),
+            reconcile(BondKind::Up, &BondKind::Elided),
             Some((BondKind::Up, BondKind::Down))
         )
     }
@@ -80,7 +77,7 @@ mod tests {
     #[test]
     fn down_elided() {
         assert_eq!(
-            reconcile(BondKind::Down, BondKind::Elided),
+            reconcile(BondKind::Down, &BondKind::Elided),
             Some((BondKind::Down, BondKind::Up))
         )
     }
@@ -88,7 +85,7 @@ mod tests {
     #[test]
     fn up_down() {
         assert_eq!(
-            reconcile(BondKind::Up, BondKind::Down),
+            reconcile(BondKind::Up, &BondKind::Down),
             Some((BondKind::Up, BondKind::Down))
         )
     }
@@ -96,7 +93,7 @@ mod tests {
     #[test]
     fn down_up() {
         assert_eq!(
-            reconcile(BondKind::Down, BondKind::Up),
+            reconcile(BondKind::Down, &BondKind::Up),
             Some((BondKind::Down, BondKind::Up))
         )
     }
@@ -104,7 +101,7 @@ mod tests {
     #[test]
     fn single_elided() {
         assert_eq!(
-            reconcile(BondKind::Single, BondKind::Elided),
+            reconcile(BondKind::Single, &BondKind::Elided),
             Some((BondKind::Single, BondKind::Single))
         )
     }
@@ -112,7 +109,7 @@ mod tests {
     #[test]
     fn other_bonds() {
         assert_eq!(
-            reconcile(BondKind::Triple, BondKind::Triple),
+            reconcile(BondKind::Triple, &BondKind::Triple),
             Some((BondKind::Triple, BondKind::Triple))
         )
     }

@@ -29,9 +29,9 @@ impl Writer {
 impl Follower for Writer {
     fn root(&mut self, root: AtomKind) {
         if self.stack.is_empty() {
-            self.stack.push(root.to_string())
+            self.stack.push(root.to_string());
         } else {
-            self.stack.push(".".to_string() + &root.to_string())
+            self.stack.push(".".to_string() + &root.to_string());
         }
     }
 
@@ -43,7 +43,7 @@ impl Follower for Writer {
     fn join(&mut self, bond_kind: BondKind, rnum: Rnum) {
         let last = self.stack.last_mut().expect("last");
 
-        last.push_str(&(bond_kind.to_string() + &rnum.to_string()))
+        last.push_str(&(bond_kind.to_string() + &rnum.to_string()));
     }
 
     fn pop(&mut self, depth: usize) {
@@ -54,7 +54,7 @@ impl Follower for Writer {
         let chain = self.stack.split_off(self.stack.len() - depth);
         let last = self.stack.last_mut().expect("last");
 
-        last.push_str(&("(".to_string() + &chain.join("") + ")"))
+        last.push_str(&("(".to_string() + &chain.join("") + ")"));
     }
 }
 

@@ -18,7 +18,7 @@ impl TryFrom<u16> for Rnum {
 
     fn try_from(value: u16) -> Result<Self, Self::Error> {
         if value <= 99 {
-            Ok(Self(value as u8))
+            Ok(Self(u8::try_from(value).expect("convert u16 to u8")))
         } else {
             Err(())
         }

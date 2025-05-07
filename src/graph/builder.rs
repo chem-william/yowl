@@ -63,7 +63,7 @@ impl Builder {
             result.push(Atom {
                 kind: node.kind,
                 bonds,
-            })
+            });
         }
 
         Ok(result)
@@ -73,7 +73,7 @@ impl Builder {
 impl Follower for Builder {
     fn root(&mut self, kind: AtomKind) {
         self.stack.push(self.graph.len());
-        self.graph.push(Node::parent(kind))
+        self.graph.push(Node::parent(kind));
     }
 
     fn extend(&mut self, bond_kind: BondKind, mut atom_kind: AtomKind) {
@@ -86,7 +86,7 @@ impl Follower for Builder {
 
         self.stack.push(self.graph.len());
         self.graph.push(Node::child(reverse, atom_kind));
-        self.graph[sid].edges.push(forward)
+        self.graph[sid].edges.push(forward);
     }
 
     fn join(&mut self, bond_kind: BondKind, rnum: Rnum) {
@@ -106,7 +106,7 @@ impl Follower for Builder {
                     })
                     .expect("edge for rnum");
 
-                match reconcile(edge.kind.clone(), bond_kind) {
+                match reconcile(edge.kind, &bond_kind) {
                     Some((left, right)) => {
                         edge.target = Target::Id(sid);
                         edge.kind = left;
@@ -125,7 +125,7 @@ impl Follower for Builder {
             }
         }
 
-        self.rid += 1
+        self.rid += 1;
     }
 
     fn pop(&mut self, depth: usize) {

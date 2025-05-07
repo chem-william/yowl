@@ -63,12 +63,12 @@ fn read_smiles<F: Follower>(
             }
         }
 
-        follower.extend(bond_kind, atom_kind)
+        follower.extend(bond_kind, atom_kind);
     } else {
         follower.root(atom_kind);
 
         if let Some(trace) = trace {
-            trace.root(cursor..scanner.cursor())
+            trace.root(cursor..scanner.cursor());
         }
     }
     let mut result = 1;
@@ -183,7 +183,7 @@ fn read_union<F: Follower>(
     let bond_cursor = scanner.cursor();
     let bond_kind = read_bond(scanner);
 
-    if let Some(length) = read_smiles(Some(bond_kind.clone()), scanner, follower, trace)? {
+    if let Some(length) = read_smiles(Some(bond_kind), scanner, follower, trace)? {
         return Ok(Some(length));
     }
 
@@ -192,7 +192,7 @@ fn read_union<F: Follower>(
     match read_rnum(scanner)? {
         Some(rnum) => {
             if let Some(trace) = trace {
-                trace.join(bond_cursor, cursor..scanner.cursor(), rnum)
+                trace.join(bond_cursor, cursor..scanner.cursor(), rnum);
             }
 
             follower.join(bond_kind, rnum);

@@ -38,7 +38,7 @@ impl Trace {
     /// Adds a root atom.
     pub fn root(&mut self, cursor: Range<usize>) {
         self.stack.push(self.atoms.len());
-        self.atoms.push(cursor)
+        self.atoms.push(cursor);
     }
 
     /// Extends head.

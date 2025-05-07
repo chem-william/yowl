@@ -15,8 +15,8 @@ impl fmt::Display for BracketSymbol {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Self::Star => write!(f, "*"),
-            Self::Aromatic(aromatic) => write!(f, "{}", aromatic),
-            Self::Element(element) => write!(f, "{}", element),
+            Self::Aromatic(aromatic) => write!(f, "{aromatic}"),
+            Self::Element(element) => write!(f, "{element}"),
         }
     }
 }
