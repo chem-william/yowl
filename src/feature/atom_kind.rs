@@ -159,7 +159,7 @@ const fn any(
     isotope.is_some() || configuration.is_some() || charge.is_some() || map.is_some()
 }
 
-fn elemental_targets(element: &Element, charge: Option<Charge>) -> &'static [u8] {
+const fn elemental_targets(element: &Element, charge: Option<Charge>) -> &'static [u8] {
     match element {
         Element::B => match charge {
             Some(Charge::MinusThree) => &OXYGEN_TARGET,
@@ -329,5 +329,26 @@ mod invert {
             }
             _ => panic!("expected bracket"),
         }
+    }
+
+    #[test]
+    fn is_aromatic_unbracketed() {
+        assert!(!AtomKind::Star.is_aromatic());
+        assert!(!AtomKind::Aliphatic(Aliphatic::N).is_aromatic());
+        assert!(AtomKind::Aromatic(Aromatic::N).is_aromatic());
+    }
+
+    #[test]
+    fn display_simple_kinds() {
+        assert_eq!(AtomKind::Star.to_string(), "*");
+        assert_eq!(AtomKind::Aliphatic(Aliphatic::Br).to_string(), "Br");
+        assert_eq!(AtomKind::Aromatic(Aromatic::S).to_string(), "s");
+    }
+
+    #[test]
+    fn targets_star_and_alph_and_arom() {
+        assert_eq!(AtomKind::Star.targets(), &[]);
+        assert_eq!(AtomKind::Aliphatic(Aliphatic::S).targets(), &[2, 4, 6]);
+        assert_eq!(AtomKind::Aromatic(Aromatic::P).targets(), &[3, 5]);
     }
 }
