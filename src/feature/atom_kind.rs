@@ -53,7 +53,7 @@ impl AtomKind {
                 )
             }
             BracketSymbol::Aromatic(aromatic) => {
-                let hcount = hcount.as_ref().map_or(0, |hcount| hcount.into());
+                let hcount = hcount.as_ref().map_or(0, std::convert::Into::into);
                 let valence = bond_order_sum.checked_add(hcount).expect("valence");
                 let allowance = u8::from(hcount != 0);
                 let aromatic = match Aromatic::try_from(aromatic) {

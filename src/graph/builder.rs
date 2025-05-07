@@ -111,7 +111,7 @@ impl Follower for Builder {
                         edge.target = Target::Id(sid);
                         edge.kind = left;
 
-                        self.graph[sid].add_edge(right, Target::Id(tid))
+                        self.graph[sid].add_edge(right, Target::Id(tid));
                     }
                     None => self.errors.push(Error::Join(sid, tid)),
                 }

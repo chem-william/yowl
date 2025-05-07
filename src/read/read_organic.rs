@@ -2,7 +2,7 @@ use super::{error::ReadError, missing_character::missing_character, scanner::Sca
 use crate::feature::{Aliphatic, Aromatic, AtomKind};
 
 pub fn read_organic(scanner: &mut Scanner) -> Result<Option<AtomKind>, ReadError> {
-    match scanner.peek() {
+    let atom = match scanner.peek() {
         Some('b') => aromatic(Aromatic::B, scanner),
         Some('c') => aromatic(Aromatic::C, scanner),
         Some('n') => aromatic(Aromatic::N, scanner),
@@ -12,26 +12,28 @@ pub fn read_organic(scanner: &mut Scanner) -> Result<Option<AtomKind>, ReadError
         Some('A') => {
             scanner.pop();
 
-            match scanner.peek() {
-                Some('t') => aliphatic(Aliphatic::At, scanner),
-
-                _ => Err(missing_character(scanner)),
+            if scanner.peek() == Some(&'t') {
+                aliphatic(Aliphatic::At, scanner)
+            } else {
+                return Err(missing_character(scanner));
             }
         }
         Some('B') => {
             scanner.pop();
 
-            match scanner.peek() {
-                Some('r') => aliphatic(Aliphatic::Br, scanner),
-                _ => Ok(Some(AtomKind::Aliphatic(Aliphatic::B))),
+            if scanner.peek() == Some(&'r') {
+                aliphatic(Aliphatic::Br, scanner)
+            } else {
+                Some(AtomKind::Aliphatic(Aliphatic::B))
             }
         }
         Some('C') => {
             scanner.pop();
 
-            match scanner.peek() {
-                Some('l') => aliphatic(Aliphatic::Cl, scanner),
-                _ => Ok(Some(AtomKind::Aliphatic(Aliphatic::C))),
+            if scanner.peek() == Some(&'l') {
+                aliphatic(Aliphatic::Cl, scanner)
+            } else {
+                Some(AtomKind::Aliphatic(Aliphatic::C))
             }
         }
         Some('N') => aliphatic(Aliphatic::N, scanner),
@@ -43,25 +45,30 @@ pub fn read_organic(scanner: &mut Scanner) -> Result<Option<AtomKind>, ReadError
         Some('T') => {
             scanner.pop();
 
-            match scanner.peek() {
-                Some('s') => aliphatic(Aliphatic::Ts, scanner),
-                _ => Err(missing_character(scanner)),
+            if scanner.peek() == Some(&'s') {
+                aliphatic(Aliphatic::Ts, scanner)
+            } else {
+                return Err(missing_character(scanner));
             }
         }
-        _ => Ok(None),
-    }
+
+        // anything else: not an organic atom
+        _ => None,
+    };
+
+    Ok(atom)
 }
 
-fn aromatic(aromatic: Aromatic, scanner: &mut Scanner) -> Result<Option<AtomKind>, ReadError> {
+fn aromatic(aromatic: Aromatic, scanner: &mut Scanner) -> Option<AtomKind> {
     scanner.pop();
 
-    Ok(Some(AtomKind::Aromatic(aromatic)))
+    Some(AtomKind::Aromatic(aromatic))
 }
 
-fn aliphatic(aliphatic: Aliphatic, scanner: &mut Scanner) -> Result<Option<AtomKind>, ReadError> {
+fn aliphatic(aliphatic: Aliphatic, scanner: &mut Scanner) -> Option<AtomKind> {
     scanner.pop();
 
-    Ok(Some(AtomKind::Aliphatic(aliphatic)))
+    Some(AtomKind::Aliphatic(aliphatic))
 }
 
 #[cfg(test)]
