@@ -1,7 +1,10 @@
 use std::collections::HashMap;
 
 use super::{Error, Follower};
-use crate::graph::{Atom, Bond, JoinPool};
+use crate::{
+    feature::BondKind,
+    graph::{Atom, Bond, JoinPool},
+};
 
 /// Performs a depth-first traversal of `graph`, emitting SMILES via the `Follower`.
 pub fn walk<F: Follower>(graph: Vec<Atom>, follower: &mut F) -> Result<(), Error> {
@@ -43,7 +46,6 @@ fn walk_root<F: Follower>(
                 sid,
                 &bond,
                 &mut child_atom,
-                // atoms,
                 follower,
                 &mut stack,
                 &mut chain,
@@ -83,7 +85,6 @@ fn process_tree_edge<F: Follower>(
     sid: usize,
     bond: &Bond,
     child: &mut Atom,
-    // atoms: &mut HashMap<usize, Atom>,
     follower: &mut F,
     stack: &mut Vec<(usize, Bond)>,
     chain: &mut Vec<usize>,
@@ -105,7 +106,12 @@ fn process_tree_edge<F: Follower>(
     check_bond_compatibility(bond, back)?;
 
     chain.push(bond.tid);
-    follower.extend(bond.kind.clone(), child.kind);
+
+    // we elide single bonds, but keep the rest
+    match bond.kind {
+        BondKind::Single => follower.extend(BondKind::Elided, child.kind),
+        _ => follower.extend(bond.kind.clone(), child.kind),
+    }
 
     Ok(())
 }
@@ -133,7 +139,211 @@ fn process_ring_edge<F: Follower>(
     follower: &mut F,
 ) -> Result<(), Error> {
     let ring_id = pool.hit(sid, bond.tid);
-    follower.join(bond.kind, ring_id);
+    // we force elision of single bonds as we're within a ring
+    match bond.kind {
+        BondKind::Single => follower.join(BondKind::Elided, ring_id),
+        _ => follower.join(bond.kind, ring_id),
+    }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::feature::{Aliphatic, AtomKind, BondKind};
+    use crate::graph::Bond;
+    use crate::write::Writer;
+
+    /// Simple linear C–O: should emit "CO"
+    #[test]
+    fn test_simple_linear() {
+        let mut writer = Writer::default();
+        let graph = vec![
+            Atom {
+                kind: AtomKind::Aliphatic(Aliphatic::C),
+                bonds: vec![Bond::new(BondKind::Elided, 1)],
+            },
+            Atom {
+                kind: AtomKind::Aliphatic(Aliphatic::O),
+                bonds: vec![Bond::new(BondKind::Elided, 0)],
+            },
+        ];
+        walk(graph, &mut writer).unwrap();
+        assert_eq!(writer.write(), "CO");
+    }
+
+    /// Two disconnected single atoms: C and O -> "C.O"
+    #[test]
+    fn test_disconnected_components() {
+        let mut writer = Writer::default();
+        let graph = vec![
+            Atom {
+                kind: AtomKind::Aliphatic(Aliphatic::C),
+                bonds: vec![],
+            },
+            Atom {
+                kind: AtomKind::Aliphatic(Aliphatic::O),
+                bonds: vec![],
+            },
+        ];
+        walk(graph, &mut writer).unwrap();
+        assert_eq!(writer.write(), "C.O");
+    }
+
+    /// Four‐membered single‐bond ring: should emit "C1CCC1"
+    #[test]
+    fn test_four_member_ring() {
+        let mut writer = Writer::default();
+        let graph = vec![
+            Atom {
+                kind: AtomKind::Aliphatic(Aliphatic::C),
+                bonds: vec![
+                    Bond::new(BondKind::Single, 1),
+                    Bond::new(BondKind::Single, 3),
+                ],
+            },
+            Atom {
+                kind: AtomKind::Aliphatic(Aliphatic::C),
+                bonds: vec![
+                    Bond::new(BondKind::Single, 0),
+                    Bond::new(BondKind::Single, 2),
+                ],
+            },
+            Atom {
+                kind: AtomKind::Aliphatic(Aliphatic::C),
+                bonds: vec![
+                    Bond::new(BondKind::Single, 1),
+                    Bond::new(BondKind::Single, 3),
+                ],
+            },
+            Atom {
+                kind: AtomKind::Aliphatic(Aliphatic::C),
+                bonds: vec![
+                    Bond::new(BondKind::Single, 0),
+                    Bond::new(BondKind::Single, 2),
+                ],
+            },
+        ];
+        walk(graph, &mut writer).unwrap();
+        assert_eq!(writer.write(), "C(CCC1)1");
+    }
+
+    #[test]
+    fn five_membered_ring_with_single_double_bond() {
+        //      C
+        //    /  \
+        // 1 C    C
+        //   \   /
+        //    C=C
+        //    0
+        let mut writer = Writer::default();
+        let graph = vec![
+            Atom {
+                kind: AtomKind::Aliphatic(Aliphatic::C),
+                bonds: vec![
+                    Bond::new(BondKind::Single, 1),
+                    Bond::new(BondKind::Double, 4),
+                ],
+            },
+            Atom {
+                kind: AtomKind::Aliphatic(Aliphatic::C),
+                bonds: vec![
+                    Bond::new(BondKind::Single, 0),
+                    Bond::new(BondKind::Single, 2),
+                ],
+            },
+            Atom {
+                kind: AtomKind::Aliphatic(Aliphatic::C),
+                bonds: vec![
+                    Bond::new(BondKind::Single, 1),
+                    Bond::new(BondKind::Single, 3),
+                ],
+            },
+            Atom {
+                kind: AtomKind::Aliphatic(Aliphatic::C),
+                bonds: vec![
+                    Bond::new(BondKind::Single, 2),
+                    Bond::new(BondKind::Single, 4),
+                ],
+            },
+            Atom {
+                kind: AtomKind::Aliphatic(Aliphatic::C),
+                bonds: vec![
+                    Bond::new(BondKind::Double, 0),
+                    Bond::new(BondKind::Single, 3),
+                ],
+            },
+        ];
+        walk(graph, &mut writer).unwrap();
+        assert_eq!(writer.write(), "C(CCCC=1)=1");
+    }
+
+    #[test]
+    fn five_membered_ring_with_two_double_bonds() {
+        //      C
+        //    /  \
+        // 1 C    C
+        //   \\  //
+        //    C-C
+        //    0
+        let mut writer = Writer::default();
+        let graph = vec![
+            Atom {
+                kind: AtomKind::Aliphatic(Aliphatic::C),
+                bonds: vec![
+                    Bond::new(BondKind::Double, 1),
+                    Bond::new(BondKind::Single, 4),
+                ],
+            },
+            Atom {
+                kind: AtomKind::Aliphatic(Aliphatic::C),
+                bonds: vec![
+                    Bond::new(BondKind::Double, 0),
+                    Bond::new(BondKind::Single, 2),
+                ],
+            },
+            Atom {
+                kind: AtomKind::Aliphatic(Aliphatic::C),
+                bonds: vec![
+                    Bond::new(BondKind::Single, 1),
+                    Bond::new(BondKind::Single, 3),
+                ],
+            },
+            Atom {
+                kind: AtomKind::Aliphatic(Aliphatic::C),
+                bonds: vec![
+                    Bond::new(BondKind::Single, 2),
+                    Bond::new(BondKind::Double, 4),
+                ],
+            },
+            Atom {
+                kind: AtomKind::Aliphatic(Aliphatic::C),
+                bonds: vec![
+                    Bond::new(BondKind::Double, 3),
+                    Bond::new(BondKind::Single, 0),
+                ],
+            },
+        ];
+        walk(graph, &mut writer).unwrap();
+        assert_eq!(writer.write(), "C(=CCC=C1)1");
+    }
+
+    /// Directional bonds: up/down should emit "*/*"
+    #[test]
+    fn test_directional_bond() {
+        let mut writer = Writer::default();
+        let graph = vec![
+            Atom {
+                kind: AtomKind::Star,
+                bonds: vec![Bond::new(BondKind::Up, 1)],
+            },
+            Atom {
+                kind: AtomKind::Star,
+                bonds: vec![Bond::new(BondKind::Down, 0)],
+            },
+        ];
+        walk(graph, &mut writer).unwrap();
+        assert_eq!(writer.write(), "*/*");
+    }
 }

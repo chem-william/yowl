@@ -5,6 +5,7 @@ use std::fs;
 use yowl::feature::{Aliphatic, AtomKind, BondKind};
 use yowl::graph::{Atom, Bond, Builder};
 use yowl::read::read;
+use yowl::walk::walk;
 use yowl::write::Writer;
 
 use pretty_assertions::assert_eq;
