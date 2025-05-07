@@ -1,5 +1,6 @@
 [![Codecov](https://codecov.io/github/chem-william/yowl/coverage.svg?branch=main)](https://codecov.io/gh/chem-william/yowl)
 [![dependency status](https://deps.rs/repo/github/chem-william/yowl/status.svg)](https://deps.rs/repo/github/chem-william/yowl)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15360154.svg)](https://doi.org/10.5281/zenodo.15360154)
 
 # Yowl
 
