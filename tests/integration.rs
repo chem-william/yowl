@@ -13,7 +13,6 @@ macro_rules! roundtrip_smiles {
     ($smiles:expr) => {{
         let mut writer = Writer::default();
         let _ = read($smiles, &mut writer, None);
-        // assert!(result.is_ok());
         let written_smiles = writer.write();
         assert_eq!(written_smiles, $smiles);
     }};
@@ -63,6 +62,7 @@ fn roundtripping_smiles_strings() {
         "C[Fe@TH](O)(Cl)F", // Unspecified TH stereochemistry
         "C[Fe@TB](O)(Cl)(Br)F", // Unspecified TB stereochemistry
         "C[Fe@SP](O)(Cl)F", // Unspecified SP stereochemistry
+        "C5CCC(C14CCCC1C2CCCC23CCCC34)C5", // Bunch of rings
     ];
 
     for smiles in all_smiles {
@@ -72,6 +72,7 @@ fn roundtripping_smiles_strings() {
 
 // wikidata SMILES taken from https://github.com/hobofan/smiles-parser
 // using the following query
+//
 // SELECT ?item ?itemLabel ?smiles
 // WHERE
 // {
