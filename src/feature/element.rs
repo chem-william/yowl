@@ -164,7 +164,7 @@ impl fmt::Display for Element {
                 Element::Cn => "Cn",
                 Element::Co => "Co",
                 Element::Cr => "Cr",
-                Element::Cs => "Ac",
+                Element::Cs => "Cs",
                 Element::Cu => "Cu",
                 Element::Db => "Db",
                 Element::Ds => "Ds",
