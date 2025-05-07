@@ -1,30 +1,19 @@
 use crate::feature::BondKind;
 
 pub fn reconcile(left: BondKind, right: BondKind) -> Option<(BondKind, BondKind)> {
-    if left == right {
-        if left == BondKind::Up || left == BondKind::Down {
-            None
-        } else {
-            Some((left, right))
-        }
-    } else if (left == BondKind::Up && right == BondKind::Down)
-        || (left == BondKind::Down && right == BondKind::Up)
-    {
-        Some((left, right))
-    } else if left == BondKind::Elided {
-        match right {
-            BondKind::Up => Some((BondKind::Down, right)),
-            BondKind::Down => Some((BondKind::Up, right)),
-            _ => Some((right.clone(), right)),
-        }
-    } else if right == BondKind::Elided {
-        match left {
-            BondKind::Up => Some((left, BondKind::Down)),
-            BondKind::Down => Some((left, BondKind::Up)),
-            _ => Some((left.clone(), left)),
-        }
-    } else {
-        None
+    use BondKind::*;
+    match (&left, &right) {
+        (Up, Up) | (Down, Down) => None,
+        (Up, Down) | (Down, Up) => Some((left.clone(), right.clone())),
+        (Elided, Elided) => Some((Elided, Elided)),
+        (Elided, Up) => Some((Down, Up)),
+        (Elided, Down) => Some((Up, Down)),
+        (Elided, other) => Some((other.clone(), other.clone())),
+        (Up, Elided) => Some((Up, Down)),
+        (Down, Elided) => Some((Down, Up)),
+        (other, Elided) => Some((other.clone(), other.clone())),
+        (a, b) if a == b => Some((a.clone(), b.clone())),
+        _ => None,
     }
 }
 
@@ -117,6 +106,14 @@ mod tests {
         assert_eq!(
             reconcile(BondKind::Single, BondKind::Elided),
             Some((BondKind::Single, BondKind::Single))
+        )
+    }
+
+    #[test]
+    fn other_bonds() {
+        assert_eq!(
+            reconcile(BondKind::Triple, BondKind::Triple),
+            Some((BondKind::Triple, BondKind::Triple))
         )
     }
 }
