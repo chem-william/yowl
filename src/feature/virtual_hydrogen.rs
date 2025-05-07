@@ -3,7 +3,7 @@ use std::fmt;
 
 /// Represents the virtual hydrogen count on a bracket atom.
 /// See: [Hydrogen Suppression in SMILES](https://depth-first.com/articles/2020/06/08/hydrogen-suppression-in-smiles/).
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum VirtualHydrogen {
     H0,
     H1,
@@ -20,7 +20,7 @@ pub enum VirtualHydrogen {
 impl VirtualHydrogen {
     /// Returns true if the count is zero, or false otherwise.
     pub fn is_zero(&self) -> bool {
-        self == &VirtualHydrogen::H0
+        self == &Self::H0
     }
 }
 
@@ -67,16 +67,16 @@ impl fmt::Display for VirtualHydrogen {
             f,
             "{}",
             match self {
-                VirtualHydrogen::H0 => "",
-                VirtualHydrogen::H1 => "H",
-                VirtualHydrogen::H2 => "H2",
-                VirtualHydrogen::H3 => "H3",
-                VirtualHydrogen::H4 => "H4",
-                VirtualHydrogen::H5 => "H5",
-                VirtualHydrogen::H6 => "H6",
-                VirtualHydrogen::H7 => "H7",
-                VirtualHydrogen::H8 => "H8",
-                VirtualHydrogen::H9 => "H9",
+                Self::H0 => "",
+                Self::H1 => "H",
+                Self::H2 => "H2",
+                Self::H3 => "H3",
+                Self::H4 => "H4",
+                Self::H5 => "H5",
+                Self::H6 => "H6",
+                Self::H7 => "H7",
+                Self::H8 => "H8",
+                Self::H9 => "H9",
             }
         )
     }

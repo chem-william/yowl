@@ -57,27 +57,23 @@ fn read_smiles<F: Follower>(
         None => return Ok(None),
     };
 
-    match input {
-        Some(bond_kind) => {
-            if let Some(trace) = trace {
-                if bond_kind == BondKind::Elided {
-                    trace.extend(cursor, cursor..lexer.cursor())
-                } else {
-                    trace.extend(cursor - 1, cursor..lexer.cursor())
-                }
+    if let Some(bond_kind) = input {
+        if let Some(trace) = trace {
+            if bond_kind == BondKind::Elided {
+                trace.extend(cursor, cursor..lexer.cursor())
+            } else {
+                trace.extend(cursor - 1, cursor..lexer.cursor());
             }
-
-            follower.extend(bond_kind, atom_kind)
         }
-        None => {
-            follower.root(atom_kind);
 
-            if let Some(trace) = trace {
-                trace.root(cursor..lexer.cursor())
-            }
+        follower.extend(bond_kind, atom_kind);
+    } else {
+        follower.root(atom_kind);
+
+        if let Some(trace) = trace {
+            trace.root(cursor..lexer.cursor());
         }
     }
-
     let mut result = 1;
 
     loop {
@@ -131,22 +127,19 @@ fn read_branch<F: Follower>(
         _ => return Ok(false),
     }
 
-    let length = match scanner.peek() {
-        Some('.') => {
-            scanner.pop();
+    let length = if scanner.peek() == Some(&'.') {
+        scanner.pop();
 
-            match read_smiles(None, scanner, follower, trace)? {
-                Some(length) => length,
-                None => return Err(missing_character(scanner)),
-            }
+        match read_smiles(None, scanner, follower, trace)? {
+            Some(length) => length,
+            None => return Err(missing_character(scanner)),
         }
-        _ => {
-            let bond_kind = read_bond(scanner);
+    } else {
+        let bond_kind = read_bond(scanner);
 
-            match read_smiles(Some(bond_kind), scanner, follower, trace)? {
-                Some(length) => length,
-                None => return Err(missing_character(scanner)),
-            }
+        match read_smiles(Some(bond_kind), scanner, follower, trace)? {
+            Some(length) => length,
+            None => return Err(missing_character(scanner)),
         }
     };
 
@@ -178,10 +171,10 @@ fn read_split<F: Follower>(
         _ => return Ok(None),
     }
 
-    match read_smiles(None, scanner, follower, trace)? {
-        Some(length) => Ok(Some(length)),
-        None => Err(missing_character(scanner)),
-    }
+    (read_smiles(None, scanner, follower, trace)?).map_or_else(
+        || Err(missing_character(scanner)),
+        |length| Ok(Some(length)),
+    )
 }
 
 // <union> ::= <bond>? ( <smiles> | <rnum> )
@@ -193,7 +186,7 @@ fn read_union<F: Follower>(
     let bond_cursor = scanner.cursor();
     let bond_kind = read_bond(scanner);
 
-    if let Some(length) = read_smiles(Some(bond_kind.clone()), scanner, follower, trace)? {
+    if let Some(length) = read_smiles(Some(bond_kind), scanner, follower, trace)? {
         return Ok(Some(length));
     }
 
@@ -202,7 +195,7 @@ fn read_union<F: Follower>(
     match read_rnum(scanner)? {
         Some(rnum) => {
             if let Some(trace) = trace {
-                trace.join(bond_cursor, cursor..scanner.cursor(), rnum.clone())
+                trace.join(bond_cursor, cursor..scanner.cursor(), rnum);
             }
 
             follower.join(bond_kind, rnum);

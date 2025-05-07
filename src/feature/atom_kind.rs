@@ -1,41 +1,37 @@
 use std::convert::TryFrom;
 use std::fmt;
 
-use super::{
-    Aliphatic, Aromatic, BracketSymbol, Charge, Configuration, Element, Number, VirtualHydrogen,
-};
+use super::{Aliphatic, Aromatic, BracketSymbol, Charge, Configuration, Element, VirtualHydrogen};
 
 /// Minimal context-sensitive representation of an atom kind.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum AtomKind {
     Star,
     Aliphatic(Aliphatic),
     Aromatic(Aromatic),
     Bracket {
-        isotope: Option<Number>,
+        isotope: Option<u16>,
         symbol: BracketSymbol,
         configuration: Option<Configuration>,
         hcount: Option<VirtualHydrogen>,
         charge: Option<Charge>,
-        map: Option<Number>,
+        map: Option<u16>,
     },
 }
 
 impl AtomKind {
-    /// Returns an unbracketed version of this AtomKind based on
-    /// `bond_order_sum`, if possible. Already unbracketed AtomKinds return
+    /// Returns an unbracketed version of this `AtomKind` based on
+    /// `bond_order_sum`, if possible. Already unbracketed `AtomKind`s return
     /// self.
     ///
     /// This method is intended for clients building representations from
     /// outside sources. It allows for a single, always valid bracketed AtomKind
     /// to be constructed and debracketed, if possible. The logic to decide
     /// debracketability is encapsulated here.
-    pub fn debracket(self, bond_order_sum: u8) -> AtomKind {
+    pub fn debracket(self, bond_order_sum: u8) -> Self {
         let (isotope, symbol, configuration, hcount, charge, map) = match &self {
-            AtomKind::Star => return self,
-            AtomKind::Aliphatic(_) => return self,
-            AtomKind::Aromatic(_) => return self,
-            AtomKind::Bracket {
+            Self::Star | Self::Aliphatic(_) | Self::Aromatic(_) => return self,
+            Self::Bracket {
                 isotope,
                 symbol,
                 configuration,
@@ -45,36 +41,29 @@ impl AtomKind {
             } => (isotope, symbol, configuration, hcount, charge, map),
         };
 
-        if any(isotope, configuration, charge, map) {
+        if any(*isotope, *configuration, *charge, *map) {
             return self;
         }
 
         match symbol {
-            BracketSymbol::Star => match hcount {
-                Some(hcount) => {
-                    if hcount.is_zero() {
-                        AtomKind::Star
-                    } else {
-                        self
-                    }
-                }
-                None => AtomKind::Star,
-            },
+            BracketSymbol::Star => {
+                hcount.as_ref().map_or(
+                    Self::Star,
+                    |hcount| if hcount.is_zero() { Self::Star } else { self },
+                )
+            }
             BracketSymbol::Aromatic(aromatic) => {
-                let hcount = match hcount {
-                    Some(hcount) => hcount.into(),
-                    None => 0,
-                };
+                let hcount = hcount.as_ref().map_or(0, |hcount| hcount.into());
                 let valence = bond_order_sum.checked_add(hcount).expect("valence");
-                let allowance = if hcount == 0 { 0 } else { 1 };
+                let allowance = u8::from(hcount != 0);
                 let aromatic = match Aromatic::try_from(aromatic) {
                     Ok(aromatic) => aromatic,
-                    Err(_) => return self,
+                    Err(()) => return self,
                 };
 
                 for target in aromatic.targets() {
                     if valence == target - allowance {
-                        return AtomKind::Aromatic(aromatic);
+                        return Self::Aromatic(aromatic);
                     }
                 }
 
@@ -82,19 +71,16 @@ impl AtomKind {
             }
             BracketSymbol::Element(element) => {
                 let valence = bond_order_sum
-                    .checked_add(match hcount {
-                        Some(hcount) => hcount.into(),
-                        None => 0,
-                    })
+                    .checked_add(hcount.as_ref().map_or(0, std::convert::Into::into))
                     .expect("valence");
                 let aliphatic = match Aliphatic::try_from(element) {
                     Ok(aliphatic) => aliphatic,
-                    Err(_) => return self,
+                    Err(()) => return self,
                 };
 
                 for target in aliphatic.targets() {
                     if target == &valence {
-                        return AtomKind::Aliphatic(aliphatic);
+                        return Self::Aliphatic(aliphatic);
                     }
                 }
 
@@ -104,15 +90,13 @@ impl AtomKind {
     }
 
     /// Returns true if the kind was defined as being aromatic.
-    pub fn is_aromatic(&self) -> bool {
+    pub const fn is_aromatic(&self) -> bool {
         match self {
-            Self::Star => false,
             Self::Aromatic(_) => true,
-            Self::Aliphatic(_) => false,
+            Self::Aliphatic(_) | Self::Star => false,
             Self::Bracket { symbol, .. } => match symbol {
                 BracketSymbol::Aromatic(_) => true,
-                BracketSymbol::Element(_) => false,
-                BracketSymbol::Star => false,
+                BracketSymbol::Element(_) | BracketSymbol::Star => false,
             },
         }
     }
@@ -138,7 +122,7 @@ impl AtomKind {
     ///
     /// Panics given a Configuration other than TH1 or TH2.
     pub fn invert_configuration(&mut self) {
-        if let AtomKind::Bracket {
+        if let Self::Bracket {
             hcount,
             configuration,
             ..
@@ -149,12 +133,11 @@ impl AtomKind {
                     Some(hcount) => {
                         if hcount.is_zero() {
                             return;
-                        } else {
-                            match config {
-                                Configuration::TH1 => Configuration::TH2,
-                                Configuration::TH2 => Configuration::TH1,
-                                _ => unimplemented!("TODO: handle inversion for non-TH"),
-                            }
+                        }
+                        match config {
+                            Configuration::TH1 => Configuration::TH2,
+                            Configuration::TH2 => Configuration::TH1,
+                            _ => unimplemented!("TODO: handle inversion for non-TH"),
                         }
                     }
                     None => return,
@@ -167,11 +150,11 @@ impl AtomKind {
     }
 }
 
-fn any(
-    isotope: &Option<Number>,
-    configuration: &Option<Configuration>,
-    charge: &Option<Charge>,
-    map: &Option<Number>,
+const fn any(
+    isotope: Option<u16>,
+    configuration: Option<Configuration>,
+    charge: Option<Charge>,
+    map: Option<u16>,
 ) -> bool {
     isotope.is_some() || configuration.is_some() || charge.is_some() || map.is_some()
 }
@@ -227,10 +210,10 @@ static EMPTY_TARGET: [u8; 0] = [];
 impl fmt::Display for AtomKind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            AtomKind::Star => write!(f, "*"),
-            AtomKind::Aliphatic(aliphatic) => write!(f, "{}", aliphatic),
-            AtomKind::Aromatic(aromatic) => write!(f, "{}", aromatic),
-            AtomKind::Bracket {
+            Self::Star => write!(f, "*"),
+            Self::Aliphatic(aliphatic) => write!(f, "{}", aliphatic),
+            Self::Aromatic(aromatic) => write!(f, "{}", aromatic),
+            Self::Bracket {
                 isotope,
                 symbol,
                 hcount,
@@ -241,25 +224,25 @@ impl fmt::Display for AtomKind {
                 write!(f, "[")?;
 
                 if let Some(isotope) = isotope {
-                    write!(f, "{}", isotope)?
+                    write!(f, "{isotope}")?
                 }
 
-                write!(f, "{}", symbol)?;
+                write!(f, "{symbol}")?;
 
                 if let Some(configuration) = configuration {
-                    write!(f, "{}", configuration)?
+                    write!(f, "{configuration}")?
                 }
 
                 if let Some(hcount) = hcount {
-                    write!(f, "{}", hcount)?
+                    write!(f, "{hcount}")?
                 }
 
                 if let Some(charge) = charge {
-                    write!(f, "{}", charge)?
+                    write!(f, "{charge}")?
                 }
 
                 if let Some(map) = map {
-                    write!(f, ":{}", map)?
+                    write!(f, ":{map}")?
                 }
 
                 write!(f, "]")

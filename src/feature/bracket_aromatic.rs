@@ -3,7 +3,7 @@ use std::fmt;
 use super::Element;
 
 /// Eligible symbols for aromatic bracket atoms.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum BracketAromatic {
     B,
     C,
@@ -20,16 +20,16 @@ pub enum BracketAromatic {
 impl From<&BracketAromatic> for Element {
     fn from(val: &BracketAromatic) -> Self {
         match val {
-            BracketAromatic::As => Element::As,
-            BracketAromatic::B => Element::B,
-            BracketAromatic::C => Element::C,
-            BracketAromatic::N => Element::N,
-            BracketAromatic::O => Element::O,
-            BracketAromatic::P => Element::P,
-            BracketAromatic::S => Element::S,
-            BracketAromatic::Se => Element::Se,
-            BracketAromatic::Si => Element::Si,
-            BracketAromatic::Te => Element::Te,
+            BracketAromatic::As => Self::As,
+            BracketAromatic::B => Self::B,
+            BracketAromatic::C => Self::C,
+            BracketAromatic::N => Self::N,
+            BracketAromatic::O => Self::O,
+            BracketAromatic::P => Self::P,
+            BracketAromatic::S => Self::S,
+            BracketAromatic::Se => Self::Se,
+            BracketAromatic::Si => Self::Si,
+            BracketAromatic::Te => Self::Te,
         }
     }
 }
@@ -40,16 +40,16 @@ impl fmt::Display for BracketAromatic {
             f,
             "{}",
             match self {
-                BracketAromatic::B => "b",
-                BracketAromatic::C => "c",
-                BracketAromatic::N => "n",
-                BracketAromatic::O => "o",
-                BracketAromatic::S => "s",
-                BracketAromatic::P => "p",
-                BracketAromatic::Se => "se",
-                BracketAromatic::As => "as",
-                BracketAromatic::Si => "si",
-                BracketAromatic::Te => "te",
+                Self::B => "b",
+                Self::C => "c",
+                Self::N => "n",
+                Self::O => "o",
+                Self::S => "s",
+                Self::P => "p",
+                Self::Se => "se",
+                Self::As => "as",
+                Self::Si => "si",
+                Self::Te => "te",
             }
         )
     }

@@ -46,27 +46,27 @@ mod tests {
     fn zero() {
         let mut lexer = Token::lexer("0");
 
-        assert_eq!(read_rnum(&mut lexer), Ok(Some(Rnum::R0)))
+        assert_eq!(read_rnum(&mut lexer), Ok(Some(Rnum::new(0))))
     }
 
     #[test]
     fn nine() {
         let mut lexer = Token::lexer("9");
 
-        assert_eq!(read_rnum(&mut lexer), Ok(Some(Rnum::R9)))
+        assert_eq!(read_rnum(&mut lexer), Ok(Some(Rnum::new(9))))
     }
 
     #[test]
     fn percent_zero_zero() {
         let mut lexer = Token::lexer("%00");
 
-        assert_eq!(read_rnum(&mut lexer), Ok(Some(Rnum::R0)))
+        assert_eq!(read_rnum(&mut lexer), Ok(Some(Rnum::new(0))))
     }
 
     #[test]
     fn percent_nine_nine() {
         let mut lexer = Token::lexer("%99");
 
-        assert_eq!(read_rnum(&mut lexer), Ok(Some(Rnum::R99)))
+        assert_eq!(read_rnum(&mut lexer), Ok(Some(Rnum::new(99))))
     }
 }

@@ -4,7 +4,7 @@ use std::fmt;
 use super::{Aliphatic, BracketAromatic};
 
 /// Atomic symbols that can be aromatic.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum Aromatic {
     B,
     C,
@@ -16,13 +16,12 @@ pub enum Aromatic {
 
 impl Aromatic {
     /// The valence targets available to this aromatic.
-    pub fn targets(&self) -> &[u8] {
+    pub const fn targets(&self) -> &[u8] {
         match self {
             Self::B => &[3],
             Self::C => &[4],
-            Self::N => &[3, 5],
+            Self::N | Self::P => &[3, 5],
             Self::O => &[2],
-            Self::P => &[3, 5],
             Self::S => &[2, 4, 6],
         }
     }
@@ -47,12 +46,12 @@ impl TryFrom<&BracketAromatic> for Aromatic {
 impl From<&Aromatic> for Aliphatic {
     fn from(val: &Aromatic) -> Self {
         match val {
-            Aromatic::B => Aliphatic::B,
-            Aromatic::C => Aliphatic::C,
-            Aromatic::N => Aliphatic::N,
-            Aromatic::O => Aliphatic::O,
-            Aromatic::P => Aliphatic::P,
-            Aromatic::S => Aliphatic::S,
+            Aromatic::B => Self::B,
+            Aromatic::C => Self::C,
+            Aromatic::N => Self::N,
+            Aromatic::O => Self::O,
+            Aromatic::P => Self::P,
+            Aromatic::S => Self::S,
         }
     }
 }

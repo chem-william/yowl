@@ -1,6 +1,6 @@
 use logos::Lexer;
 
-use super::{error::ReadError, missing_character::missing_character, token::Token};
+use super::token::Token;
 use crate::feature::Configuration;
 
 /// Reads the configuration of a molecule from the scanner.
@@ -14,19 +14,19 @@ use crate::feature::Configuration;
 ///
 /// If only the configuration is specified (whether it's TH, AL, etc.), but not the specific chirality (@TH1, @AL2, etc.)
 /// then UnspecifiedXX is returned where `XX` specifies the configuration.
-pub fn read_configuration(lexer: &mut Lexer<Token>) -> Result<Option<Configuration>, ReadError> {
+pub fn read_configuration(lexer: &mut Lexer<Token>) -> Option<Configuration> {
     if let Some(token) = lexer.next() {
         match token {
             Ok(Token::Ampersand) => {
                 if let Some(token) = lexer.next() {
                     match token {
-                        Ok(Token::Ampersand) => Ok(Some(Configuration::TH2)),
-                        Ok(Token::AL) => Ok(Some(allene(lexer)?)),
-                        Ok(Token::OH) => Ok(Some(octahedral(lexer)?)),
-                        Ok(Token::SP) => Ok(Some(square_planar(lexer)?)),
-                        Ok(Token::TB) => Ok(Some(trigonal_bipyramidal(lexer)?)),
-                        Ok(Token::TH) => Ok(Some(tetrahedral(lexer)?)),
-                        _ => Ok(Some(Configuration::TH1)),
+                        Token::Ampersand => Some(Configuration::TH2),
+                        Token::AL => Some(allene(lexer)),
+                        Token::OH => Some(octahedral(lexer)),
+                        Token::SP => Some(square_planar(lexer)),
+                        Token::TB => Some(trigonal_bipyramidal(lexer)),
+                        Token::TH => Some(tetrahedral(lexer)),
+                        _ => Some(Configuration::TH1),
                     }
                 } else {
                     todo!("read_configuration")
@@ -55,168 +55,148 @@ fn tetrahedral(lexer: &mut Lexer<Token>) -> Result<Configuration, ReadError> {
     }
 }
 
-fn allene(lexer: &mut Lexer<Token>) -> Result<Configuration, ReadError> {
+fn allene(lexer: &mut Lexer<Token>) -> Configuration {
     if let Some(token) = lexer.next() {
         match token {
-            Ok(Token::Integer(number)) => match number {
-                1 => Ok(Configuration::AL1),
-                2 => Ok(Configuration::AL2),
-                _ => unreachable!(),
+            Token::Integer(number) => match number {
+                1 => Configuration::AL1,
+                2 => Configuration::AL2,
+                _ => unreachable!("AL"),
             },
-            _ => Ok(Configuration::UnspecifiedAL),
+            _ => Configuration::UnspecifiedAL,
         }
-    } else {
-        return Err(ReadError::EndOfLine);
     }
 }
 
-fn square_planar(lexer: &mut Lexer<Token>) -> Result<Configuration, ReadError> {
+fn square_planar(lexer: &mut Lexer<Token>) -> Configuration {
     if let Some(token) = lexer.next() {
         match token {
-            Ok(Token::Integer(number)) => match number {
-                1 => Ok(Configuration::SP1),
-                2 => Ok(Configuration::SP2),
-                3 => Ok(Configuration::SP3),
-                _ => Err(ReadError::Character(lexer.span().start)),
+            Token::Integer(number) => match number {
+                1 => Configuration::SP1,
+                2 => Configuration::SP2,
+                3 => Configuration::SP3,
+                _ => unreachable!("SP"),
             },
-            _ => Ok(Configuration::UnspecifiedSP),
+            _ => Configuration::UnspecifiedSP,
         }
-    } else {
-        return Err(ReadError::EndOfLine);
     }
 }
 
-fn trigonal_bipyramidal(lexer: &mut Lexer<Token>) -> Result<Configuration, ReadError> {
+fn trigonal_bipyramidal(lexer: &mut Lexer<Token>) -> Configuration {
     if let Some(token) = lexer.next() {
         match token {
-            Ok(Token::Integer(number)) => match number {
+            Token::Integer(number) => match number {
                 1 => {
                     if let Some(token) = lexer.next() {
                         match token {
-                            Ok(Token::Integer(number)) => match number {
-                                0 => Ok(Configuration::TB10),
-                                1 => Ok(Configuration::TB11),
-                                2 => Ok(Configuration::TB12),
-                                3 => Ok(Configuration::TB13),
-                                4 => Ok(Configuration::TB14),
-                                5 => Ok(Configuration::TB15),
-                                6 => Ok(Configuration::TB16),
-                                7 => Ok(Configuration::TB17),
-                                8 => Ok(Configuration::TB18),
-                                9 => Ok(Configuration::TB19),
+                            Token::Integer(number) => match number {
+                                0 => Configuration::TB10,
+                                1 => Configuration::TB11,
+                                2 => Configuration::TB12,
+                                3 => Configuration::TB13,
+                                4 => Configuration::TB14,
+                                5 => Configuration::TB15,
+                                6 => Configuration::TB16,
+                                7 => Configuration::TB17,
+                                8 => Configuration::TB18,
+                                9 => Configuration::TB19,
                                 _ => unreachable!("in TB10-19"),
                             },
-                            _ => return Err(ReadError::Character(lexer.span().start)),
                         }
-                    } else {
-                        return Err(ReadError::EndOfLine);
                     }
                 }
                 2 => {
                     if let Some(token) = lexer.next() {
                         match token {
-                            Ok(Token::Integer(number)) => match number {
-                                0 => Ok(Configuration::TB20),
-                                _ => Ok(Configuration::TB2),
+                            Token::Integer(number) => match number {
+                                0 => Configuration::TB20,
+                                _ => Configuration::TB2,
                             },
-                            _ => return Err(ReadError::Character(lexer.span().start)),
+                            _ => unreachable!("TB2"),
                         }
-                    } else {
-                        return Err(ReadError::EndOfLine);
                     }
                 }
-                3 => Ok(Configuration::TB3),
-                4 => Ok(Configuration::TB4),
-                5 => Ok(Configuration::TB5),
-                6 => Ok(Configuration::TB6),
-                7 => Ok(Configuration::TB7),
-                8 => Ok(Configuration::TB8),
-                9 => Ok(Configuration::TB9),
-                _ => Err(ReadError::Character(lexer.span().start)),
+                3 => Configuration::TB3,
+                4 => Configuration::TB4,
+                5 => Configuration::TB5,
+                6 => Configuration::TB6,
+                7 => Configuration::TB7,
+                8 => Configuration::TB8,
+                9 => Configuration::TB9,
+                _ => unreachable!("TB[3-9]"),
             },
-            _ => return Err(ReadError::Character(lexer.span().start)),
+            _ => todo!("TB"),
         }
-    } else {
-        return Err(ReadError::EndOfLine);
     }
 }
 
-fn octahedral(lexer: &mut Lexer<Token>) -> Result<Configuration, ReadError> {
+fn octahedral(lexer: &mut Lexer<Token>) -> Configuration {
     if let Some(token) = lexer.next() {
         match token {
-            Ok(Token::Integer(number)) => match number {
+            Token::Integer(number) => match number {
                 1 => {
                     if let Some(token) = lexer.next() {
                         match token {
-                            Ok(Token::Integer(number)) => match number {
-                                0 => Ok(Configuration::OH10),
-                                1 => Ok(Configuration::OH11),
-                                2 => Ok(Configuration::OH12),
-                                3 => Ok(Configuration::OH13),
-                                4 => Ok(Configuration::OH14),
-                                5 => Ok(Configuration::OH15),
-                                6 => Ok(Configuration::OH16),
-                                7 => Ok(Configuration::OH17),
-                                8 => Ok(Configuration::OH18),
-                                9 => Ok(Configuration::OH19),
+                            Token::Integer(number) => match number {
+                                0 => Configuration::OH10,
+                                1 => Configuration::OH11,
+                                2 => Configuration::OH12,
+                                3 => Configuration::OH13,
+                                4 => Configuration::OH14,
+                                5 => Configuration::OH15,
+                                6 => Configuration::OH16,
+                                7 => Configuration::OH17,
+                                8 => Configuration::OH18,
+                                9 => Configuration::OH19,
                                 _ => unreachable!("OH1X"),
                             },
-                            _ => return Err(ReadError::Character(lexer.span().start)),
+                            _ => todo!("OH"),
                         }
-                    } else {
-                        return Err(ReadError::EndOfLine);
                     }
                 }
                 2 => {
                     if let Some(token) = lexer.next() {
                         match token {
-                            Ok(Token::Integer(number)) => match number {
-                                0 => Ok(Configuration::OH20),
-                                1 => Ok(Configuration::OH21),
-                                2 => Ok(Configuration::OH22),
-                                3 => Ok(Configuration::OH23),
-                                4 => Ok(Configuration::OH24),
-                                5 => Ok(Configuration::OH25),
-                                6 => Ok(Configuration::OH26),
-                                7 => Ok(Configuration::OH27),
-                                8 => Ok(Configuration::OH28),
-                                9 => Ok(Configuration::OH29),
+                            Token::Integer(number) => match number {
+                                0 => Configuration::OH20,
+                                1 => Configuration::OH21,
+                                2 => Configuration::OH22,
+                                3 => Configuration::OH23,
+                                4 => Configuration::OH24,
+                                5 => Configuration::OH25,
+                                6 => Configuration::OH26,
+                                7 => Configuration::OH27,
+                                8 => Configuration::OH28,
+                                9 => Configuration::OH29,
                                 _ => unreachable!("OH2X"),
                             },
-                            _ => Err(ReadError::Character(lexer.span().start)),
+                            _ => todo!("OH2"),
                         }
-                    } else {
-                        return Err(ReadError::EndOfLine);
                     }
                 }
                 3 => {
                     if let Some(token) = lexer.next() {
                         match token {
-                            Ok(Token::Integer(number)) => match number {
-                                0 => Ok(Configuration::OH30),
-                                _ => Ok(Configuration::OH3),
+                            Token::Integer(number) => match number {
+                                0 => Configuration::OH30,
+                                _ => Configuration::OH3,
                             },
                             _ => unreachable!("octahedral - inner"),
                         }
-                    } else {
-                        return Err(ReadError::EndOfLine);
                     }
                 }
-                4 => Ok(Configuration::OH4),
-                5 => Ok(Configuration::OH5),
-                6 => Ok(Configuration::OH6),
-                7 => Ok(Configuration::OH7),
-                8 => Ok(Configuration::OH8),
-                9 => Ok(Configuration::OH9),
-                _ => Ok(Configuration::UnspecifiedOH),
+                4 => Configuration::OH4,
+                5 => Configuration::OH5,
+                6 => Configuration::OH6,
+                7 => Configuration::OH7,
+                8 => Configuration::OH8,
+                9 => Configuration::OH9,
+                _ => Configuration::UnspecifiedOH,
             },
             _ => unreachable!("octahedral"),
         }
-    } else {
-        return Err(ReadError::EndOfLine);
     }
 }
-
 #[cfg(test)]
 mod test {
     use super::*;
@@ -229,7 +209,7 @@ mod test {
 
         assert_eq!(
             read_configuration(&mut lexer),
-            Ok(Some(Configuration::UnspecifiedTH))
+            Some(Configuration::UnspecifiedTH)
         )
     }
 
@@ -239,7 +219,7 @@ mod test {
 
         assert_eq!(
             read_configuration(&mut lexer),
-            Ok(Some(Configuration::UnspecifiedAL))
+            Some(Configuration::UnspecifiedAL)
         )
     }
 
@@ -249,7 +229,7 @@ mod test {
 
         assert_eq!(
             read_configuration(&mut lexer),
-            Ok(Some(Configuration::UnspecifiedSP))
+            Some(Configuration::UnspecifiedSP)
         )
     }
 
@@ -259,7 +239,7 @@ mod test {
 
         assert_eq!(
             read_configuration(&mut lexer),
-            Ok(Some(Configuration::UnspecifiedTB))
+            Some(Configuration::UnspecifiedTB)
         )
     }
 
@@ -269,7 +249,7 @@ mod test {
 
         assert_eq!(
             read_configuration(&mut lexer),
-            Ok(Some(Configuration::UnspecifiedOH))
+            Some(Configuration::UnspecifiedOH)
         )
     }
 
@@ -277,28 +257,28 @@ mod test {
     fn counterclockwise() {
         let mut lexer = Token::lexer("@");
 
-        assert_eq!(read_configuration(&mut lexer), Ok(Some(Configuration::TH1)))
+        assert_eq!(read_configuration(&mut lexer), Some(Configuration::TH1))
     }
 
     #[test]
     fn clockwise() {
         let mut lexer = Token::lexer("@@");
 
-        assert_eq!(read_configuration(&mut lexer), Ok(Some(Configuration::TH2)))
+        assert_eq!(read_configuration(&mut lexer), Some(Configuration::TH2))
     }
 
     #[test]
     fn th_1() {
         let mut lexer = Token::lexer("@TH1");
 
-        assert_eq!(read_configuration(&mut lexer), Ok(Some(Configuration::TH1)))
+        assert_eq!(read_configuration(&mut lexer), Some(Configuration::TH1))
     }
 
     #[test]
     fn th_2() {
         let mut lexer = Token::lexer("@TH2");
 
-        assert_eq!(read_configuration(&mut lexer), Ok(Some(Configuration::TH2)))
+        assert_eq!(read_configuration(&mut lexer), Some(Configuration::TH2))
     }
 
     #[test]
@@ -307,7 +287,7 @@ mod test {
 
         assert_eq!(
             read_configuration(&mut lexer),
-            Ok(Some(Configuration::UnspecifiedTH))
+            Some(Configuration::UnspecifiedTH)
         )
     }
 
@@ -315,72 +295,63 @@ mod test {
     fn al_1() {
         let mut lexer = Token::lexer("@AL1");
 
-        assert_eq!(read_configuration(&mut lexer), Ok(Some(Configuration::AL1)))
+        assert_eq!(read_configuration(&mut lexer), Some(Configuration::AL1))
     }
 
     #[test]
     fn al_2() {
         let mut lexer = Token::lexer("@AL2");
 
-        assert_eq!(read_configuration(&mut lexer), Ok(Some(Configuration::AL2)))
+        assert_eq!(read_configuration(&mut lexer), Some(Configuration::AL2))
     }
 
     #[test]
     fn tb_1() {
         let mut lexer = Token::lexer("@TB1");
 
-        assert_eq!(read_configuration(&mut lexer), Ok(Some(Configuration::TB1)))
+        assert_eq!(read_configuration(&mut lexer), Some(Configuration::TB1))
     }
 
     #[test]
     fn tb_2() {
         let mut lexer = Token::lexer("@TB2");
 
-        assert_eq!(read_configuration(&mut lexer), Ok(Some(Configuration::TB2)))
+        assert_eq!(read_configuration(&mut lexer), Some(Configuration::TB2))
     }
 
     #[test]
     fn tb_5() {
         let mut lexer = Token::lexer("@TB5");
 
-        assert_eq!(read_configuration(&mut lexer), Ok(Some(Configuration::TB5)))
+        assert_eq!(read_configuration(&mut lexer), Some(Configuration::TB5))
     }
 
     #[test]
     fn tb_7() {
         let mut lexer = Token::lexer("@TB7");
 
-        assert_eq!(read_configuration(&mut lexer), Ok(Some(Configuration::TB7)))
+        assert_eq!(read_configuration(&mut lexer), Some(Configuration::TB7))
     }
 
     #[test]
     fn tb_10() {
         let mut lexer = Token::lexer("@TB10");
 
-        assert_eq!(
-            read_configuration(&mut lexer),
-            Ok(Some(Configuration::TB10))
-        )
+        assert_eq!(read_configuration(&mut lexer), Some(Configuration::TB10))
     }
 
     #[test]
     fn tb_19() {
         let mut lexer = Token::lexer("@TB19");
 
-        assert_eq!(
-            read_configuration(&mut lexer),
-            Ok(Some(Configuration::TB19))
-        )
+        assert_eq!(read_configuration(&mut lexer), Some(Configuration::TB19))
     }
 
     #[test]
     fn tb_20() {
         let mut lexer = Token::lexer("@TB20");
 
-        assert_eq!(
-            read_configuration(&mut lexer),
-            Ok(Some(Configuration::TB20))
-        )
+        assert_eq!(read_configuration(&mut lexer), Some(Configuration::TB20))
     }
 
     #[test]
@@ -389,7 +360,7 @@ mod test {
 
         assert_eq!(
             read_configuration(&mut lexer),
-            Ok(Some(Configuration::UnspecifiedTB))
+            Some(Configuration::UnspecifiedTB)
         )
     }
 
@@ -397,78 +368,63 @@ mod test {
     fn oh_1() {
         let mut lexer = Token::lexer("@OH1");
 
-        assert_eq!(read_configuration(&mut lexer), Ok(Some(Configuration::OH1)))
+        assert_eq!(read_configuration(&mut lexer), Some(Configuration::OH1))
     }
 
     #[test]
     fn oh_2() {
         let mut lexer = Token::lexer("@OH2");
 
-        assert_eq!(read_configuration(&mut lexer), Ok(Some(Configuration::OH2)))
+        assert_eq!(read_configuration(&mut lexer), Some(Configuration::OH2))
     }
 
     #[test]
     fn oh_3() {
         let mut lexer = Token::lexer("@OH3");
 
-        assert_eq!(read_configuration(&mut lexer), Ok(Some(Configuration::OH3)))
+        assert_eq!(read_configuration(&mut lexer), Some(Configuration::OH3))
     }
 
     #[test]
     fn oh_5() {
         let mut lexer = Token::lexer("@OH5");
 
-        assert_eq!(read_configuration(&mut lexer), Ok(Some(Configuration::OH5)))
+        assert_eq!(read_configuration(&mut lexer), Some(Configuration::OH5))
     }
 
     #[test]
     fn oh_10() {
         let mut lexer = Token::lexer("@OH10");
 
-        assert_eq!(
-            read_configuration(&mut lexer),
-            Ok(Some(Configuration::OH10))
-        )
+        assert_eq!(read_configuration(&mut lexer), Some(Configuration::OH10))
     }
 
     #[test]
     fn oh_15() {
         let mut lexer = Token::lexer("@OH15");
 
-        assert_eq!(
-            read_configuration(&mut lexer),
-            Ok(Some(Configuration::OH15))
-        )
+        assert_eq!(read_configuration(&mut lexer), Some(Configuration::OH15))
     }
 
     #[test]
     fn oh_20() {
         let mut lexer = Token::lexer("@OH20");
 
-        assert_eq!(
-            read_configuration(&mut lexer),
-            Ok(Some(Configuration::OH20))
-        )
+        assert_eq!(read_configuration(&mut lexer), Some(Configuration::OH20))
     }
 
     #[test]
     fn oh_25() {
         let mut lexer = Token::lexer("@OH25");
 
-        assert_eq!(
-            read_configuration(&mut lexer),
-            Ok(Some(Configuration::OH25))
-        )
+        assert_eq!(read_configuration(&mut lexer), Some(Configuration::OH25))
     }
 
     #[test]
     fn oh_30() {
         let mut lexer = Token::lexer("@OH30");
 
-        assert_eq!(
-            read_configuration(&mut lexer),
-            Ok(Some(Configuration::OH30))
-        )
+        assert_eq!(read_configuration(&mut lexer), Some(Configuration::OH30))
     }
 
     #[test]
@@ -477,7 +433,7 @@ mod test {
 
         assert_eq!(
             read_configuration(&mut lexer),
-            Ok(Some(Configuration::UnspecifiedOH))
+            Some(Configuration::UnspecifiedOH)
         )
     }
 
@@ -485,21 +441,21 @@ mod test {
     fn sp_1() {
         let mut lexer = Token::lexer("@SP1");
 
-        assert_eq!(read_configuration(&mut lexer), Ok(Some(Configuration::SP1)))
+        assert_eq!(read_configuration(&mut lexer), Some(Configuration::SP1))
     }
 
     #[test]
     fn sp_2() {
         let mut lexer = Token::lexer("@SP2");
 
-        assert_eq!(read_configuration(&mut lexer), Ok(Some(Configuration::SP2)))
+        assert_eq!(read_configuration(&mut lexer), Some(Configuration::SP2))
     }
 
     #[test]
     fn sp_3() {
         let mut lexer = Token::lexer("@SP3");
 
-        assert_eq!(read_configuration(&mut lexer), Ok(Some(Configuration::SP3)))
+        assert_eq!(read_configuration(&mut lexer), Some(Configuration::SP3))
     }
 
     #[test]
@@ -508,7 +464,7 @@ mod test {
 
         assert_eq!(
             read_configuration(&mut lexer),
-            Ok(Some(Configuration::UnspecifiedSP))
+            Some(Configuration::UnspecifiedSP)
         )
     }
 }

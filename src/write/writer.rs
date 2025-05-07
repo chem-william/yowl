@@ -15,7 +15,7 @@ use crate::walk::Follower;
 ///
 /// assert_eq!(writer.write(), "*=*")
 /// ```
-#[derive(Debug, PartialEq, Default)]
+#[derive(Debug, PartialEq, Eq, Default)]
 pub struct Writer {
     stack: Vec<String>,
 }
@@ -29,21 +29,21 @@ impl Writer {
 impl Follower for Writer {
     fn root(&mut self, root: AtomKind) {
         if self.stack.is_empty() {
-            self.stack.push(root.to_string())
+            self.stack.push(root.to_string());
         } else {
-            self.stack.push(".".to_string() + &root.to_string())
+            self.stack.push(".".to_string() + &root.to_string());
         }
     }
 
     fn extend(&mut self, bond_kind: BondKind, atom_kind: AtomKind) {
         self.stack
-            .push(bond_kind.to_string() + &atom_kind.to_string())
+            .push(bond_kind.to_string() + &atom_kind.to_string());
     }
 
     fn join(&mut self, bond_kind: BondKind, rnum: Rnum) {
         let last = self.stack.last_mut().expect("last");
 
-        last.push_str(&(bond_kind.to_string() + &rnum.to_string()))
+        last.push_str(&(bond_kind.to_string() + &rnum.to_string()));
     }
 
     fn pop(&mut self, depth: usize) {
@@ -54,7 +54,7 @@ impl Follower for Writer {
         let chain = self.stack.split_off(self.stack.len() - depth);
         let last = self.stack.last_mut().expect("last");
 
-        last.push_str(&("(".to_string() + &chain.join("") + ")"))
+        last.push_str(&("(".to_string() + &chain.join("") + ")"));
     }
 }
 
@@ -121,10 +121,10 @@ mod write {
         let mut writer = Writer::default();
 
         writer.root(AtomKind::Star);
-        writer.join(BondKind::Single, Rnum::R1);
+        writer.join(BondKind::Single, Rnum::new(1));
         writer.extend(BondKind::Single, AtomKind::Star);
         writer.extend(BondKind::Double, AtomKind::Star);
-        writer.join(BondKind::Single, Rnum::R1);
+        writer.join(BondKind::Single, Rnum::new(1));
 
         assert_eq!(writer.write(), "*-1-*=*-1")
     }
@@ -136,9 +136,9 @@ mod write {
         writer.root(AtomKind::Star);
         writer.extend(BondKind::Elided, AtomKind::Star);
         writer.extend(BondKind::Elided, AtomKind::Star);
-        writer.join(BondKind::Elided, Rnum::R1);
+        writer.join(BondKind::Elided, Rnum::new(1));
         writer.pop(2);
-        writer.join(BondKind::Elided, Rnum::R1);
+        writer.join(BondKind::Elided, Rnum::new(1));
 
         assert_eq!(writer.write(), "*(**1)1")
     }

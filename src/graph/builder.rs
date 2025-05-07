@@ -63,7 +63,7 @@ impl Builder {
             result.push(Atom {
                 kind: node.kind,
                 bonds,
-            })
+            });
         }
 
         Ok(result)
@@ -73,7 +73,7 @@ impl Builder {
 impl Follower for Builder {
     fn root(&mut self, kind: AtomKind) {
         self.stack.push(self.graph.len());
-        self.graph.push(Node::parent(kind))
+        self.graph.push(Node::parent(kind));
     }
 
     fn extend(&mut self, bond_kind: BondKind, mut atom_kind: AtomKind) {
@@ -86,7 +86,7 @@ impl Follower for Builder {
 
         self.stack.push(self.graph.len());
         self.graph.push(Node::child(reverse, atom_kind));
-        self.graph[sid].edges.push(forward)
+        self.graph[sid].edges.push(forward);
     }
 
     fn join(&mut self, bond_kind: BondKind, rnum: Rnum) {
@@ -106,7 +106,7 @@ impl Follower for Builder {
                     })
                     .expect("edge for rnum");
 
-                match reconcile(edge.kind.clone(), bond_kind) {
+                match reconcile(edge.kind, &bond_kind) {
                     Some((left, right)) => {
                         edge.target = Target::Id(sid);
                         edge.kind = left;
@@ -118,14 +118,14 @@ impl Follower for Builder {
             }
             Entry::Vacant(vacant) => {
                 let sid = *self.stack.last().expect("last on stack");
-                let rnum = vacant.key().clone();
+                let rnum = *vacant.key();
 
                 vacant.insert(sid);
                 self.graph[sid].add_edge(bond_kind, Target::Rnum(self.rid, sid, rnum));
             }
         }
 
-        self.rid += 1
+        self.rid += 1;
     }
 
     fn pop(&mut self, depth: usize) {
@@ -142,7 +142,7 @@ struct Node {
 }
 
 impl Node {
-    fn parent(kind: AtomKind) -> Self {
+    const fn parent(kind: AtomKind) -> Self {
         Self {
             kind,
             edges: Vec::new(),
@@ -168,7 +168,7 @@ struct Edge {
 }
 
 impl Edge {
-    fn new(kind: BondKind, target: Target) -> Self {
+    const fn new(kind: BondKind, target: Target) -> Self {
         Self { kind, target }
     }
 }
@@ -190,10 +190,10 @@ mod errors {
         let mut builder = Builder::default();
 
         builder.root(AtomKind::Star);
-        builder.join(BondKind::Up, Rnum::R1);
+        builder.join(BondKind::Up, Rnum::new(1));
         builder.extend(BondKind::Elided, AtomKind::Star);
         builder.extend(BondKind::Elided, AtomKind::Star);
-        builder.join(BondKind::Up, Rnum::R1);
+        builder.join(BondKind::Up, Rnum::new(1));
 
         assert_eq!(builder.build(), Err(Error::Join(2, 0)))
     }
@@ -203,11 +203,11 @@ mod errors {
         let mut builder = Builder::default();
 
         builder.root(AtomKind::Star);
-        builder.join(BondKind::Elided, Rnum::R1);
+        builder.join(BondKind::Elided, Rnum::new(1));
         builder.extend(BondKind::Elided, AtomKind::Star);
         builder.extend(BondKind::Elided, AtomKind::Star);
-        builder.join(BondKind::Elided, Rnum::R1);
-        builder.join(BondKind::Elided, Rnum::R2);
+        builder.join(BondKind::Elided, Rnum::new(1));
+        builder.join(BondKind::Elided, Rnum::new(2));
 
         assert_eq!(builder.build(), Err(Error::Rnum(2)))
     }
@@ -322,10 +322,10 @@ mod build {
         let mut builder = Builder::default();
 
         builder.root(AtomKind::Star);
-        builder.join(BondKind::Elided, Rnum::R1);
+        builder.join(BondKind::Elided, Rnum::new(1));
         builder.extend(BondKind::Elided, AtomKind::Star);
         builder.extend(BondKind::Elided, AtomKind::Star);
-        builder.join(BondKind::Elided, Rnum::R1);
+        builder.join(BondKind::Elided, Rnum::new(1));
 
         assert_eq!(
             builder.build(),
@@ -360,10 +360,10 @@ mod build {
         let mut builder = Builder::default();
 
         builder.root(AtomKind::Star);
-        builder.join(BondKind::Single, Rnum::R1);
+        builder.join(BondKind::Single, Rnum::new(1));
         builder.extend(BondKind::Elided, AtomKind::Star);
         builder.extend(BondKind::Elided, AtomKind::Star);
-        builder.join(BondKind::Elided, Rnum::R1);
+        builder.join(BondKind::Elided, Rnum::new(1));
 
         assert_eq!(
             builder.build(),

@@ -4,6 +4,7 @@
 # Yowl
 
 **Primitives for reading and writing SMILES strings in Rust.**
+
 This project is a hard fork of [Purr](https://github.com/rapodaca/purr) and extends its functionality to support additional SMILES inputs accepted by RDKit and beyond.
 
 ## About
@@ -105,11 +106,10 @@ fn main() {
 An adjacency can be written using `write`.
 
 ```rust
-use yowl::graph::{Builder, Atom, Bond};
-use yowl::feature::{AtomKind, BondKind, Aliphatic};
+use yowl::graph::Builder;
 use yowl::read::{read, ReadError};
-use yowl::write::Writer;
 use yowl::walk::walk;
+use yowl::write::Writer;
 
 fn main() -> Result<(), ReadError> {
     let mut builder = Builder::default();
@@ -130,7 +130,7 @@ fn main() -> Result<(), ReadError> {
 The output string doesn't match the input string, although both represent the same molecule (Cl-37 chlorobenzene). `write` traces `atoms` in depth-first order, but the adjacency representation (`atoms`) lacks information about how the original SMILES tree was cut.
 
 ## Why a hard fork
-The original author of Purr has [seemingly passed away](https://doi.org/10.59350/myaw4-dtg76) ([he shared a bit of his journey on his blog](https://depth-first.com/articles/2024/05/24/bridge-to-nowhere/)), and the library needed extensions to accept a broader set of SMILES inputs (e.g., RDKit-compatible strings). Yowl continues maintenance and adds new features.
+The original author of Purr has [seemingly passed away](https://doi.org/10.59350/myaw4-dtg76) ([he chronicled some of his time with cancer on his personal blog](https://depth-first.com/articles/2024/05/24/bridge-to-nowhere/)), and the library needed extensions to accept a broader set of SMILES inputs (e.g., RDKit-compatible strings). Yowl continues maintenance and adds new features.
 
 ## Contributing
 

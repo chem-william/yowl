@@ -6,7 +6,7 @@ use super::{
     error::ReadError, missing_character, read_charge, read_configuration, read_symbol,
     scanner::Scanner, token::Token,
 };
-use crate::feature::{AtomKind, Number, VirtualHydrogen};
+use crate::feature::{AtomKind, VirtualHydrogen};
 
 pub fn read_bracket(lexer: &mut Lexer<Token>) -> Result<Option<AtomKind>, ReadError> {
     if let Some(token) = lexer.next() {
@@ -53,51 +53,47 @@ pub fn read_bracket(lexer: &mut Lexer<Token>) -> Result<Option<AtomKind>, ReadEr
     }
 }
 
-fn read_hcount(scanner: &mut Scanner) -> Result<Option<VirtualHydrogen>, ReadError> {
+fn read_hcount(scanner: &mut Scanner) -> Option<VirtualHydrogen> {
     match scanner.peek() {
         Some('H') => {
             scanner.pop();
 
             match scanner.peek() {
                 Some('0'..='9') => match scanner.pop() {
-                    Some('0') => Ok(Some(VirtualHydrogen::H0)),
-                    Some('1') => Ok(Some(VirtualHydrogen::H1)),
-                    Some('2') => Ok(Some(VirtualHydrogen::H2)),
-                    Some('3') => Ok(Some(VirtualHydrogen::H3)),
-                    Some('4') => Ok(Some(VirtualHydrogen::H4)),
-                    Some('5') => Ok(Some(VirtualHydrogen::H5)),
-                    Some('6') => Ok(Some(VirtualHydrogen::H6)),
-                    Some('7') => Ok(Some(VirtualHydrogen::H7)),
-                    Some('8') => Ok(Some(VirtualHydrogen::H8)),
-                    Some('9') => Ok(Some(VirtualHydrogen::H9)),
-                    _ => Ok(Some(VirtualHydrogen::H1)),
+                    Some('0') => Some(VirtualHydrogen::H0),
+                    Some('1') => Some(VirtualHydrogen::H1),
+                    Some('2') => Some(VirtualHydrogen::H2),
+                    Some('3') => Some(VirtualHydrogen::H3),
+                    Some('4') => Some(VirtualHydrogen::H4),
+                    Some('5') => Some(VirtualHydrogen::H5),
+                    Some('6') => Some(VirtualHydrogen::H6),
+                    Some('7') => Some(VirtualHydrogen::H7),
+                    Some('8') => Some(VirtualHydrogen::H8),
+                    Some('9') => Some(VirtualHydrogen::H9),
+                    _ => Some(VirtualHydrogen::H1),
                 },
-                _ => Ok(Some(VirtualHydrogen::H1)),
+                _ => Some(VirtualHydrogen::H1),
             }
         }
-        _ => Ok(None),
+        _ => None,
     }
 }
 
-fn read_isotope(lexer: &mut Lexer<Token>) -> Result<Option<Number>, ReadError> {
+fn read_isotope(lexer: &mut Lexer<Token>) -> Option<Number> {
     match lexer.next() {
-        Some(Ok(Token::Integer(number))) => {
+        Some(Token::Integer(number)) => {
             let slice = lexer.slice();
             match slice.parse::<u16>() {
-                Ok(val) => {
-                    match number::try_from(val) {
-                        Ok(num) => Ok(Some(num)),
-                        Err(_) => Err(ReadError::Character(lexer.span().end)),
-                    }
-                }
-                Err(_) => Err(ReadError::Character(lexer.span().start)),
+                val => match number::try_from(val) {
+                    num => Some(num),
+                },
             }
         }
-        _ => Ok(None),
+        _ => None,
     }
 }
 
-fn read_map(scanner: &mut Scanner) -> Result<Option<Number>, ReadError> {
+fn read_map(scanner: &mut Scanner) -> Result<Option<u16>, ReadError> {
     match scanner.peek() {
         Some(':') => {
             scanner.pop();
@@ -122,7 +118,7 @@ fn read_map(scanner: &mut Scanner) -> Result<Option<Number>, ReadError> {
                 }
             }
 
-            Ok(Some(digits.try_into().expect("number")))
+            Ok(Some(digits.parse::<u16>().expect("number")))
         }
         _ => Ok(None),
     }
@@ -133,7 +129,6 @@ mod tests {
     use super::*;
     use crate::feature::{BracketAromatic, BracketSymbol, Charge, Configuration};
     use pretty_assertions::assert_eq;
-    use std::convert::TryInto;
 
     #[test]
     fn overflow_map() {

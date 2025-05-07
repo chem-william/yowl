@@ -12,7 +12,7 @@ impl Scanner {
         }
     }
 
-    pub fn cursor(&self) -> usize {
+    pub const fn cursor(&self) -> usize {
         self.cursor
     }
 

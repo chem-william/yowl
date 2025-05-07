@@ -2,7 +2,7 @@ use thiserror::Error;
 
 /// An error resulting from depth-first traversal of a graph
 /// representation.
-#[derive(Debug, PartialEq, Error)]
+#[derive(Debug, PartialEq, Eq, Error)]
 pub enum Error {
     #[error("A bond is missing its counterpart: ({0}, {1})")]
     HalfBond(usize, usize),

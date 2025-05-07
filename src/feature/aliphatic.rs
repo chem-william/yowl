@@ -4,7 +4,7 @@ use std::fmt;
 use super::Element;
 
 /// Atomic symbols that can be aliphatic.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum Aliphatic {
     B,
     C,
@@ -21,7 +21,7 @@ pub enum Aliphatic {
 }
 
 impl Aliphatic {
-    pub fn targets(&self) -> &[u8] {
+    pub const fn targets(&self) -> &[u8] {
         match self {
             Self::B => &[3],
             Self::C => &[4],
@@ -79,6 +79,7 @@ impl fmt::Display for Aliphatic {
 }
 
 #[cfg(test)]
+#[allow(non_snake_case)]
 mod tests {
     use super::*;
 

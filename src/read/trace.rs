@@ -26,7 +26,7 @@ impl Trace {
     /// two different cursors will be reported for (`sid`, `tid`)
     /// and (`tid`, `sid`).
     pub fn bond(&self, sid: usize, tid: usize) -> Option<usize> {
-        self.bonds.get(&(sid, tid)).cloned()
+        self.bonds.get(&(sid, tid)).copied()
     }
 
     /// Returns the `Rnum` associated with ring closure digit
@@ -38,7 +38,7 @@ impl Trace {
     /// Adds a root atom.
     pub fn root(&mut self, cursor: Range<usize>) {
         self.stack.push(self.atoms.len());
-        self.atoms.push(cursor)
+        self.atoms.push(cursor);
     }
 
     /// Extends head.
@@ -159,10 +159,10 @@ mod tests {
         // *1**1
         // 01234
         trace.root(0..1);
-        trace.join(1, 1..2, Rnum::R1);
+        trace.join(1, 1..2, Rnum::new(1));
         trace.extend(2, 2..3);
         trace.extend(3, 3..4);
-        trace.join(4, 4..5, Rnum::R1);
+        trace.join(4, 4..5, Rnum::new(1));
 
         assert_eq!(trace.atom(0), Some(0..1));
         assert_eq!(trace.atom(1), Some(2..3));
