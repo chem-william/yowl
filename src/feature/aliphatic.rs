@@ -79,6 +79,7 @@ impl fmt::Display for Aliphatic {
 }
 
 #[cfg(test)]
+#[allow(non_snake_case)]
 mod tests {
     use super::*;
 
