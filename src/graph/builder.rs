@@ -106,7 +106,7 @@ impl Follower for Builder {
                     })
                     .expect("edge for rnum");
 
-                match reconcile(edge.kind, &bond_kind) {
+                match reconcile(edge.kind, bond_kind) {
                     Some((left, right)) => {
                         edge.target = Target::Id(sid);
                         edge.kind = left;
@@ -157,7 +157,7 @@ impl Node {
     }
 
     fn add_edge(&mut self, kind: BondKind, target: Target) {
-        self.edges.push(Edge::new(kind, target))
+        self.edges.push(Edge::new(kind, target));
     }
 }
 

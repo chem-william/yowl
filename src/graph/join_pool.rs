@@ -23,6 +23,6 @@ impl JoinPool {
             self.counter += 1;
             n
         });
-        Rnum::new(num as u8)
+        Rnum::new(u8::try_from(num).expect("convert entry from `u16` to `u8`"))
     }
 }

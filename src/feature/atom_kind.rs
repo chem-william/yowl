@@ -109,8 +109,8 @@ impl AtomKind {
             Self::Aromatic(aromatic) => aromatic.targets(),
             Self::Bracket { symbol, charge, .. } => match symbol {
                 BracketSymbol::Star => &[],
-                BracketSymbol::Aromatic(aromatic) => elemental_targets(&aromatic.into(), *charge),
-                BracketSymbol::Element(element) => elemental_targets(element, *charge),
+                BracketSymbol::Aromatic(aromatic) => elemental_targets(aromatic.into(), *charge),
+                BracketSymbol::Element(element) => elemental_targets(*element, *charge),
             },
         }
     }
@@ -159,7 +159,7 @@ const fn any(
     isotope.is_some() || configuration.is_some() || charge.is_some() || map.is_some()
 }
 
-fn elemental_targets(element: &Element, charge: Option<Charge>) -> &'static [u8] {
+fn elemental_targets(element: Element, charge: Option<Charge>) -> &'static [u8] {
     match element {
         Element::B => match charge {
             Some(Charge::MinusThree) => &OXYGEN_TARGET,
