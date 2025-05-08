@@ -110,7 +110,7 @@ pub fn read_bracket(scanner: &mut Scanner) -> Result<Option<AtomKind>, ReadError
     };
 
     // 4. H count?
-    let hcount = if let Some(BracketToken::HCount(h)) = iter.peek() {
+    let hcount = if let Some(BracketToken::HCount(_)) = iter.peek() {
         if let BracketToken::HCount(h) = iter.next().unwrap() {
             Some(h)
         } else {
