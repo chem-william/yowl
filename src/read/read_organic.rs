@@ -1,74 +1,121 @@
 use super::{error::ReadError, missing_character::missing_character, scanner::Scanner};
 use crate::feature::{Aliphatic, Aromatic, AtomKind};
 
-pub fn read_organic(scanner: &mut Scanner) -> Result<Option<AtomKind>, ReadError> {
-    let atom = match scanner.peek() {
-        Some('b') => Some(aromatic(Aromatic::B, scanner)),
-        Some('c') => Some(aromatic(Aromatic::C, scanner)),
-        Some('n') => Some(aromatic(Aromatic::N, scanner)),
-        Some('o') => Some(aromatic(Aromatic::O, scanner)),
-        Some('p') => Some(aromatic(Aromatic::P, scanner)),
-        Some('s') => Some(aromatic(Aromatic::S, scanner)),
-        Some('A') => {
-            scanner.pop();
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum AtomToken {
+    Aromatic(Aromatic),
+    Aliphatic(Aliphatic),
+}
 
-            if scanner.peek() == Some(&'t') {
-                Some(aliphatic(Aliphatic::At, scanner))
-            } else {
-                return Err(missing_character(scanner));
-            }
+/// Try to consume one organic‐atom token (e.g. “c” or “Cl”).
+fn next_atom_token(scanner: &mut Scanner) -> Result<Option<AtomToken>, ReadError> {
+    match scanner.peek() {
+        // aromatic (lowercase single letters)
+        Some('b') => {
+            scanner.pop();
+            Ok(Some(AtomToken::Aromatic(Aromatic::B)))
         }
+        Some('c') => {
+            scanner.pop();
+            Ok(Some(AtomToken::Aromatic(Aromatic::C)))
+        }
+        Some('n') => {
+            scanner.pop();
+            Ok(Some(AtomToken::Aromatic(Aromatic::N)))
+        }
+        Some('o') => {
+            scanner.pop();
+            Ok(Some(AtomToken::Aromatic(Aromatic::O)))
+        }
+        Some('p') => {
+            scanner.pop();
+            Ok(Some(AtomToken::Aromatic(Aromatic::P)))
+        }
+        Some('s') => {
+            scanner.pop();
+            Ok(Some(AtomToken::Aromatic(Aromatic::S)))
+        }
+
+        // aliphatic: two-char combos first
         Some('B') => {
             scanner.pop();
-
             if scanner.peek() == Some(&'r') {
-                Some(aliphatic(Aliphatic::Br, scanner))
+                scanner.pop();
+                Ok(Some(AtomToken::Aliphatic(Aliphatic::Br)))
             } else {
-                Some(AtomKind::Aliphatic(Aliphatic::B))
+                Ok(Some(AtomToken::Aliphatic(Aliphatic::B)))
             }
         }
         Some('C') => {
             scanner.pop();
-
             if scanner.peek() == Some(&'l') {
-                Some(aliphatic(Aliphatic::Cl, scanner))
+                scanner.pop();
+                Ok(Some(AtomToken::Aliphatic(Aliphatic::Cl)))
             } else {
-                Some(AtomKind::Aliphatic(Aliphatic::C))
+                Ok(Some(AtomToken::Aliphatic(Aliphatic::C)))
             }
         }
-        Some('N') => Some(aliphatic(Aliphatic::N, scanner)),
-        Some('O') => Some(aliphatic(Aliphatic::O, scanner)),
-        Some('P') => Some(aliphatic(Aliphatic::P, scanner)),
-        Some('S') => Some(aliphatic(Aliphatic::S, scanner)),
-        Some('F') => Some(aliphatic(Aliphatic::F, scanner)),
-        Some('I') => Some(aliphatic(Aliphatic::I, scanner)),
         Some('T') => {
             scanner.pop();
-
             if scanner.peek() == Some(&'s') {
-                Some(aliphatic(Aliphatic::Ts, scanner))
+                scanner.pop();
+                Ok(Some(AtomToken::Aliphatic(Aliphatic::Ts)))
             } else {
-                return Err(missing_character(scanner));
+                Err(missing_character(scanner))
+            }
+        }
+        Some('A') => {
+            scanner.pop();
+            if scanner.peek() == Some(&'t') {
+                scanner.pop();
+                Ok(Some(AtomToken::Aliphatic(Aliphatic::At)))
+            } else {
+                Err(missing_character(scanner))
             }
         }
 
-        // anything else: not an organic atom
-        _ => None,
-    };
+        // aliphatic: rest of single uppercase letters
+        Some('N') => {
+            scanner.pop();
+            Ok(Some(AtomToken::Aliphatic(Aliphatic::N)))
+        }
+        Some('O') => {
+            scanner.pop();
+            Ok(Some(AtomToken::Aliphatic(Aliphatic::O)))
+        }
+        Some('P') => {
+            scanner.pop();
+            Ok(Some(AtomToken::Aliphatic(Aliphatic::P)))
+        }
+        Some('S') => {
+            scanner.pop();
+            Ok(Some(AtomToken::Aliphatic(Aliphatic::S)))
+        }
+        Some('F') => {
+            scanner.pop();
+            Ok(Some(AtomToken::Aliphatic(Aliphatic::F)))
+        }
+        Some('I') => {
+            scanner.pop();
+            Ok(Some(AtomToken::Aliphatic(Aliphatic::I)))
+        }
 
-    Ok(atom)
+        // no match → not an organic atom here
+        _ => Ok(None),
+    }
 }
 
-fn aromatic(aromatic: Aromatic, scanner: &mut Scanner) -> AtomKind {
-    scanner.pop();
-
-    AtomKind::Aromatic(aromatic)
-}
-
-fn aliphatic(aliphatic: Aliphatic, scanner: &mut Scanner) -> AtomKind {
-    scanner.pop();
-
-    AtomKind::Aliphatic(aliphatic)
+pub fn read_organic(scanner: &mut Scanner) -> Result<Option<AtomKind>, ReadError> {
+    if let Some(token) = next_atom_token(scanner)? {
+        // map raw token → domain type
+        let kind = match token {
+            AtomToken::Aromatic(a) => AtomKind::Aromatic(a),
+            AtomToken::Aliphatic(a) => AtomKind::Aliphatic(a),
+        };
+        Ok(Some(kind))
+    } else {
+        Ok(None)
+    }
 }
 
 #[cfg(test)]
