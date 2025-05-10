@@ -10,6 +10,7 @@ edition = "2021"
 readme = "README.md"
 
 [dependencies]
+mendeleev = "0.8.4"
 thiserror = "2.0.12"
 
 [dev-dependencies]
