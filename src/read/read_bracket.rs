@@ -262,7 +262,7 @@ mod tests {
                 configuration: None,
                 hcount: None,
                 charge: None,
-                map: Some(999u16.try_into().unwrap())
+                map: Some(999)
             }))
         )
     }
