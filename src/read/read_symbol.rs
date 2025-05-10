@@ -385,7 +385,7 @@ mod follower {
 
     #[test]
     fn upper_a_eol() {
-        let mut scanner = Scanner::new(&"A");
+        let mut scanner = Scanner::new("A");
 
         assert_eq!(read_symbol(&mut scanner), Err(ReadError::EndOfLine));
         assert_eq!(scanner.cursor(), 1);
@@ -393,7 +393,7 @@ mod follower {
 
     #[test]
     fn a_unknown() {
-        let mut scanner = Scanner::new(&"Ax");
+        let mut scanner = Scanner::new("Ax");
 
         assert_eq!(read_symbol(&mut scanner), Err(ReadError::Character(1)));
         assert_eq!(scanner.cursor(), 1);
