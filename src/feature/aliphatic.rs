@@ -1,7 +1,7 @@
 use std::convert::TryFrom;
 use std::fmt;
 
-use super::Element;
+use mendeleev::Element;
 
 /// Atomic symbols that can be aliphatic.
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]

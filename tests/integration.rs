@@ -63,7 +63,6 @@ fn roundtripping_smiles_strings() {
         "c1ccc[se]1",  // Bracket aromatic Se
         "c1ccc[te]1",  // Bracket aromatic Te
         "[si]1cccc[si]1", // Bracket aromatic Si
-        "[Uun][Uuu][Uub][Uut][Uuq][Uup][Uuh][Uus][Uuo]", // old placeholder names for new elements
         "[Db][Sg][Bh][Hs][Mt][Ds][Rg][Cn][Nh][Fl][Mc][Lv][Ts][Og]", // new names for new elements
         "C[Fe@TH](O)(Cl)F", // Unspecified TH stereochemistry
         "C[Fe@TB](O)(Cl)(Br)F", // Unspecified TB stereochemistry
@@ -96,4 +95,19 @@ fn bunch_of_smiles() {
     for smiles in contents.split_whitespace() {
         roundtrip_smiles!(smiles);
     }
+}
+
+#[test]
+fn special_case_temp_iupac_names() {
+    let mut writer = Writer::default();
+
+    // old temporary IUPAC names names for new elements
+    let smiles = "[Uun][Uuu][Uub][Uut][Uuq][Uup][Uuh][Uus][Uuo]";
+
+    // new names for new elements
+    let expected_smiles = "[Ds][Rg][Cn][Nh][Fl][Mc][Lv][Ts][Og]";
+
+    let _ = read(smiles, &mut writer, None);
+    let written_smiles = writer.write();
+    assert_eq!(written_smiles, expected_smiles);
 }

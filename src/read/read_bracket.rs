@@ -113,7 +113,7 @@ fn read_map(scanner: &mut Scanner) -> Result<Option<u16>, ReadError> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::feature::{BracketAromatic, BracketSymbol, Charge, Configuration};
+    use crate::feature::{Aromatic, BracketAromatic, BracketSymbol, Charge, Configuration};
     use pretty_assertions::assert_eq;
 
     #[test]
@@ -275,7 +275,7 @@ mod tests {
             read_bracket(&mut scanner),
             Ok(Some(AtomKind::Bracket {
                 isotope: None,
-                symbol: BracketSymbol::Aromatic(BracketAromatic::S),
+                symbol: BracketSymbol::Aromatic(Aromatic::S),
                 configuration: None,
                 hcount: None,
                 charge: Some(Charge::One),

@@ -1,6 +1,6 @@
 use std::fmt;
 
-use super::Element;
+use mendeleev::Element;
 
 /// Eligible symbols for aromatic bracket atoms.
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]

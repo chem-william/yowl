@@ -6,7 +6,6 @@ mod bracket_aromatic;
 mod bracket_symbol;
 mod charge;
 mod configuration;
-mod element;
 mod rnum;
 mod virtual_hydrogen;
 
@@ -18,6 +17,5 @@ pub use bracket_aromatic::BracketAromatic;
 pub use bracket_symbol::BracketSymbol;
 pub use charge::Charge;
 pub use configuration::Configuration;
-pub use element::Element;
 pub use rnum::Rnum;
 pub use virtual_hydrogen::VirtualHydrogen;

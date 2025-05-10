@@ -1,7 +1,9 @@
 use std::convert::TryFrom;
 use std::fmt;
 
-use super::{Aliphatic, Aromatic, BracketSymbol, Charge, Configuration, Element, VirtualHydrogen};
+use mendeleev::Element;
+
+use super::{Aliphatic, Aromatic, BracketSymbol, Charge, Configuration, VirtualHydrogen};
 
 /// Minimal context-sensitive representation of an atom kind.
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -56,14 +58,15 @@ impl AtomKind {
                 let hcount = hcount.as_ref().map_or(0, std::convert::Into::into);
                 let valence = bond_order_sum.checked_add(hcount).expect("valence");
                 let allowance = u8::from(hcount != 0);
-                let aromatic = match Aromatic::try_from(aromatic) {
-                    Ok(aromatic) => aromatic,
-                    Err(()) => return self,
-                };
+
+                // let aromatic = match Aromatic::try_from(aromatic) {
+                //     Ok(aromatic) => aromatic,
+                //     Err(()) => return self,
+                // };
 
                 for target in aromatic.targets() {
                     if valence == target - allowance {
-                        return Self::Aromatic(aromatic);
+                        return Self::Aromatic(*aromatic);
                     }
                 }
 
@@ -347,7 +350,8 @@ mod invert {
 
     #[test]
     fn targets_star_and_alph_and_arom() {
-        assert_eq!(AtomKind::Star.targets(), &[]);
+        let empty: &[u8] = &[];
+        assert_eq!(AtomKind::Star.targets(), empty);
         assert_eq!(AtomKind::Aliphatic(Aliphatic::S).targets(), &[2, 4, 6]);
         assert_eq!(AtomKind::Aromatic(Aromatic::P).targets(), &[3, 5]);
     }
