@@ -113,7 +113,7 @@ fn read_map(scanner: &mut Scanner) -> Result<Option<u16>, ReadError> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::feature::{Aromatic, BracketAromatic, BracketSymbol, Charge, Configuration};
+    use crate::feature::{Aromatic, BracketSymbol, Charge, Configuration};
     use pretty_assertions::assert_eq;
 
     #[test]
