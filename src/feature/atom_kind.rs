@@ -157,7 +157,7 @@ const fn any(
     isotope.is_some() || configuration.is_some() || charge.is_some() || map.is_some()
 }
 
-fn elemental_targets(element: Element, charge: Option<Charge>) -> &'static [u8] {
+pub const fn elemental_targets(element: Element, charge: Option<Charge>) -> &'static [u8] {
     match element {
         Element::B => match charge {
             Some(Charge::MinusThree) => &OXYGEN_TARGET,
@@ -166,16 +166,17 @@ fn elemental_targets(element: Element, charge: Option<Charge>) -> &'static [u8] 
             None => &BORON_TARGET,
             _ => &EMPTY_TARGET,
         },
-        Element::C => match charge {
+        Element::C | Element::Si => match charge {
             Some(Charge::MinusTwo) => &OXYGEN_TARGET,
             Some(Charge::MinusOne) => &NITROGEN_TARGET,
             Some(Charge::One) => &BORON_TARGET,
             None => &CARBON_TARGET,
             _ => &EMPTY_TARGET,
         },
-        Element::N => match charge {
+        Element::N | Element::P | Element::As => match charge {
             None => &NITROGEN_TARGET,
             Some(Charge::One) => &CARBON_TARGET,
+            Some(Charge::MinusOne) => &SULFUR_TARGET,
             _ => &EMPTY_TARGET,
         },
         Element::O => match charge {
@@ -183,27 +184,28 @@ fn elemental_targets(element: Element, charge: Option<Charge>) -> &'static [u8] 
             Some(Charge::One) => &NITROGEN_TARGET,
             _ => &EMPTY_TARGET,
         },
-        Element::P | Element::As => match charge {
-            Some(Charge::MinusOne) => &SULFUR_TARGET,
-            None => &PHOSPHOROUS_TARGET,
-            _ => &EMPTY_TARGET,
-        },
-        Element::S | Element::Se => match charge {
+        Element::S | Element::Se | Element::Te => match charge {
             None => &SULFUR_TARGET,
-            Some(Charge::One) => &PHOSPHOROUS_TARGET,
+            Some(Charge::One) => &NITROGEN_TARGET,
             _ => &EMPTY_TARGET,
         },
+        Element::F | Element::Cl | Element::Br | Element::I | Element::At | Element::Ts => {
+            match charge {
+                None => &HALOGEN_TARGET,
+                _ => &EMPTY_TARGET,
+            }
+        }
         _ => &EMPTY_TARGET,
     }
 }
 
-static BORON_TARGET: [u8; 1] = [3];
-static CARBON_TARGET: [u8; 1] = [4];
-static NITROGEN_TARGET: [u8; 2] = [3, 5];
-static OXYGEN_TARGET: [u8; 1] = [2];
-static PHOSPHOROUS_TARGET: [u8; 2] = [3, 5];
-static SULFUR_TARGET: [u8; 3] = [2, 4, 6];
-static EMPTY_TARGET: [u8; 0] = [];
+const BORON_TARGET: [u8; 1] = [3];
+const HALOGEN_TARGET: [u8; 1] = [1];
+const CARBON_TARGET: [u8; 1] = [4];
+const NITROGEN_TARGET: [u8; 2] = [3, 5];
+const OXYGEN_TARGET: [u8; 1] = [2];
+const SULFUR_TARGET: [u8; 3] = [2, 4, 6];
+const EMPTY_TARGET: [u8; 0] = [];
 
 impl fmt::Display for AtomKind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

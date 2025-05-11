@@ -2,6 +2,8 @@ use std::fmt;
 
 use mendeleev::Element;
 
+use super::atom_kind;
+
 /// Atomic symbols that can be aromatic.
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum Aromatic {
@@ -19,14 +21,8 @@ pub enum Aromatic {
 
 impl Aromatic {
     /// The valence targets available to this aromatic.
-    pub const fn targets(&self) -> &[u8] {
-        match self {
-            Self::B => &[3],
-            Self::C | Self::Si => &[4],
-            Self::N | Self::P | Self::As => &[3, 5],
-            Self::O => &[2],
-            Self::S | Self::Se | Self::Te => &[2, 4, 6],
-        }
+    pub fn targets(&self) -> &[u8] {
+        atom_kind::elemental_targets(self.into(), None)
     }
 }
 
