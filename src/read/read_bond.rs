@@ -1,23 +1,47 @@
 use super::scanner::Scanner;
 use crate::feature::BondKind;
 
-pub fn read_bond(scanner: &mut Scanner) -> BondKind {
-    let result = match scanner.peek() {
-        Some('-') => BondKind::Single,
-        Some('=') => BondKind::Double,
-        Some('#') => BondKind::Triple,
-        Some('$') => BondKind::Quadruple,
-        Some(':') => BondKind::Aromatic,
-        Some('/') => BondKind::Up,
-        Some('\\') => BondKind::Down,
-        _ => BondKind::Elided,
-    };
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum BondToken {
+    Single,
+    Double,
+    Triple,
+    Quadruple,
+    Aromatic,
+    Up,
+    Down,
+    Elided,
+}
 
-    if result != BondKind::Elided {
+fn next_bond_token(scanner: &mut Scanner) -> BondToken {
+    let tok = match scanner.peek() {
+        Some('-') => BondToken::Single,
+        Some('=') => BondToken::Double,
+        Some('#') => BondToken::Triple,
+        Some('$') => BondToken::Quadruple,
+        Some(':') => BondToken::Aromatic,
+        Some('/') => BondToken::Up,
+        Some('\\') => BondToken::Down,
+        _ => BondToken::Elided,
+    };
+    // only consume if it wasn’t elided
+    if tok != BondToken::Elided {
         scanner.pop();
     }
+    tok
+}
 
-    result
+pub fn read_bond(scanner: &mut Scanner) -> BondKind {
+    match next_bond_token(scanner) {
+        BondToken::Single => BondKind::Single,
+        BondToken::Double => BondKind::Double,
+        BondToken::Triple => BondKind::Triple,
+        BondToken::Quadruple => BondKind::Quadruple,
+        BondToken::Aromatic => BondKind::Aromatic,
+        BondToken::Up => BondKind::Up,
+        BondToken::Down => BondKind::Down,
+        BondToken::Elided => BondKind::Elided,
+    }
 }
 
 #[cfg(test)]

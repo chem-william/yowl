@@ -1,33 +1,71 @@
-use std::convert::TryInto;
-
 use super::{error::ReadError, missing_character::missing_character, scanner::Scanner};
 use crate::feature::Rnum;
 
-pub fn read_rnum(scanner: &mut Scanner) -> Result<Option<Rnum>, ReadError> {
-    let mut digits = String::new();
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum RnumToken {
+    /// A single digit, 0–9
+    Digit(u8),
+    /// A two-digit percent form, e.g. "%12"
+    Percent(u8, u8),
+}
 
-    match scanner.peek() {
+fn next_rnum_token(scanner: &mut Scanner) -> Result<Option<RnumToken>, ReadError> {
+    dbg!(&scanner.peek());
+    let result = match scanner.peek() {
+        // single digit
         Some('0'..='9') => {
-            digits.push(*scanner.pop().unwrap());
+            let c = *scanner.pop().unwrap();
+            let d = c.to_digit(10).unwrap() as u8;
+
+            Ok(Some(RnumToken::Digit(d)))
         }
+
+        // percent-encoded two-digit
         Some('%') => {
+            scanner.pop(); // consume '%'
+
+            // first digit
+            let c1 = match scanner.peek() {
+                Some(next) if next.is_ascii_digit() => *next,
+                _ => return Err(missing_character(scanner)),
+            };
             scanner.pop();
 
-            for _ in 0..=1 {
-                match scanner.peek() {
-                    Some('0'..='9') => {
-                        digits.push(*scanner.pop().expect("scanner done"));
-                    }
-                    _ => return Err(missing_character(scanner)),
-                }
-            }
+            let d1 = c1.to_digit(10).unwrap() as u8;
+
+            // second digit
+            let c2 = match scanner.peek() {
+                Some(next) if next.is_ascii_digit() => *next,
+                _ => return Err(missing_character(scanner)),
+            };
+            scanner.pop();
+
+            let d2 = c2.to_digit(10).unwrap() as u8;
+
+            Ok(Some(RnumToken::Percent(d1, d2)))
         }
-        _ => return Ok(None),
+
+        // not an r-number here
+        _ => Ok(None),
+    };
+
+    dbg!(&result);
+
+    result
+}
+
+pub fn read_rnum(scanner: &mut Scanner) -> Result<Option<Rnum>, ReadError> {
+    if let Some(tok) = next_rnum_token(scanner)? {
+        let raw = match tok {
+            RnumToken::Digit(d) => d as u16,
+            RnumToken::Percent(d1, d2) => (d1 as u16) * 10 + (d2 as u16),
+        };
+
+        let rnum = Rnum::try_from(raw).expect("raw in valid range for Rnum");
+        Ok(Some(rnum))
+    } else {
+        Ok(None)
     }
-
-    let rnum = digits.parse::<u16>().expect("rnum to u16");
-
-    Ok(Some(rnum.try_into().expect("u16 to rnum")))
 }
 
 #[cfg(test)]
