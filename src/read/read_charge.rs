@@ -93,55 +93,55 @@ mod tests {
     fn minus_x() {
         let mut scanner = Scanner::new("-X");
 
-        assert_eq!(read_charge(&mut scanner), Some(Charge::MinusOne))
+        assert_eq!(read_charge(&mut scanner), Charge::new(-1))
     }
 
     #[test]
     fn minus_2_x() {
         let mut scanner = Scanner::new("-1X");
 
-        assert_eq!(read_charge(&mut scanner), Some(Charge::MinusOne))
+        assert_eq!(read_charge(&mut scanner), Charge::new(-1))
     }
 
     #[test]
     fn minus_minus_x() {
         let mut scanner = Scanner::new("--X");
 
-        assert_eq!(read_charge(&mut scanner), Some(Charge::MinusTwo))
+        assert_eq!(read_charge(&mut scanner), Charge::new(-2))
     }
 
     #[test]
     fn minus_15_x() {
         let mut scanner = Scanner::new("-15X");
 
-        assert_eq!(read_charge(&mut scanner), Some(Charge::MinusFifteen))
+        assert_eq!(read_charge(&mut scanner), Charge::new(-15))
     }
 
     #[test]
     fn plus_x() {
         let mut scanner = Scanner::new("+X");
 
-        assert_eq!(read_charge(&mut scanner), Some(Charge::One))
+        assert_eq!(read_charge(&mut scanner), Charge::new(1))
     }
 
     #[test]
     fn plus_plus_x() {
         let mut scanner = Scanner::new("++X");
 
-        assert_eq!(read_charge(&mut scanner), Some(Charge::Two))
+        assert_eq!(read_charge(&mut scanner), Charge::new(2))
     }
 
     #[test]
     fn plus_2_x() {
         let mut scanner = Scanner::new("+2X");
 
-        assert_eq!(read_charge(&mut scanner), Some(Charge::Two))
+        assert_eq!(read_charge(&mut scanner), Charge::new(2))
     }
 
     #[test]
     fn plus_15_x() {
         let mut scanner = Scanner::new("+15X");
 
-        assert_eq!(read_charge(&mut scanner), Some(Charge::Fifteen))
+        assert_eq!(read_charge(&mut scanner), Charge::new(15))
     }
 }

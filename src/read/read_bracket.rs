@@ -272,7 +272,7 @@ mod tests {
                 symbol: BracketSymbol::Star,
                 configuration: None,
                 hcount: None,
-                charge: Some(Charge::One),
+                charge: Charge::new(1),
                 map: None
             }))
         )
@@ -306,7 +306,7 @@ mod tests {
                 symbol: BracketSymbol::Aromatic(Aromatic::S),
                 configuration: None,
                 hcount: None,
-                charge: Some(Charge::One),
+                charge: Charge::new(1),
                 map: None
             }))
         )
