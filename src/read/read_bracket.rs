@@ -1,3 +1,5 @@
+use mendeleev::Isotope;
+
 use super::{
     error::ReadError, missing_character, read_charge, read_configuration, read_symbol,
     scanner::Scanner,
@@ -8,7 +10,7 @@ use crate::feature::{AtomKind, BracketSymbol, Charge, Configuration, VirtualHydr
 #[derive(Debug, PartialEq, Eq)]
 enum BracketToken {
     /// An isotope number, like “13”
-    Isotope(u16),
+    Isotope(Isotope),
     /// An element symbol, e.g. “C”, “Cl”
     Symbol(BracketSymbol),
     /// Configuration flags, e.g. “@” or “@@”
@@ -26,13 +28,38 @@ enum BracketToken {
 fn lex_bracket_contents(scanner: &mut Scanner) -> Result<Vec<BracketToken>, ReadError> {
     let mut tokens = Vec::new();
 
-    // 1. Isotope (0–3 digits)
-    if let Some(num) = read_isotope(scanner) {
-        tokens.push(BracketToken::Isotope(num));
-    }
+    // 1. Read isotope number (0–3 digits)
+    let isotope_number = read_isotope(scanner);
 
     // 2. Symbol (1–2 letters)
     let sym = read_symbol(scanner)?;
+
+    // we first push the isotope
+    // this has to happen _after_ we lexed the symbol as we need it to push the right
+    // isotope
+    let maybe_isotope: Option<BracketToken> = if let BracketSymbol::Element(element) = sym {
+        if let Some(iso_num) = isotope_number {
+            let temp = Isotope::list()
+                .iter()
+                .filter(|isotope| {
+                    isotope.element() == element && isotope.mass_number() == iso_num as u32
+                })
+                .cloned()
+                .map(BracketToken::Isotope)
+                .next();
+            temp
+        } else {
+            None
+        }
+    } else {
+        None
+    };
+
+    if let Some(iso) = maybe_isotope {
+        tokens.push(iso);
+    }
+
+    // now we push the symbol
     tokens.push(BracketToken::Symbol(sym));
 
     // 3. Configuration (@ or @@)
@@ -310,7 +337,7 @@ mod tests {
         assert_eq!(
             read_bracket(&mut scanner),
             Ok(Some(AtomKind::Bracket {
-                isotope: Some(999.try_into().unwrap()),
+                isotope: None,
                 symbol: BracketSymbol::Star,
                 configuration: None,
                 hcount: None,

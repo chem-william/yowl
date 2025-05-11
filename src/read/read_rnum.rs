@@ -10,7 +10,6 @@ enum RnumToken {
 }
 
 fn next_rnum_token(scanner: &mut Scanner) -> Result<Option<RnumToken>, ReadError> {
-    dbg!(&scanner.peek());
     let result = match scanner.peek() {
         // single digit
         Some('0'..='9') => {
@@ -48,8 +47,6 @@ fn next_rnum_token(scanner: &mut Scanner) -> Result<Option<RnumToken>, ReadError
         // not an r-number here
         _ => Ok(None),
     };
-
-    dbg!(&result);
 
     result
 }

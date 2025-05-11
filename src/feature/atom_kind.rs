@@ -1,7 +1,7 @@
 use std::convert::TryFrom;
 use std::fmt;
 
-use mendeleev::Element;
+use mendeleev::{Element, Isotope};
 
 use super::{Aliphatic, Aromatic, BracketSymbol, Charge, Configuration, VirtualHydrogen};
 
@@ -12,7 +12,7 @@ pub enum AtomKind {
     Aliphatic(Aliphatic),
     Aromatic(Aromatic),
     Bracket {
-        isotope: Option<u16>,
+        isotope: Option<Isotope>,
         symbol: BracketSymbol,
         configuration: Option<Configuration>,
         hcount: Option<VirtualHydrogen>,
@@ -154,7 +154,7 @@ impl AtomKind {
 }
 
 const fn any(
-    isotope: Option<u16>,
+    isotope: Option<Isotope>,
     configuration: Option<Configuration>,
     charge: Option<Charge>,
     map: Option<u16>,
@@ -227,7 +227,7 @@ impl fmt::Display for AtomKind {
                 write!(f, "[")?;
 
                 if let Some(isotope) = isotope {
-                    write!(f, "{isotope}")?;
+                    write!(f, "{}", isotope.mass_number())?;
                 }
 
                 write!(f, "{symbol}")?;
