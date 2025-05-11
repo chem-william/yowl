@@ -59,11 +59,6 @@ impl AtomKind {
                 let valence = bond_order_sum.checked_add(hcount).expect("valence");
                 let allowance = u8::from(hcount != 0);
 
-                // let aromatic = match Aromatic::try_from(aromatic) {
-                //     Ok(aromatic) => aromatic,
-                //     Err(()) => return self,
-                // };
-
                 for target in aromatic.targets() {
                     if valence == target - allowance {
                         return Self::Aromatic(*aromatic);
