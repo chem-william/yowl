@@ -1,7 +1,8 @@
-use std::convert::TryFrom;
 use std::fmt;
 
-use super::{Aliphatic, BracketAromatic};
+use mendeleev::Element;
+
+use super::atom_kind;
 
 /// Atomic symbols that can be aromatic.
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
@@ -12,38 +13,20 @@ pub enum Aromatic {
     O,
     P,
     S,
+    Se,
+    As,
+    Si,
+    Te,
 }
 
 impl Aromatic {
     /// The valence targets available to this aromatic.
-    pub const fn targets(&self) -> &[u8] {
-        match self {
-            Self::B => &[3],
-            Self::C => &[4],
-            Self::N | Self::P => &[3, 5],
-            Self::O => &[2],
-            Self::S => &[2, 4, 6],
-        }
+    pub fn targets(&self) -> &[u8] {
+        atom_kind::elemental_targets(self.into(), None)
     }
 }
 
-impl TryFrom<&BracketAromatic> for Aromatic {
-    type Error = ();
-
-    fn try_from(value: &BracketAromatic) -> Result<Self, Self::Error> {
-        match value {
-            BracketAromatic::B => Ok(Self::B),
-            BracketAromatic::C => Ok(Self::C),
-            BracketAromatic::N => Ok(Self::N),
-            BracketAromatic::O => Ok(Self::O),
-            BracketAromatic::P => Ok(Self::P),
-            BracketAromatic::S => Ok(Self::S),
-            _ => Err(()),
-        }
-    }
-}
-
-impl From<&Aromatic> for Aliphatic {
+impl From<&Aromatic> for Element {
     fn from(val: &Aromatic) -> Self {
         match val {
             Aromatic::B => Self::B,
@@ -52,6 +35,10 @@ impl From<&Aromatic> for Aliphatic {
             Aromatic::O => Self::O,
             Aromatic::P => Self::P,
             Aromatic::S => Self::S,
+            Aromatic::Se => Self::Se,
+            Aromatic::As => Self::As,
+            Aromatic::Si => Self::Si,
+            Aromatic::Te => Self::Te,
         }
     }
 }
@@ -68,6 +55,10 @@ impl fmt::Display for Aromatic {
                 Self::O => "o",
                 Self::P => "p",
                 Self::S => "s",
+                Self::Se => "se",
+                Self::As => "as",
+                Self::Si => "si",
+                Self::Te => "te",
             }
         )
     }

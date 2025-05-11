@@ -1,160 +1,67 @@
+use mendeleev::Isotope;
+
 use super::{
     error::ReadError, missing_character, read_charge, read_configuration, read_symbol,
     scanner::Scanner,
 };
-use crate::feature::{AtomKind, BracketSymbol, Charge, Configuration, VirtualHydrogen};
+use crate::feature::{AtomKind, BracketSymbol, VirtualHydrogen};
 
-/// The raw tokens you can see inside “[ … ]”
-#[derive(Debug, PartialEq, Eq)]
-enum BracketToken {
-    /// An isotope number, like “13”
-    Isotope(u16),
-    /// An element symbol, e.g. “C”, “Cl”
-    Symbol(BracketSymbol),
-    /// Configuration flags, e.g. “@” or “@@”
-    Configuration(Configuration),
-    /// Hydrogen count, H0…H9 (default H1 if no digit)
-    HCount(VirtualHydrogen),
-    /// Charge, like “+”, “-”, “++”, “-2”
-    Charge(Charge),
-    /// Mapping number, like “:1”
-    Map(u16),
-    /// The closing bracket ‘]’
-    Close,
-}
+fn lex_bracket_contents(scanner: &mut Scanner) -> Result<AtomKind, ReadError> {
+    // (We know the '[' was already popped by read_bracket)
+    // Read isotope *before* symbol so we can match element+mass in one go:
+    let iso_num_opt = read_isotope(scanner);
 
-fn lex_bracket_contents(scanner: &mut Scanner) -> Result<Vec<BracketToken>, ReadError> {
-    let mut tokens = Vec::new();
+    // Read the symbol
+    let symbol = read_symbol(scanner)?;
 
-    // 1. Isotope (0–3 digits)
-    if let Some(num) = read_isotope(scanner) {
-        tokens.push(BracketToken::Isotope(num));
-    }
+    // Build optional `Isotope` only if `symbol` is an [`Element`]
+    let isotope = if let BracketSymbol::Element(el) = symbol {
+        iso_num_opt.and_then(|mass| {
+            Isotope::list()
+                .iter()
+                .find(|iso| iso.element() == el && iso.mass_number() == mass as u32)
+                .cloned()
+        })
+    } else {
+        None
+    };
 
-    // 2. Symbol (1–2 letters)
-    let sym = read_symbol(scanner)?;
-    tokens.push(BracketToken::Symbol(sym));
+    // 5. The rest are all optional
+    let configuration = read_configuration(scanner);
+    let hcount = read_hcount(scanner);
+    let charge = read_charge(scanner);
+    let map = read_map(scanner)?;
 
-    // 3. Configuration (@ or @@)
-    if let Some(cfg) = read_configuration(scanner) {
-        tokens.push(BracketToken::Configuration(cfg));
-    }
-
-    // 4. H count
-    if let Some(h) = read_hcount(scanner) {
-        tokens.push(BracketToken::HCount(h));
-    }
-
-    // 5. Charge
-    if let Some(ch) = read_charge(scanner) {
-        tokens.push(BracketToken::Charge(ch));
-    }
-
-    // 6. Map
-    if let Some(m) = read_map(scanner)? {
-        tokens.push(BracketToken::Map(m));
-    }
-
-    // 7. Expect closing bracket
     match scanner.peek() {
         Some(']') => {
             scanner.pop();
-            tokens.push(BracketToken::Close);
-            Ok(tokens)
         }
-        None => Err(ReadError::EndOfLine),
-        _ => Err(ReadError::Character(scanner.cursor())),
+        _ => return Err(missing_character(scanner)),
     }
+
+    Ok(AtomKind::Bracket {
+        isotope,
+        symbol,
+        configuration,
+        hcount,
+        charge,
+        map,
+    })
 }
 
 pub fn read_bracket(scanner: &mut Scanner) -> Result<Option<AtomKind>, ReadError> {
     // Only lex if we see “[”
-    if scanner.peek() != Some(&'[') {
-        return Ok(None);
+    match scanner.peek() {
+        Some('[') => {
+            scanner.pop();
+        }
+        _ => return Ok(None),
     }
-    scanner.pop();
 
     // Lex all pieces
-    let tokens = lex_bracket_contents(scanner)?;
+    let bracket = lex_bracket_contents(scanner)?;
 
-    // Now parse tokens into a Bracket struct
-    let mut iter = tokens.into_iter().peekable();
-
-    // 1. Isotope?
-    let isotope = if let Some(BracketToken::Isotope(_)) = iter.peek() {
-        // Now that peek() told us it's correct, safely consume it:
-        if let BracketToken::Isotope(n) = iter.next().unwrap() {
-            Some(n)
-        } else {
-            unreachable!() // peek/next disagree
-        }
-    } else {
-        None
-    };
-
-    // 2. Symbol (must exist)
-    let symbol = match iter.next() {
-        Some(BracketToken::Symbol(s)) => s,
-        _ => unreachable!("symbol lexing always returns one"),
-    };
-
-    // 3. Configuration?
-    let configuration = if let Some(BracketToken::Configuration(_)) = iter.peek() {
-        if let BracketToken::Configuration(c) = iter.next().unwrap() {
-            Some(c)
-        } else {
-            unreachable!()
-        }
-    } else {
-        None
-    };
-
-    // 4. H count?
-    let hcount = if let Some(BracketToken::HCount(_)) = iter.peek() {
-        if let BracketToken::HCount(h) = iter.next().unwrap() {
-            Some(h)
-        } else {
-            unreachable!()
-        }
-    } else {
-        None
-    };
-
-    // 5. Charge?
-    let charge = if let Some(BracketToken::Charge(_)) = iter.peek() {
-        if let BracketToken::Charge(c) = iter.next().unwrap() {
-            Some(c)
-        } else {
-            unreachable!()
-        }
-    } else {
-        None
-    };
-
-    // 6. Map?
-    let map = if let Some(BracketToken::Map(_)) = iter.peek() {
-        if let BracketToken::Map(m) = iter.next().unwrap() {
-            Some(m)
-        } else {
-            unreachable!()
-        }
-    } else {
-        None
-    };
-
-    // 7. Consume final Close
-    if let Some(BracketToken::Close) = iter.next() {
-        Ok(Some(AtomKind::Bracket {
-            isotope,
-            symbol,
-            configuration,
-            hcount,
-            charge,
-            map,
-        }))
-    } else {
-        Err(ReadError::EndOfLine)
-    }
+    Ok(Some(bracket))
 }
 
 fn read_hcount(scanner: &mut Scanner) -> Option<VirtualHydrogen> {
@@ -234,7 +141,7 @@ fn read_map(scanner: &mut Scanner) -> Result<Option<u16>, ReadError> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::feature::{BracketAromatic, BracketSymbol, Charge, Configuration};
+    use crate::feature::{Aromatic, BracketSymbol, Charge, Configuration};
     use pretty_assertions::assert_eq;
 
     #[test]
@@ -310,7 +217,7 @@ mod tests {
         assert_eq!(
             read_bracket(&mut scanner),
             Ok(Some(AtomKind::Bracket {
-                isotope: Some(999.try_into().unwrap()),
+                isotope: None,
                 symbol: BracketSymbol::Star,
                 configuration: None,
                 hcount: None,
@@ -396,7 +303,7 @@ mod tests {
             read_bracket(&mut scanner),
             Ok(Some(AtomKind::Bracket {
                 isotope: None,
-                symbol: BracketSymbol::Aromatic(BracketAromatic::S),
+                symbol: BracketSymbol::Aromatic(Aromatic::S),
                 configuration: None,
                 hcount: None,
                 charge: Some(Charge::One),

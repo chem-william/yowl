@@ -1,7 +1,9 @@
 use std::convert::TryFrom;
 use std::fmt;
 
-use super::{Aliphatic, Aromatic, BracketSymbol, Charge, Configuration, Element, VirtualHydrogen};
+use mendeleev::{Element, Isotope};
+
+use super::{Aliphatic, Aromatic, BracketSymbol, Charge, Configuration, VirtualHydrogen};
 
 /// Minimal context-sensitive representation of an atom kind.
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -10,7 +12,7 @@ pub enum AtomKind {
     Aliphatic(Aliphatic),
     Aromatic(Aromatic),
     Bracket {
-        isotope: Option<u16>,
+        isotope: Option<Isotope>,
         symbol: BracketSymbol,
         configuration: Option<Configuration>,
         hcount: Option<VirtualHydrogen>,
@@ -56,14 +58,10 @@ impl AtomKind {
                 let hcount = hcount.as_ref().map_or(0, std::convert::Into::into);
                 let valence = bond_order_sum.checked_add(hcount).expect("valence");
                 let allowance = u8::from(hcount != 0);
-                let aromatic = match Aromatic::try_from(aromatic) {
-                    Ok(aromatic) => aromatic,
-                    Err(()) => return self,
-                };
 
                 for target in aromatic.targets() {
                     if valence == target - allowance {
-                        return Self::Aromatic(aromatic);
+                        return Self::Aromatic(*aromatic);
                     }
                 }
 
@@ -151,7 +149,7 @@ impl AtomKind {
 }
 
 const fn any(
-    isotope: Option<u16>,
+    isotope: Option<Isotope>,
     configuration: Option<Configuration>,
     charge: Option<Charge>,
     map: Option<u16>,
@@ -159,7 +157,7 @@ const fn any(
     isotope.is_some() || configuration.is_some() || charge.is_some() || map.is_some()
 }
 
-fn elemental_targets(element: Element, charge: Option<Charge>) -> &'static [u8] {
+pub const fn elemental_targets(element: Element, charge: Option<Charge>) -> &'static [u8] {
     match element {
         Element::B => match charge {
             Some(Charge::MinusThree) => &OXYGEN_TARGET,
@@ -168,16 +166,17 @@ fn elemental_targets(element: Element, charge: Option<Charge>) -> &'static [u8] 
             None => &BORON_TARGET,
             _ => &EMPTY_TARGET,
         },
-        Element::C => match charge {
+        Element::C | Element::Si => match charge {
             Some(Charge::MinusTwo) => &OXYGEN_TARGET,
             Some(Charge::MinusOne) => &NITROGEN_TARGET,
             Some(Charge::One) => &BORON_TARGET,
             None => &CARBON_TARGET,
             _ => &EMPTY_TARGET,
         },
-        Element::N => match charge {
+        Element::N | Element::P | Element::As => match charge {
             None => &NITROGEN_TARGET,
             Some(Charge::One) => &CARBON_TARGET,
+            Some(Charge::MinusOne) => &SULFUR_TARGET,
             _ => &EMPTY_TARGET,
         },
         Element::O => match charge {
@@ -185,27 +184,28 @@ fn elemental_targets(element: Element, charge: Option<Charge>) -> &'static [u8] 
             Some(Charge::One) => &NITROGEN_TARGET,
             _ => &EMPTY_TARGET,
         },
-        Element::P | Element::As => match charge {
-            Some(Charge::MinusOne) => &SULFUR_TARGET,
-            None => &PHOSPHOROUS_TARGET,
-            _ => &EMPTY_TARGET,
-        },
-        Element::S | Element::Se => match charge {
+        Element::S | Element::Se | Element::Te => match charge {
             None => &SULFUR_TARGET,
-            Some(Charge::One) => &PHOSPHOROUS_TARGET,
+            Some(Charge::One) => &NITROGEN_TARGET,
             _ => &EMPTY_TARGET,
         },
+        Element::F | Element::Cl | Element::Br | Element::I | Element::At | Element::Ts => {
+            match charge {
+                None => &HALOGEN_TARGET,
+                _ => &EMPTY_TARGET,
+            }
+        }
         _ => &EMPTY_TARGET,
     }
 }
 
-static BORON_TARGET: [u8; 1] = [3];
-static CARBON_TARGET: [u8; 1] = [4];
-static NITROGEN_TARGET: [u8; 2] = [3, 5];
-static OXYGEN_TARGET: [u8; 1] = [2];
-static PHOSPHOROUS_TARGET: [u8; 2] = [3, 5];
-static SULFUR_TARGET: [u8; 3] = [2, 4, 6];
-static EMPTY_TARGET: [u8; 0] = [];
+const BORON_TARGET: [u8; 1] = [3];
+const HALOGEN_TARGET: [u8; 1] = [1];
+const CARBON_TARGET: [u8; 1] = [4];
+const NITROGEN_TARGET: [u8; 2] = [3, 5];
+const OXYGEN_TARGET: [u8; 1] = [2];
+const SULFUR_TARGET: [u8; 3] = [2, 4, 6];
+const EMPTY_TARGET: [u8; 0] = [];
 
 impl fmt::Display for AtomKind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -224,7 +224,7 @@ impl fmt::Display for AtomKind {
                 write!(f, "[")?;
 
                 if let Some(isotope) = isotope {
-                    write!(f, "{isotope}")?;
+                    write!(f, "{}", isotope.mass_number())?;
                 }
 
                 write!(f, "{symbol}")?;
@@ -347,7 +347,8 @@ mod invert {
 
     #[test]
     fn targets_star_and_alph_and_arom() {
-        assert_eq!(AtomKind::Star.targets(), &[]);
+        let empty: &[u8] = &[];
+        assert_eq!(AtomKind::Star.targets(), empty);
         assert_eq!(AtomKind::Aliphatic(Aliphatic::S).targets(), &[2, 4, 6]);
         assert_eq!(AtomKind::Aromatic(Aromatic::P).targets(), &[3, 5]);
     }

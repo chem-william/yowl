@@ -1,6 +1,8 @@
 use std::fmt;
 
-use super::{BracketAromatic, Element};
+use mendeleev::Element;
+
+use super::Aromatic;
 
 /// Represents those atomic symbols capable of appearing within a bracket
 /// atom in the string representation.
@@ -8,7 +10,7 @@ use super::{BracketAromatic, Element};
 pub enum BracketSymbol {
     Star,
     Element(Element),
-    Aromatic(BracketAromatic),
+    Aromatic(Aromatic),
 }
 
 impl fmt::Display for BracketSymbol {
@@ -16,7 +18,7 @@ impl fmt::Display for BracketSymbol {
         match self {
             Self::Star => write!(f, "*"),
             Self::Aromatic(aromatic) => write!(f, "{aromatic}"),
-            Self::Element(element) => write!(f, "{element}"),
+            Self::Element(element) => write!(f, "{}", element.symbol()),
         }
     }
 }

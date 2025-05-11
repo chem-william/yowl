@@ -1,7 +1,9 @@
 use std::convert::TryFrom;
 use std::fmt;
 
-use super::Element;
+use mendeleev::Element;
+
+use super::atom_kind;
 
 /// Atomic symbols that can be aliphatic.
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
@@ -21,14 +23,26 @@ pub enum Aliphatic {
 }
 
 impl Aliphatic {
-    pub const fn targets(&self) -> &[u8] {
-        match self {
-            Self::B => &[3],
-            Self::C => &[4],
-            Self::N | Self::P => &[3, 5],
-            Self::O => &[2],
-            Self::S => &[2, 4, 6],
-            Self::F | Self::Cl | Self::Br | Self::I | Self::At | Self::Ts => &[1],
+    pub fn targets(&self) -> &[u8] {
+        atom_kind::elemental_targets(self.into(), None)
+    }
+}
+
+impl From<&Aliphatic> for Element {
+    fn from(val: &Aliphatic) -> Self {
+        match val {
+            Aliphatic::B => Self::B,
+            Aliphatic::C => Self::C,
+            Aliphatic::N => Self::N,
+            Aliphatic::O => Self::O,
+            Aliphatic::S => Self::S,
+            Aliphatic::P => Self::P,
+            Aliphatic::F => Self::F,
+            Aliphatic::Cl => Self::Cl,
+            Aliphatic::Br => Self::Br,
+            Aliphatic::I => Self::I,
+            Aliphatic::At => Self::At,
+            Aliphatic::Ts => Self::Ts,
         }
     }
 }

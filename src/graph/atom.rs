@@ -67,11 +67,10 @@ impl Atom {
 
 #[cfg(test)]
 mod subvalence {
+    use mendeleev::Element;
+
     use super::*;
-    use crate::feature::{
-        Aliphatic, Aromatic, BondKind, BracketAromatic, BracketSymbol, Charge, Element,
-        VirtualHydrogen,
-    };
+    use crate::feature::{Aliphatic, Aromatic, BondKind, BracketSymbol, Charge, VirtualHydrogen};
 
     #[test]
     fn star() {
@@ -169,7 +168,7 @@ mod subvalence {
         let atom = Atom {
             kind: AtomKind::Bracket {
                 isotope: None,
-                symbol: BracketSymbol::Aromatic(BracketAromatic::C),
+                symbol: BracketSymbol::Aromatic(Aromatic::C),
                 configuration: None,
                 hcount: None,
                 charge: None,
@@ -186,7 +185,7 @@ mod subvalence {
         let atom = Atom {
             kind: AtomKind::Bracket {
                 isotope: None,
-                symbol: BracketSymbol::Aromatic(BracketAromatic::C),
+                symbol: BracketSymbol::Aromatic(Aromatic::C),
                 configuration: None,
                 hcount: Some(VirtualHydrogen::H1),
                 charge: None,
@@ -203,7 +202,7 @@ mod subvalence {
         let atom = Atom {
             kind: AtomKind::Bracket {
                 isotope: None,
-                symbol: BracketSymbol::Aromatic(BracketAromatic::S),
+                symbol: BracketSymbol::Aromatic(Aromatic::S),
                 configuration: None,
                 hcount: None,
                 charge: Some(Charge::One),
@@ -222,7 +221,8 @@ mod subvalence {
 #[cfg(test)]
 mod suppressed_hydrogens {
     use super::*;
-    use crate::feature::{Aliphatic, Aromatic, BondKind, BracketSymbol, Element, VirtualHydrogen};
+    use crate::feature::{Aliphatic, Aromatic, BondKind, BracketSymbol, VirtualHydrogen};
+    use mendeleev::Element;
     use pretty_assertions::assert_eq;
 
     #[test]

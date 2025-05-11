@@ -1,5 +1,6 @@
 use super::{error::ReadError, missing_character::missing_character, scanner::Scanner};
-use crate::feature::{BracketAromatic, BracketSymbol, Element};
+use crate::feature::{Aromatic, BracketSymbol};
+use mendeleev::Element;
 
 pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, ReadError> {
     match scanner.peek() {
@@ -12,28 +13,28 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, ReadError> {
             scanner.pop();
 
             match scanner.peek() {
-                Some('s') => aromatic(BracketAromatic::As, scanner),
+                Some('s') => aromatic(Aromatic::As, scanner),
                 _ => Err(missing_character(scanner)),
             }
         }
-        Some('b') => aromatic(BracketAromatic::B, scanner),
-        Some('c') => aromatic(BracketAromatic::C, scanner),
-        Some('n') => aromatic(BracketAromatic::N, scanner),
-        Some('o') => aromatic(BracketAromatic::O, scanner),
-        Some('p') => aromatic(BracketAromatic::P, scanner),
+        Some('b') => aromatic(Aromatic::B, scanner),
+        Some('c') => aromatic(Aromatic::C, scanner),
+        Some('n') => aromatic(Aromatic::N, scanner),
+        Some('o') => aromatic(Aromatic::O, scanner),
+        Some('p') => aromatic(Aromatic::P, scanner),
         Some('s') => {
             scanner.pop();
 
             match scanner.peek() {
-                Some('e') => aromatic(BracketAromatic::Se, scanner),
-                Some('i') => aromatic(BracketAromatic::Si, scanner),
-                _ => Ok(BracketSymbol::Aromatic(BracketAromatic::S)),
+                Some('e') => aromatic(Aromatic::Se, scanner),
+                Some('i') => aromatic(Aromatic::Si, scanner),
+                _ => Ok(BracketSymbol::Aromatic(Aromatic::S)),
             }
         }
         Some('t') => {
             scanner.pop();
             match scanner.peek() {
-                Some('e') => aromatic(BracketAromatic::Te, scanner),
+                Some('e') => aromatic(Aromatic::Te, scanner),
                 _ => Err(missing_character(scanner)),
             }
         }
@@ -269,15 +270,15 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, ReadError> {
                 Some('u') => {
                     scanner.pop();
                     match scanner.peek() {
-                        Some('n') => element(Element::Uun, scanner),
-                        Some('u') => element(Element::Uuu, scanner),
-                        Some('b') => element(Element::Uub, scanner),
-                        Some('t') => element(Element::Uut, scanner),
-                        Some('q') => element(Element::Uuq, scanner),
-                        Some('p') => element(Element::Uup, scanner),
-                        Some('h') => element(Element::Uuh, scanner),
-                        Some('s') => element(Element::Uus, scanner),
-                        Some('o') => element(Element::Uuo, scanner),
+                        Some('n') => element(Element::Ds, scanner),
+                        Some('u') => element(Element::Rg, scanner),
+                        Some('b') => element(Element::Cn, scanner),
+                        Some('t') => element(Element::Nh, scanner),
+                        Some('q') => element(Element::Fl, scanner),
+                        Some('p') => element(Element::Mc, scanner),
+                        Some('h') => element(Element::Lv, scanner),
+                        Some('s') => element(Element::Ts, scanner),
+                        Some('o') => element(Element::Og, scanner),
                         _ => Err(missing_character(scanner)),
                     }
                 }
@@ -315,7 +316,7 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, ReadError> {
     }
 }
 
-fn aromatic(aromatic: BracketAromatic, scanner: &mut Scanner) -> Result<BracketSymbol, ReadError> {
+fn aromatic(aromatic: Aromatic, scanner: &mut Scanner) -> Result<BracketSymbol, ReadError> {
     scanner.pop();
 
     Ok(BracketSymbol::Aromatic(aromatic))
@@ -362,14 +363,14 @@ mod follower {
     #[test]
     fn aromatic_eol() {
         let tests = vec![
-            ("asx", BracketAromatic::As, 2),
-            ("bx", BracketAromatic::B, 1),
-            ("cx", BracketAromatic::C, 1),
-            ("nx", BracketAromatic::N, 1),
-            ("ox", BracketAromatic::O, 1),
-            ("px", BracketAromatic::P, 1),
-            ("sx", BracketAromatic::S, 1),
-            ("sex", BracketAromatic::Se, 2),
+            ("asx", Aromatic::As, 2),
+            ("bx", Aromatic::B, 1),
+            ("cx", Aromatic::C, 1),
+            ("nx", Aromatic::N, 1),
+            ("ox", Aromatic::O, 1),
+            ("px", Aromatic::P, 1),
+            ("sx", Aromatic::S, 1),
+            ("sex", Aromatic::Se, 2),
         ];
 
         for (input, aromatic, cursor) in tests.into_iter() {
@@ -385,7 +386,7 @@ mod follower {
 
     #[test]
     fn upper_a_eol() {
-        let mut scanner = Scanner::new(&"A");
+        let mut scanner = Scanner::new("A");
 
         assert_eq!(read_symbol(&mut scanner), Err(ReadError::EndOfLine));
         assert_eq!(scanner.cursor(), 1);
@@ -393,7 +394,7 @@ mod follower {
 
     #[test]
     fn a_unknown() {
-        let mut scanner = Scanner::new(&"Ax");
+        let mut scanner = Scanner::new("Ax");
 
         assert_eq!(read_symbol(&mut scanner), Err(ReadError::Character(1)));
         assert_eq!(scanner.cursor(), 1);
