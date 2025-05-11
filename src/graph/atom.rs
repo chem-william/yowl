@@ -205,7 +205,7 @@ mod subvalence {
                 symbol: BracketSymbol::Aromatic(Aromatic::S),
                 configuration: None,
                 hcount: None,
-                charge: Some(Charge::One),
+                charge: Charge::new(1),
                 map: None,
             },
             bonds: vec![

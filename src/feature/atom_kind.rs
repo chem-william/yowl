@@ -160,33 +160,33 @@ const fn any(
 pub const fn elemental_targets(element: Element, charge: Option<Charge>) -> &'static [u8] {
     match element {
         Element::B => match charge {
-            Some(Charge::MinusThree) => &OXYGEN_TARGET,
-            Some(Charge::MinusTwo) => &NITROGEN_TARGET,
-            Some(Charge::MinusOne) => &CARBON_TARGET,
+            Some(Charge { value: -3 }) => &OXYGEN_TARGET,
+            Some(Charge { value: -2 }) => &NITROGEN_TARGET,
+            Some(Charge { value: -1 }) => &CARBON_TARGET,
             None => &BORON_TARGET,
             _ => &EMPTY_TARGET,
         },
         Element::C | Element::Si => match charge {
-            Some(Charge::MinusTwo) => &OXYGEN_TARGET,
-            Some(Charge::MinusOne) => &NITROGEN_TARGET,
-            Some(Charge::One) => &BORON_TARGET,
+            Some(Charge { value: -2 }) => &OXYGEN_TARGET,
+            Some(Charge { value: -1 }) => &NITROGEN_TARGET,
+            Some(Charge { value: 1 }) => &BORON_TARGET,
             None => &CARBON_TARGET,
             _ => &EMPTY_TARGET,
         },
         Element::N | Element::P | Element::As => match charge {
+            Some(Charge { value: 1 }) => &CARBON_TARGET,
+            Some(Charge { value: -1 }) => &SULFUR_TARGET,
             None => &NITROGEN_TARGET,
-            Some(Charge::One) => &CARBON_TARGET,
-            Some(Charge::MinusOne) => &SULFUR_TARGET,
             _ => &EMPTY_TARGET,
         },
         Element::O => match charge {
+            Some(Charge { value: 1 }) => &NITROGEN_TARGET,
             None => &OXYGEN_TARGET,
-            Some(Charge::One) => &NITROGEN_TARGET,
             _ => &EMPTY_TARGET,
         },
         Element::S | Element::Se | Element::Te => match charge {
+            Some(Charge { value: 1 }) => &NITROGEN_TARGET,
             None => &SULFUR_TARGET,
-            Some(Charge::One) => &NITROGEN_TARGET,
             _ => &EMPTY_TARGET,
         },
         Element::F | Element::Cl | Element::Br | Element::I | Element::At | Element::Ts => {
