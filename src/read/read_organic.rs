@@ -1,12 +1,12 @@
 use mendeleev::Element;
 
 use super::{error::ReadError, missing_character::missing_character, scanner::Scanner};
-use crate::feature::{Aliphatic, AtomKind};
+use crate::feature::AtomKind;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum AtomToken {
     Aromatic(Element),
-    Aliphatic(Aliphatic),
+    Aliphatic(Element),
 }
 
 /// Try to consume one organic‐atom token (e.g. “c” or “Cl”).
@@ -43,25 +43,25 @@ fn next_atom_token(scanner: &mut Scanner) -> Result<Option<AtomToken>, ReadError
             scanner.pop();
             if scanner.peek() == Some(&'r') {
                 scanner.pop();
-                Ok(Some(AtomToken::Aliphatic(Aliphatic::Br)))
+                Ok(Some(AtomToken::Aliphatic(Element::Br)))
             } else {
-                Ok(Some(AtomToken::Aliphatic(Aliphatic::B)))
+                Ok(Some(AtomToken::Aliphatic(Element::B)))
             }
         }
         Some('C') => {
             scanner.pop();
             if scanner.peek() == Some(&'l') {
                 scanner.pop();
-                Ok(Some(AtomToken::Aliphatic(Aliphatic::Cl)))
+                Ok(Some(AtomToken::Aliphatic(Element::Cl)))
             } else {
-                Ok(Some(AtomToken::Aliphatic(Aliphatic::C)))
+                Ok(Some(AtomToken::Aliphatic(Element::C)))
             }
         }
         Some('T') => {
             scanner.pop();
             if scanner.peek() == Some(&'s') {
                 scanner.pop();
-                Ok(Some(AtomToken::Aliphatic(Aliphatic::Ts)))
+                Ok(Some(AtomToken::Aliphatic(Element::Ts)))
             } else {
                 Err(missing_character(scanner))
             }
@@ -70,7 +70,7 @@ fn next_atom_token(scanner: &mut Scanner) -> Result<Option<AtomToken>, ReadError
             scanner.pop();
             if scanner.peek() == Some(&'t') {
                 scanner.pop();
-                Ok(Some(AtomToken::Aliphatic(Aliphatic::At)))
+                Ok(Some(AtomToken::Aliphatic(Element::At)))
             } else {
                 Err(missing_character(scanner))
             }
@@ -79,27 +79,27 @@ fn next_atom_token(scanner: &mut Scanner) -> Result<Option<AtomToken>, ReadError
         // aliphatic: rest of single uppercase letters
         Some('N') => {
             scanner.pop();
-            Ok(Some(AtomToken::Aliphatic(Aliphatic::N)))
+            Ok(Some(AtomToken::Aliphatic(Element::N)))
         }
         Some('O') => {
             scanner.pop();
-            Ok(Some(AtomToken::Aliphatic(Aliphatic::O)))
+            Ok(Some(AtomToken::Aliphatic(Element::O)))
         }
         Some('P') => {
             scanner.pop();
-            Ok(Some(AtomToken::Aliphatic(Aliphatic::P)))
+            Ok(Some(AtomToken::Aliphatic(Element::P)))
         }
         Some('S') => {
             scanner.pop();
-            Ok(Some(AtomToken::Aliphatic(Aliphatic::S)))
+            Ok(Some(AtomToken::Aliphatic(Element::S)))
         }
         Some('F') => {
             scanner.pop();
-            Ok(Some(AtomToken::Aliphatic(Aliphatic::F)))
+            Ok(Some(AtomToken::Aliphatic(Element::F)))
         }
         Some('I') => {
             scanner.pop();
-            Ok(Some(AtomToken::Aliphatic(Aliphatic::I)))
+            Ok(Some(AtomToken::Aliphatic(Element::I)))
         }
 
         // no match → not an organic atom here
@@ -146,7 +146,7 @@ mod tests {
         let mut scanner = Scanner::new("Bx");
         let atom = read_organic(&mut scanner);
 
-        assert_eq!(atom, Ok(Some(AtomKind::Aliphatic(Aliphatic::B))))
+        assert_eq!(atom, Ok(Some(AtomKind::Aliphatic(Element::B))))
     }
 
     #[test]
@@ -154,7 +154,7 @@ mod tests {
         let mut scanner = Scanner::new("Cx");
         let atom = read_organic(&mut scanner);
 
-        assert_eq!(atom, Ok(Some(AtomKind::Aliphatic(Aliphatic::C))))
+        assert_eq!(atom, Ok(Some(AtomKind::Aliphatic(Element::C))))
     }
 
     #[test]
@@ -181,6 +181,6 @@ mod tests {
         let mut scanner = Scanner::new("Cl");
         let atom = read_organic(&mut scanner);
 
-        assert_eq!(atom, Ok(Some(AtomKind::Aliphatic(Aliphatic::Cl))))
+        assert_eq!(atom, Ok(Some(AtomKind::Aliphatic(Element::Cl))))
     }
 }

@@ -70,7 +70,7 @@ mod subvalence {
     use mendeleev::Element;
 
     use super::*;
-    use crate::feature::{Aliphatic, BondKind, BracketSymbol, Charge, VirtualHydrogen};
+    use crate::feature::{BondKind, BracketSymbol, Charge, VirtualHydrogen};
 
     #[test]
     fn star() {
@@ -95,7 +95,7 @@ mod subvalence {
     #[test]
     fn carbon_single() {
         let atom = Atom {
-            kind: AtomKind::Aliphatic(Aliphatic::C),
+            kind: AtomKind::Aliphatic(Element::C),
             bonds: vec![Bond::new(BondKind::Single, 1)],
         };
 
@@ -221,7 +221,7 @@ mod subvalence {
 #[cfg(test)]
 mod suppressed_hydrogens {
     use super::*;
-    use crate::feature::{Aliphatic, BondKind, BracketSymbol, VirtualHydrogen};
+    use crate::feature::{BondKind, BracketSymbol, VirtualHydrogen};
     use mendeleev::Element;
     use pretty_assertions::assert_eq;
 
@@ -262,7 +262,7 @@ mod suppressed_hydrogens {
     #[test]
     fn aliphatic_subvalence_0() {
         let atom = Atom {
-            kind: AtomKind::Aliphatic(Aliphatic::C),
+            kind: AtomKind::Aliphatic(Element::C),
             bonds: vec![
                 Bond::new(BondKind::Elided, 1),
                 Bond::new(BondKind::Elided, 2),
@@ -277,7 +277,7 @@ mod suppressed_hydrogens {
     #[test]
     fn aliphatic_subvalence_1() {
         let atom = Atom {
-            kind: AtomKind::Aliphatic(Aliphatic::C),
+            kind: AtomKind::Aliphatic(Element::C),
             bonds: vec![
                 Bond::new(BondKind::Elided, 1),
                 Bond::new(BondKind::Elided, 2),
@@ -291,7 +291,7 @@ mod suppressed_hydrogens {
     #[test]
     fn aliphatic_subvalence_2() {
         let atom = Atom {
-            kind: AtomKind::Aliphatic(Aliphatic::C),
+            kind: AtomKind::Aliphatic(Element::C),
             bonds: vec![
                 Bond::new(BondKind::Elided, 1),
                 Bond::new(BondKind::Elided, 2),
