@@ -70,7 +70,7 @@ mod subvalence {
     use mendeleev::Element;
 
     use super::*;
-    use crate::feature::{Aliphatic, Aromatic, BondKind, BracketSymbol, Charge, VirtualHydrogen};
+    use crate::feature::{Aliphatic, BondKind, BracketSymbol, Charge, VirtualHydrogen};
 
     #[test]
     fn star() {
@@ -105,7 +105,7 @@ mod subvalence {
     #[test]
     fn aromatic_carbon_single() {
         let atom = Atom {
-            kind: AtomKind::Aromatic(Aromatic::C),
+            kind: AtomKind::Aromatic(Element::C),
             bonds: vec![Bond::new(BondKind::Single, 1)],
         };
 
@@ -168,7 +168,7 @@ mod subvalence {
         let atom = Atom {
             kind: AtomKind::Bracket {
                 isotope: None,
-                symbol: BracketSymbol::Aromatic(Aromatic::C),
+                symbol: BracketSymbol::Aromatic(Element::C),
                 configuration: None,
                 hcount: None,
                 charge: None,
@@ -185,7 +185,7 @@ mod subvalence {
         let atom = Atom {
             kind: AtomKind::Bracket {
                 isotope: None,
-                symbol: BracketSymbol::Aromatic(Aromatic::C),
+                symbol: BracketSymbol::Aromatic(Element::C),
                 configuration: None,
                 hcount: Some(VirtualHydrogen::H1),
                 charge: None,
@@ -202,7 +202,7 @@ mod subvalence {
         let atom = Atom {
             kind: AtomKind::Bracket {
                 isotope: None,
-                symbol: BracketSymbol::Aromatic(Aromatic::S),
+                symbol: BracketSymbol::Aromatic(Element::S),
                 configuration: None,
                 hcount: None,
                 charge: Charge::new(1),
@@ -221,7 +221,7 @@ mod subvalence {
 #[cfg(test)]
 mod suppressed_hydrogens {
     use super::*;
-    use crate::feature::{Aliphatic, Aromatic, BondKind, BracketSymbol, VirtualHydrogen};
+    use crate::feature::{Aliphatic, BondKind, BracketSymbol, VirtualHydrogen};
     use mendeleev::Element;
     use pretty_assertions::assert_eq;
 
@@ -235,7 +235,7 @@ mod suppressed_hydrogens {
     #[test]
     fn aromatic_subvalence_1() {
         let atom = Atom {
-            kind: AtomKind::Aromatic(Aromatic::C),
+            kind: AtomKind::Aromatic(Element::C),
             bonds: vec![
                 Bond::new(BondKind::Elided, 1),
                 Bond::new(BondKind::Elided, 2),
@@ -249,7 +249,7 @@ mod suppressed_hydrogens {
     #[test]
     fn aromatic_subvalence_2() {
         let atom = Atom {
-            kind: AtomKind::Aromatic(Aromatic::C),
+            kind: AtomKind::Aromatic(Element::C),
             bonds: vec![
                 Bond::new(BondKind::Elided, 1),
                 Bond::new(BondKind::Elided, 2),

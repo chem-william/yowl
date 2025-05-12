@@ -3,14 +3,15 @@ use std::fmt;
 
 use mendeleev::{Element, Isotope};
 
-use super::{Aliphatic, Aromatic, BracketSymbol, Charge, Configuration, VirtualHydrogen};
+use super::{Aliphatic, BracketSymbol, Charge, Configuration, VirtualHydrogen};
+use crate::feature::element_ext::ElementExt;
 
 /// Minimal context-sensitive representation of an atom kind.
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum AtomKind {
     Star,
     Aliphatic(Aliphatic),
-    Aromatic(Aromatic),
+    Aromatic(Element),
     Bracket {
         isotope: Option<Isotope>,
         symbol: BracketSymbol,
@@ -54,14 +55,14 @@ impl AtomKind {
                     |hcount| if hcount.is_zero() { Self::Star } else { self },
                 )
             }
-            BracketSymbol::Aromatic(aromatic) => {
+            BracketSymbol::Aromatic(element) => {
                 let hcount = hcount.as_ref().map_or(0, std::convert::Into::into);
                 let valence = bond_order_sum.checked_add(hcount).expect("valence");
                 let allowance = u8::from(hcount != 0);
 
-                for target in aromatic.targets() {
+                for target in element.targets() {
                     if valence == target - allowance {
-                        return Self::Aromatic(*aromatic);
+                        return Self::Aromatic(*element);
                     }
                 }
 
@@ -106,7 +107,7 @@ impl AtomKind {
             Self::Aromatic(aromatic) => aromatic.targets(),
             Self::Bracket { symbol, charge, .. } => match symbol {
                 BracketSymbol::Star => &[],
-                BracketSymbol::Aromatic(aromatic) => elemental_targets(aromatic.into(), *charge),
+                BracketSymbol::Aromatic(element) => elemental_targets(*element, *charge),
                 BracketSymbol::Element(element) => elemental_targets(*element, *charge),
             },
         }
@@ -211,7 +212,7 @@ impl fmt::Display for AtomKind {
         match self {
             Self::Star => write!(f, "*"),
             Self::Aliphatic(aliphatic) => write!(f, "{aliphatic}"),
-            Self::Aromatic(aromatic) => write!(f, "{aromatic}"),
+            Self::Aromatic(element) => write!(f, "{}", element.symbol().to_lowercase()),
             Self::Bracket {
                 isotope,
                 symbol,
@@ -334,14 +335,14 @@ mod invert {
     fn is_aromatic_unbracketed() {
         assert!(!AtomKind::Star.is_aromatic());
         assert!(!AtomKind::Aliphatic(Aliphatic::N).is_aromatic());
-        assert!(AtomKind::Aromatic(Aromatic::N).is_aromatic());
+        assert!(AtomKind::Aromatic(Element::N).is_aromatic());
     }
 
     #[test]
     fn display_simple_kinds() {
         assert_eq!(AtomKind::Star.to_string(), "*");
         assert_eq!(AtomKind::Aliphatic(Aliphatic::Br).to_string(), "Br");
-        assert_eq!(AtomKind::Aromatic(Aromatic::S).to_string(), "s");
+        assert_eq!(AtomKind::Aromatic(Element::S).to_string(), "s");
     }
 
     #[test]
@@ -349,6 +350,6 @@ mod invert {
         let empty: &[u8] = &[];
         assert_eq!(AtomKind::Star.targets(), empty);
         assert_eq!(AtomKind::Aliphatic(Aliphatic::S).targets(), &[2, 4, 6]);
-        assert_eq!(AtomKind::Aromatic(Aromatic::P).targets(), &[3, 5]);
+        assert_eq!(AtomKind::Aromatic(Element::P).targets(), &[3, 5]);
     }
 }

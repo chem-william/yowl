@@ -1,9 +1,11 @@
+use mendeleev::Element;
+
 use super::{error::ReadError, missing_character::missing_character, scanner::Scanner};
-use crate::feature::{Aliphatic, Aromatic, AtomKind};
+use crate::feature::{Aliphatic, AtomKind};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum AtomToken {
-    Aromatic(Aromatic),
+    Aromatic(Element),
     Aliphatic(Aliphatic),
 }
 
@@ -13,27 +15,27 @@ fn next_atom_token(scanner: &mut Scanner) -> Result<Option<AtomToken>, ReadError
         // aromatic (lowercase single letters)
         Some('b') => {
             scanner.pop();
-            Ok(Some(AtomToken::Aromatic(Aromatic::B)))
+            Ok(Some(AtomToken::Aromatic(Element::B)))
         }
         Some('c') => {
             scanner.pop();
-            Ok(Some(AtomToken::Aromatic(Aromatic::C)))
+            Ok(Some(AtomToken::Aromatic(Element::C)))
         }
         Some('n') => {
             scanner.pop();
-            Ok(Some(AtomToken::Aromatic(Aromatic::N)))
+            Ok(Some(AtomToken::Aromatic(Element::N)))
         }
         Some('o') => {
             scanner.pop();
-            Ok(Some(AtomToken::Aromatic(Aromatic::O)))
+            Ok(Some(AtomToken::Aromatic(Element::O)))
         }
         Some('p') => {
             scanner.pop();
-            Ok(Some(AtomToken::Aromatic(Aromatic::P)))
+            Ok(Some(AtomToken::Aromatic(Element::P)))
         }
         Some('s') => {
             scanner.pop();
-            Ok(Some(AtomToken::Aromatic(Aromatic::S)))
+            Ok(Some(AtomToken::Aromatic(Element::S)))
         }
 
         // aliphatic: two-char combos first
@@ -109,7 +111,7 @@ pub fn read_organic(scanner: &mut Scanner) -> Result<Option<AtomKind>, ReadError
     if let Some(token) = next_atom_token(scanner)? {
         // map raw token → domain type
         let kind = match token {
-            AtomToken::Aromatic(a) => AtomKind::Aromatic(a),
+            AtomToken::Aromatic(element) => AtomKind::Aromatic(element),
             AtomToken::Aliphatic(a) => AtomKind::Aliphatic(a),
         };
         Ok(Some(kind))
@@ -159,12 +161,12 @@ mod tests {
     fn scan_aromatics() {
         let aromatic_strings = ["b", "c", "n", "o", "p", "s"];
         let aromatic_results = [
-            Aromatic::B,
-            Aromatic::C,
-            Aromatic::N,
-            Aromatic::O,
-            Aromatic::P,
-            Aromatic::S,
+            Element::B,
+            Element::C,
+            Element::N,
+            Element::O,
+            Element::P,
+            Element::S,
         ];
         for (inp, out) in aromatic_strings.iter().zip(aromatic_results) {
             let mut scanner = Scanner::new(inp);
