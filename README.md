@@ -26,8 +26,9 @@ Parse acetamide into an adjacency representation:
 
 ```rust
 use yowl::graph::{Builder, Atom, Bond};
-use yowl::feature::{AtomKind, BondKind, Aliphatic};
+use yowl::feature::{AtomKind, BondKind};
 use yowl::read::{read, ReadError};
+use mendeleev::Element;
 
 fn main() -> Result<(), ReadError> {
     let mut builder = Builder::default();
@@ -36,13 +37,13 @@ fn main() -> Result<(), ReadError> {
 
     assert_eq!(builder.build(), Ok(vec![
         Atom {
-            kind: AtomKind::Aliphatic(Aliphatic::C),
+            kind: AtomKind::Aliphatic(Element::C),
             bonds: vec![
                 Bond::new(BondKind::Elided, 1)
             ]
         },
         Atom {
-            kind: AtomKind::Aliphatic(Aliphatic::C),
+            kind: AtomKind::Aliphatic(Element::C),
             bonds: vec![
                 Bond::new(BondKind::Elided, 0),
                 Bond::new(BondKind::Double, 2),
@@ -50,13 +51,13 @@ fn main() -> Result<(), ReadError> {
             ]
         },
         Atom {
-            kind: AtomKind::Aliphatic(Aliphatic::O),
+            kind: AtomKind::Aliphatic(Element::O),
             bonds: vec![
                 Bond::new(BondKind::Double, 1)
             ]
         },
         Atom {
-            kind: AtomKind::Aliphatic(Aliphatic::N),
+            kind: AtomKind::Aliphatic(Element::N),
             bonds: vec![
                 Bond::new(BondKind::Elided, 1)
             ]
