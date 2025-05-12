@@ -59,7 +59,7 @@ impl Follower for Writer {
 #[cfg(test)]
 mod write {
     use super::*;
-    use crate::feature::Aliphatic;
+    use mendeleev::Element;
     use pretty_assertions::assert_eq;
 
     #[test]
@@ -107,9 +107,9 @@ mod write {
         let mut writer = Writer::default();
 
         writer.root(AtomKind::Star);
-        writer.extend(BondKind::Elided, AtomKind::Aliphatic(Aliphatic::F));
+        writer.extend(BondKind::Elided, AtomKind::Aliphatic(Element::F));
         writer.pop(1);
-        writer.extend(BondKind::Elided, AtomKind::Aliphatic(Aliphatic::Cl));
+        writer.extend(BondKind::Elided, AtomKind::Aliphatic(Element::Cl));
 
         assert_eq!(writer.write(), "*(F)Cl")
     }

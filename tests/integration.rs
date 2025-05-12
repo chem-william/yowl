@@ -2,7 +2,8 @@ extern crate yowl;
 
 use std::fs;
 
-use yowl::feature::{Aliphatic, AtomKind, BondKind};
+use mendeleev::Element;
+use yowl::feature::{AtomKind, BondKind};
 use yowl::graph::{Atom, Bond, Builder};
 use yowl::read::read;
 use yowl::write::Writer;
@@ -27,11 +28,11 @@ fn it_works() {
         builder.build(),
         Ok(vec![
             Atom {
-                kind: AtomKind::Aliphatic(Aliphatic::C),
+                kind: AtomKind::Aliphatic(Element::C),
                 bonds: vec![Bond::new(BondKind::Elided, 1)]
             },
             Atom {
-                kind: AtomKind::Aliphatic(Aliphatic::O),
+                kind: AtomKind::Aliphatic(Element::O),
                 bonds: vec![Bond::new(BondKind::Elided, 0)]
             }
         ])
