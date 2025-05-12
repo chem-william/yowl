@@ -19,8 +19,8 @@ fn lex_bracket_contents(scanner: &mut Scanner) -> Result<AtomKind, ReadError> {
         iso_num_opt.and_then(|mass| {
             Isotope::list()
                 .iter()
-                .find(|iso| iso.element() == el && iso.mass_number() == mass as u32)
-                .cloned()
+                .find(|iso| iso.element() == el && iso.mass_number() == u32::from(mass))
+                .copied()
         })
     } else {
         None

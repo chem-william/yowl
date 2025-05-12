@@ -71,9 +71,8 @@ impl AtomKind {
                 let valence = bond_order_sum
                     .checked_add(hcount.as_ref().map_or(0, std::convert::Into::into))
                     .expect("valence");
-                let aliphatic = match Aliphatic::try_from(element) {
-                    Ok(aliphatic) => aliphatic,
-                    Err(()) => return self,
+                let Ok(aliphatic) = Aliphatic::try_from(element) else {
+                    return self;
                 };
 
                 for target in aliphatic.targets() {

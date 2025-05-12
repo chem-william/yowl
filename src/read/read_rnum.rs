@@ -14,7 +14,7 @@ fn next_rnum_token(scanner: &mut Scanner) -> Result<Option<RnumToken>, ReadError
         // single digit
         Some('0'..='9') => {
             let c = *scanner.pop().unwrap();
-            let d = c.to_digit(10).unwrap() as u8;
+            let d = u8::try_from(c.to_digit(10).unwrap()).expect("rnum to u8");
 
             Ok(Some(RnumToken::Digit(d)))
         }
@@ -30,7 +30,7 @@ fn next_rnum_token(scanner: &mut Scanner) -> Result<Option<RnumToken>, ReadError
             };
             scanner.pop();
 
-            let d1 = c1.to_digit(10).unwrap() as u8;
+            let d1 = u8::try_from(c1.to_digit(10).unwrap()).expect("rnum as u8");
 
             // second digit
             let c2 = match scanner.peek() {
@@ -39,7 +39,7 @@ fn next_rnum_token(scanner: &mut Scanner) -> Result<Option<RnumToken>, ReadError
             };
             scanner.pop();
 
-            let d2 = c2.to_digit(10).unwrap() as u8;
+            let d2 = u8::try_from(c2.to_digit(10).unwrap()).expect("rnum as u8");
 
             Ok(Some(RnumToken::Percent(d1, d2)))
         }
@@ -54,8 +54,8 @@ fn next_rnum_token(scanner: &mut Scanner) -> Result<Option<RnumToken>, ReadError
 pub fn read_rnum(scanner: &mut Scanner) -> Result<Option<Rnum>, ReadError> {
     if let Some(tok) = next_rnum_token(scanner)? {
         let raw = match tok {
-            RnumToken::Digit(d) => d as u16,
-            RnumToken::Percent(d1, d2) => (d1 as u16) * 10 + (d2 as u16),
+            RnumToken::Digit(d) => u16::from(d),
+            RnumToken::Percent(d1, d2) => u16::from(d1) * 10 + u16::from(d2),
         };
 
         let rnum = Rnum::try_from(raw).expect("raw in valid range for Rnum");
