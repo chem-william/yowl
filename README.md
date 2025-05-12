@@ -16,7 +16,7 @@ Yowl provides a safe, ergonomic API to parse and serialize molecular structures 
 
 Add `yowl` to your `Cargo.toml`:
 
-```toml
+```bash
 cargo add yowl
 ```
 
