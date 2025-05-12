@@ -1,6 +1,6 @@
 [package]
 name = "yowl"
-version = "0.1.0"
+version = "0.2.0"
 license = "MIT"
 description = "Primitives for reading and writing the SMILES language"
 repository = "https://github.com/chem-william/yowl/"
