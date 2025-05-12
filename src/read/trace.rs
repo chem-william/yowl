@@ -82,9 +82,7 @@ impl Trace {
     /// Panics if depth is greater than or equal to the current chain
     /// length.
     pub fn pop(&mut self, depth: usize) {
-        if depth >= self.stack.len() {
-            panic!("overpop")
-        }
+        assert!(depth < self.stack.len(), "overpop");
 
         for _ in 0..depth {
             self.stack.pop();

@@ -49,15 +49,14 @@ fn read_smiles<F: Follower>(
     trace: &mut Option<&mut Trace>,
 ) -> Result<Option<usize>, ReadError> {
     let cursor = scanner.cursor();
-    let atom_kind = match read_atom(scanner)? {
-        Some(kind) => kind,
-        None => return Ok(None),
+    let Some(atom_kind) = read_atom(scanner)? else {
+        return Ok(None);
     };
 
     if let Some(bond_kind) = input {
         if let Some(trace) = trace {
             if bond_kind == BondKind::Elided {
-                trace.extend(cursor, cursor..scanner.cursor())
+                trace.extend(cursor, cursor..scanner.cursor());
             } else {
                 trace.extend(cursor - 1, cursor..scanner.cursor());
             }
@@ -146,7 +145,7 @@ fn read_branch<F: Follower>(
             follower.pop(length);
 
             if let Some(trace) = trace {
-                trace.pop(length)
+                trace.pop(length);
             }
 
             Ok(true)

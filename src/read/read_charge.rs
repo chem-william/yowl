@@ -51,12 +51,15 @@ fn lex_fifteen(scanner: &mut Scanner) -> Option<i8> {
         Some('1'..='9') => {
             // first digit
             let c = scanner.pop().unwrap();
-            let v = c.to_digit(10).unwrap() as i8;
+            let v = i8::try_from(c.to_digit(10).unwrap()).expect("first digit charge as i8");
             // if that digit was ‘1’, check for 1–5
             if v == 1 {
                 if let Some('1'..='5') = scanner.peek() {
                     let c2 = scanner.pop().unwrap();
-                    return Some(c2.to_digit(10).unwrap() as i8 + 10);
+                    return Some(
+                        i8::try_from(c2.to_digit(10).unwrap()).expect("second charge digit as i8")
+                            + 10,
+                    );
                 }
             }
             Some(v)

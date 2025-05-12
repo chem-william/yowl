@@ -47,9 +47,7 @@ impl Follower for Writer {
     }
 
     fn pop(&mut self, depth: usize) {
-        if depth >= self.stack.len() {
-            panic!("overpop")
-        }
+        assert!(depth < self.stack.len(), "overpop");
 
         let chain = self.stack.split_off(self.stack.len() - depth);
         let last = self.stack.last_mut().expect("last");
