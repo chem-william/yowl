@@ -1,5 +1,5 @@
 use super::{error::ReadError, missing_character::missing_character, scanner::Scanner};
-use crate::feature::{Aromatic, BracketSymbol};
+use crate::feature::BracketSymbol;
 use mendeleev::Element;
 
 pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, ReadError> {
@@ -13,28 +13,28 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, ReadError> {
             scanner.pop();
 
             match scanner.peek() {
-                Some('s') => aromatic(Aromatic::As, scanner),
+                Some('s') => aromatic(Element::As, scanner),
                 _ => Err(missing_character(scanner)),
             }
         }
-        Some('b') => aromatic(Aromatic::B, scanner),
-        Some('c') => aromatic(Aromatic::C, scanner),
-        Some('n') => aromatic(Aromatic::N, scanner),
-        Some('o') => aromatic(Aromatic::O, scanner),
-        Some('p') => aromatic(Aromatic::P, scanner),
+        Some('b') => aromatic(Element::B, scanner),
+        Some('c') => aromatic(Element::C, scanner),
+        Some('n') => aromatic(Element::N, scanner),
+        Some('o') => aromatic(Element::O, scanner),
+        Some('p') => aromatic(Element::P, scanner),
         Some('s') => {
             scanner.pop();
 
             match scanner.peek() {
-                Some('e') => aromatic(Aromatic::Se, scanner),
-                Some('i') => aromatic(Aromatic::Si, scanner),
-                _ => Ok(BracketSymbol::Aromatic(Aromatic::S)),
+                Some('e') => aromatic(Element::Se, scanner),
+                Some('i') => aromatic(Element::Si, scanner),
+                _ => Ok(BracketSymbol::Aromatic(Element::S)),
             }
         }
         Some('t') => {
             scanner.pop();
             match scanner.peek() {
-                Some('e') => aromatic(Aromatic::Te, scanner),
+                Some('e') => aromatic(Element::Te, scanner),
                 _ => Err(missing_character(scanner)),
             }
         }
@@ -316,10 +316,10 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, ReadError> {
     }
 }
 
-fn aromatic(aromatic: Aromatic, scanner: &mut Scanner) -> Result<BracketSymbol, ReadError> {
+fn aromatic(element: Element, scanner: &mut Scanner) -> Result<BracketSymbol, ReadError> {
     scanner.pop();
 
-    Ok(BracketSymbol::Aromatic(aromatic))
+    Ok(BracketSymbol::Aromatic(element))
 }
 
 fn element(element: Element, scanner: &mut Scanner) -> Result<BracketSymbol, ReadError> {
@@ -330,7 +330,12 @@ fn element(element: Element, scanner: &mut Scanner) -> Result<BracketSymbol, Rea
 
 #[cfg(test)]
 mod follower {
-    use super::*;
+    use mendeleev::Element;
+
+    use crate::{
+        feature::BracketSymbol,
+        read::{read_symbol, ReadError, Scanner},
+    };
 
     #[test]
     fn blank() {
@@ -363,14 +368,14 @@ mod follower {
     #[test]
     fn aromatic_eol() {
         let tests = vec![
-            ("asx", Aromatic::As, 2),
-            ("bx", Aromatic::B, 1),
-            ("cx", Aromatic::C, 1),
-            ("nx", Aromatic::N, 1),
-            ("ox", Aromatic::O, 1),
-            ("px", Aromatic::P, 1),
-            ("sx", Aromatic::S, 1),
-            ("sex", Aromatic::Se, 2),
+            ("asx", Element::As, 2),
+            ("bx", Element::B, 1),
+            ("cx", Element::C, 1),
+            ("nx", Element::N, 1),
+            ("ox", Element::O, 1),
+            ("px", Element::P, 1),
+            ("sx", Element::S, 1),
+            ("sex", Element::Se, 2),
         ];
 
         for (input, aromatic, cursor) in tests.into_iter() {
