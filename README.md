@@ -17,8 +17,7 @@ Yowl provides a safe, ergonomic API to parse and serialize molecular structures 
 Add `yowl` to your `Cargo.toml`:
 
 ```toml
-[dependencies]
-yowl = "0.1"
+cargo add yowl
 ```
 
 ## Examples
