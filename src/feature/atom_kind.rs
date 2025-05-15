@@ -223,7 +223,13 @@ impl fmt::Display for AtomKind {
                     write!(f, "{}", isotope.mass_number())?;
                 }
 
-                write!(f, "{symbol}")?;
+                match symbol {
+                    BracketSymbol::Star => write!(f, "*")?,
+                    BracketSymbol::Element(element) => write!(f, "{}", element.symbol())?,
+                    BracketSymbol::Aromatic(element) => {
+                        write!(f, "{}", element.symbol().to_lowercase())?
+                    }
+                }
 
                 if let Some(configuration) = configuration {
                     write!(f, "{configuration}")?;
