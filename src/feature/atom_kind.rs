@@ -6,7 +6,7 @@ use super::{BracketSymbol, Charge, Configuration, VirtualHydrogen};
 use crate::feature::element_ext::ElementExt;
 
 /// Minimal context-sensitive representation of an atom kind.
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum AtomKind {
     Star,
     Aliphatic(Element),
