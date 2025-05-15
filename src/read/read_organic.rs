@@ -7,11 +7,18 @@ use crate::feature::AtomKind;
 enum AtomToken {
     Aromatic(Element),
     Aliphatic(Element),
+    Star,
 }
 
 /// Try to consume one organic‐atom token (e.g. “c” or “Cl”).
 fn next_atom_token(scanner: &mut Scanner) -> Result<Option<AtomToken>, ReadError> {
     match scanner.peek() {
+        // we first check for a star (wildcard element)
+        Some('*') => {
+            scanner.pop();
+            Ok(Some(AtomToken::Star))
+        }
+
         // aromatic (lowercase single letters)
         Some('b') => {
             scanner.pop();
@@ -113,6 +120,7 @@ pub fn read_organic(scanner: &mut Scanner) -> Result<Option<AtomKind>, ReadError
         let kind = match token {
             AtomToken::Aromatic(element) => AtomKind::Aromatic(element),
             AtomToken::Aliphatic(a) => AtomKind::Aliphatic(a),
+            AtomToken::Star => AtomKind::Star,
         };
         Ok(Some(kind))
     } else {
