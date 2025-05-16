@@ -13,7 +13,7 @@ impl ElementExt for Element {
     }
 
     /// Parses a 1‑ or 2‑character symbol (case‑sensitive) into an Element.
-    /// Panics on unknown symbols; swap to `Option` or `Result` for safety.
+    /// Panics on unknown symbols
     fn from_symbol(sym: &str) -> Element {
         match sym {
             // Aromatic
