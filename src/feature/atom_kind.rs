@@ -27,67 +27,6 @@ pub enum AtomKind {
 }
 
 impl AtomKind {
-    // /// Returns an unbracketed version of this `AtomKind` based on
-    // /// `bond_order_sum`, if possible. Already unbracketed `AtomKind`s return
-    // /// self.
-    // ///
-    // /// This method is intended for clients building representations from
-    // /// outside sources. It allows for a single, always valid bracketed `AtomKind`
-    // /// to be constructed and debracketed, if possible. The logic to decide
-    // /// debracketability is encapsulated here.
-    // pub fn debracket(self, bond_order_sum: u8) -> Self {
-    //     let (isotope, symbol, configuration, hcount, charge, map) = match &self {
-    //         Self::Star | Self::Aliphatic(_) | Self::Aromatic(_) => return self,
-    //         Self::Bracket {
-    //             isotope,
-    //             symbol,
-    //             configuration,
-    //             hcount,
-    //             charge,
-    //             map,
-    //         } => (isotope, symbol, configuration, hcount, charge, map),
-    //     };
-
-    //     if any(*isotope, *configuration, *charge, *map) {
-    //         return self;
-    //     }
-
-    //     match symbol {
-    //         BracketSymbol::Star => {
-    //             hcount.as_ref().map_or(
-    //                 Self::Star,
-    //                 |hcount| if hcount.is_zero() { Self::Star } else { self },
-    //             )
-    //         }
-    //         BracketSymbol::Aromatic(element) => {
-    //             let hcount = hcount.as_ref().map_or(0, std::convert::Into::into);
-    //             let valence = bond_order_sum.checked_add(hcount).expect("valence");
-    //             let allowance = u8::from(hcount != 0);
-
-    //             for target in element.targets() {
-    //                 if valence == target - allowance {
-    //                     return Self::Aromatic(*element);
-    //                 }
-    //             }
-
-    //             self
-    //         }
-    //         BracketSymbol::Element(element) => {
-    //             let valence = bond_order_sum
-    //                 .checked_add(hcount.as_ref().map_or(0, std::convert::Into::into))
-    //                 .expect("valence");
-
-    //             for target in element.targets() {
-    //                 if target == &valence {
-    //                     return Self::Aliphatic(*element);
-    //                 }
-    //             }
-
-    //             self
-    //         }
-    //     }
-    // }
-
     /// Returns true if the kind was defined as being aromatic.
     pub const fn is_aromatic(&self) -> bool {
         match self {
@@ -147,15 +86,6 @@ impl AtomKind {
             configuration.replace(new_config);
         }
     }
-}
-
-const fn any(
-    isotope: Option<Isotope>,
-    configuration: Option<Configuration>,
-    charge: Option<Charge>,
-    map: Option<u16>,
-) -> bool {
-    isotope.is_some() || configuration.is_some() || charge.is_some() || map.is_some()
 }
 
 pub const fn elemental_targets(element: Element, charge: Option<Charge>) -> &'static [u8] {
