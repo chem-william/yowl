@@ -6,12 +6,12 @@ use crate::walk::Follower;
 /// ```
 /// use yowl::walk::Follower;
 /// use yowl::write::Writer;
-/// use yowl::feature::{ AtomKind, BondKind };
+/// use yowl::feature::{AtomKind, BondKind, Symbol};
 ///
 /// let mut writer = Writer::default();
 ///
-/// writer.root(AtomKind::Star);
-/// writer.extend(BondKind::Double, AtomKind::Star);
+/// writer.root(AtomKind::Symbol(Symbol::Star));
+/// writer.extend(BondKind::Double, AtomKind::Symbol(Symbol::Star));
 ///
 /// assert_eq!(writer.write(), "*=*")
 /// ```
@@ -58,6 +58,8 @@ impl Follower for Writer {
 
 #[cfg(test)]
 mod write {
+    use crate::feature::Symbol;
+
     use super::*;
     use mendeleev::Element;
     use pretty_assertions::assert_eq;
@@ -66,7 +68,7 @@ mod write {
     fn p1() {
         let mut writer = Writer::default();
 
-        writer.root(AtomKind::Star);
+        writer.root(AtomKind::Symbol(Symbol::Star));
 
         assert_eq!(writer.write(), "*")
     }
@@ -75,8 +77,8 @@ mod write {
     fn p2() {
         let mut writer = Writer::default();
 
-        writer.root(AtomKind::Star);
-        writer.extend(BondKind::Single, AtomKind::Star);
+        writer.root(AtomKind::Symbol(Symbol::Star));
+        writer.extend(BondKind::Single, AtomKind::Symbol(Symbol::Star));
 
         assert_eq!(writer.write(), "*-*")
     }
@@ -85,8 +87,8 @@ mod write {
     fn p1_p1() {
         let mut writer = Writer::default();
 
-        writer.root(AtomKind::Star);
-        writer.root(AtomKind::Star);
+        writer.root(AtomKind::Symbol(Symbol::Star));
+        writer.root(AtomKind::Symbol(Symbol::Star));
 
         assert_eq!(writer.write(), "*.*")
     }
@@ -95,9 +97,9 @@ mod write {
     fn p3() {
         let mut writer = Writer::default();
 
-        writer.root(AtomKind::Star);
-        writer.extend(BondKind::Single, AtomKind::Star);
-        writer.extend(BondKind::Single, AtomKind::Star);
+        writer.root(AtomKind::Symbol(Symbol::Star));
+        writer.extend(BondKind::Single, AtomKind::Symbol(Symbol::Star));
+        writer.extend(BondKind::Single, AtomKind::Symbol(Symbol::Star));
 
         assert_eq!(writer.write(), "*-*-*")
     }
@@ -106,10 +108,16 @@ mod write {
     fn p3_branched() {
         let mut writer = Writer::default();
 
-        writer.root(AtomKind::Star);
-        writer.extend(BondKind::Elided, AtomKind::Aliphatic(Element::F));
+        writer.root(AtomKind::Symbol(Symbol::Star));
+        writer.extend(
+            BondKind::Elided,
+            AtomKind::Symbol(Symbol::Aliphatic(Element::F)),
+        );
         writer.pop(1);
-        writer.extend(BondKind::Elided, AtomKind::Aliphatic(Element::Cl));
+        writer.extend(
+            BondKind::Elided,
+            AtomKind::Symbol(Symbol::Aliphatic(Element::Cl)),
+        );
 
         assert_eq!(writer.write(), "*(F)Cl")
     }
@@ -118,10 +126,10 @@ mod write {
     fn c3() {
         let mut writer = Writer::default();
 
-        writer.root(AtomKind::Star);
+        writer.root(AtomKind::Symbol(Symbol::Star));
         writer.join(BondKind::Single, Rnum::new(1));
-        writer.extend(BondKind::Single, AtomKind::Star);
-        writer.extend(BondKind::Double, AtomKind::Star);
+        writer.extend(BondKind::Single, AtomKind::Symbol(Symbol::Star));
+        writer.extend(BondKind::Double, AtomKind::Symbol(Symbol::Star));
         writer.join(BondKind::Single, Rnum::new(1));
 
         assert_eq!(writer.write(), "*-1-*=*-1")
@@ -131,9 +139,9 @@ mod write {
     fn c3_branched() {
         let mut writer = Writer::default();
 
-        writer.root(AtomKind::Star);
-        writer.extend(BondKind::Elided, AtomKind::Star);
-        writer.extend(BondKind::Elided, AtomKind::Star);
+        writer.root(AtomKind::Symbol(Symbol::Star));
+        writer.extend(BondKind::Elided, AtomKind::Symbol(Symbol::Star));
+        writer.extend(BondKind::Elided, AtomKind::Symbol(Symbol::Star));
         writer.join(BondKind::Elided, Rnum::new(1));
         writer.pop(2);
         writer.join(BondKind::Elided, Rnum::new(1));
@@ -145,13 +153,13 @@ mod write {
     fn nested_branch() {
         let mut writer = Writer::default();
 
-        writer.root(AtomKind::Star);
-        writer.extend(BondKind::Elided, AtomKind::Star);
-        writer.extend(BondKind::Single, AtomKind::Star);
+        writer.root(AtomKind::Symbol(Symbol::Star));
+        writer.extend(BondKind::Elided, AtomKind::Symbol(Symbol::Star));
+        writer.extend(BondKind::Single, AtomKind::Symbol(Symbol::Star));
         writer.pop(1);
-        writer.extend(BondKind::Elided, AtomKind::Star);
+        writer.extend(BondKind::Elided, AtomKind::Symbol(Symbol::Star));
         writer.pop(2);
-        writer.extend(BondKind::Double, AtomKind::Star);
+        writer.extend(BondKind::Double, AtomKind::Symbol(Symbol::Star));
 
         assert_eq!(writer.write(), "*(*(-*)*)=*")
     }
