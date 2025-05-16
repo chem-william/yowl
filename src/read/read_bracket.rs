@@ -146,6 +146,22 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     #[test]
+    fn a_x() {
+        let mut scanner = Scanner::new("[Ax]");
+        let atom = read_bracket(&mut scanner);
+
+        assert_eq!(atom, Err(ReadError::Character(2)))
+    }
+
+    #[test]
+    fn t_x() {
+        let mut scanner = Scanner::new("[Tx]");
+        let atom = read_bracket(&mut scanner);
+
+        assert_eq!(atom, Err(ReadError::Character(2)))
+    }
+
+    #[test]
     fn overflow_map() {
         let mut scanner = Scanner::new("[*:1000]");
 

@@ -136,22 +136,6 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     #[test]
-    fn a_x() {
-        let mut scanner = Scanner::new("Ax");
-        let atom = read_organic(&mut scanner);
-
-        assert_eq!(atom, Err(ReadError::Character(1)))
-    }
-
-    #[test]
-    fn t_x() {
-        let mut scanner = Scanner::new("Tx");
-        let atom = read_organic(&mut scanner);
-
-        assert_eq!(atom, Err(ReadError::Character(1)))
-    }
-
-    #[test]
     fn b_x() {
         let mut scanner = Scanner::new("Bx");
         let atom = read_organic(&mut scanner);
