@@ -147,7 +147,7 @@ impl ElementExt for Element {
             "Lv" => Element::Lv,
             "Ts" => Element::Ts,
             "Og" => Element::Og,
-            other => panic!("Unknown element symbol: `{}`", other),
+            other => panic!("Unknown element symbol: `{other}`"),
         }
     }
 }
