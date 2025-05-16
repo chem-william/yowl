@@ -8,6 +8,7 @@ mod rnum;
 mod virtual_hydrogen;
 
 pub use atom_kind::AtomKind;
+pub use atom_kind::Symbol;
 pub use bond_kind::BondKind;
 pub use bracket_symbol::BracketSymbol;
 pub use charge::Charge;

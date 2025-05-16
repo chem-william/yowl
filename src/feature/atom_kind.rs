@@ -2,18 +2,23 @@ use std::fmt;
 
 use mendeleev::{Element, Isotope};
 
-use super::{BracketSymbol, Charge, Configuration, VirtualHydrogen};
+use super::{Charge, Configuration, VirtualHydrogen};
 use crate::feature::element_ext::ElementExt;
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum Symbol {
+    Star,
+    Aliphatic(Element),
+    Aromatic(Element),
+}
 
 /// Minimal context-sensitive representation of an atom kind.
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum AtomKind {
-    Star,
-    Aliphatic(Element),
-    Aromatic(Element),
+    Symbol(Symbol),
     Bracket {
         isotope: Option<Isotope>,
-        symbol: BracketSymbol,
+        symbol: Symbol,
         configuration: Option<Configuration>,
         hcount: Option<VirtualHydrogen>,
         charge: Option<Charge>,
@@ -86,11 +91,11 @@ impl AtomKind {
     /// Returns true if the kind was defined as being aromatic.
     pub const fn is_aromatic(&self) -> bool {
         match self {
-            Self::Aromatic(_) => true,
-            Self::Aliphatic(_) | Self::Star => false,
+            Self::Symbol(Symbol::Aromatic(_)) => true,
+            Self::Symbol(Symbol::Aliphatic(_)) | Self::Symbol(Symbol::Star) => false,
             Self::Bracket { symbol, .. } => match symbol {
-                BracketSymbol::Aromatic(_) => true,
-                BracketSymbol::Element(_) | BracketSymbol::Star => false,
+                Symbol::Aromatic(_) => true,
+                Symbol::Aliphatic(_) | Symbol::Star => false,
             },
         }
     }
@@ -98,13 +103,13 @@ impl AtomKind {
     /// Returns the valence targets for this atom kind.
     pub fn targets(&self) -> &[u8] {
         match self {
-            Self::Star => &[],
-            Self::Aliphatic(aliphatic) => aliphatic.targets(),
-            Self::Aromatic(aromatic) => aromatic.targets(),
+            Self::Symbol(Symbol::Star) => &[],
+            Self::Symbol(Symbol::Aliphatic(aliphatic)) => aliphatic.targets(),
+            Self::Symbol(Symbol::Aromatic(aromatic)) => aromatic.targets(),
             Self::Bracket { symbol, charge, .. } => match symbol {
-                BracketSymbol::Star => &[],
-                BracketSymbol::Aromatic(element) => elemental_targets(*element, *charge),
-                BracketSymbol::Element(element) => elemental_targets(*element, *charge),
+                Symbol::Star => &[],
+                Symbol::Aromatic(element) => elemental_targets(*element, *charge),
+                Symbol::Aliphatic(element) => elemental_targets(*element, *charge),
             },
         }
     }
@@ -206,9 +211,11 @@ const EMPTY_TARGET: [u8; 0] = [];
 impl fmt::Display for AtomKind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::Star => write!(f, "*"),
-            Self::Aliphatic(element) => write!(f, "{}", element.symbol()),
-            Self::Aromatic(element) => write!(f, "{}", element.symbol().to_lowercase()),
+            Self::Symbol(Symbol::Star) => write!(f, "*"),
+            Self::Symbol(Symbol::Aliphatic(element)) => write!(f, "{}", element.symbol()),
+            Self::Symbol(Symbol::Aromatic(element)) => {
+                write!(f, "{}", element.symbol().to_lowercase())
+            }
             Self::Bracket {
                 isotope,
                 symbol,
@@ -224,11 +231,9 @@ impl fmt::Display for AtomKind {
                 }
 
                 match symbol {
-                    BracketSymbol::Star => write!(f, "*")?,
-                    BracketSymbol::Element(element) => write!(f, "{}", element.symbol())?,
-                    BracketSymbol::Aromatic(element) => {
-                        write!(f, "{}", element.symbol().to_lowercase())?
-                    }
+                    Symbol::Star => write!(f, "*")?,
+                    Symbol::Aliphatic(element) => write!(f, "{}", element.symbol())?,
+                    Symbol::Aromatic(element) => write!(f, "{}", element.symbol().to_lowercase())?,
                 }
 
                 if let Some(configuration) = configuration {
@@ -260,12 +265,12 @@ mod invert {
 
     #[test]
     fn aliphatic_organic() {
-        let mut kind = AtomKind::Aliphatic(Element::C);
+        let mut kind = AtomKind::Symbol(Symbol::Aliphatic(Element::C));
 
         kind.invert_configuration();
 
         match kind {
-            AtomKind::Aliphatic(_) => (),
+            AtomKind::Symbol(Symbol::Aliphatic(_)) => (),
             _ => panic!("expected aliphatic"),
         }
     }
@@ -274,7 +279,7 @@ mod invert {
     fn th1_h_none() {
         let mut kind = AtomKind::Bracket {
             isotope: None,
-            symbol: BracketSymbol::Star,
+            symbol: Symbol::Star,
             configuration: Some(Configuration::TH1),
             hcount: None,
             charge: None,
@@ -295,7 +300,7 @@ mod invert {
     fn th1_h1() {
         let mut kind = AtomKind::Bracket {
             isotope: None,
-            symbol: BracketSymbol::Star,
+            symbol: Symbol::Star,
             configuration: Some(Configuration::TH1),
             hcount: Some(VirtualHydrogen::H1),
             charge: None,
@@ -316,7 +321,7 @@ mod invert {
     fn th2_h1() {
         let mut kind = AtomKind::Bracket {
             isotope: None,
-            symbol: BracketSymbol::Star,
+            symbol: Symbol::Star,
             configuration: Some(Configuration::TH2),
             hcount: Some(VirtualHydrogen::H1),
             charge: None,
@@ -335,23 +340,35 @@ mod invert {
 
     #[test]
     fn is_aromatic_unbracketed() {
-        assert!(!AtomKind::Star.is_aromatic());
-        assert!(!AtomKind::Aliphatic(Element::N).is_aromatic());
-        assert!(AtomKind::Aromatic(Element::N).is_aromatic());
+        assert!(!AtomKind::Symbol(Symbol::Star).is_aromatic());
+        assert!(!AtomKind::Symbol(Symbol::Aliphatic(Element::N)).is_aromatic());
+        assert!(AtomKind::Symbol(Symbol::Aromatic(Element::N)).is_aromatic());
     }
 
     #[test]
     fn display_simple_kinds() {
-        assert_eq!(AtomKind::Star.to_string(), "*");
-        assert_eq!(AtomKind::Aliphatic(Element::Br).to_string(), "Br");
-        assert_eq!(AtomKind::Aromatic(Element::S).to_string(), "s");
+        assert_eq!(AtomKind::Symbol(Symbol::Star).to_string(), "*");
+        assert_eq!(
+            AtomKind::Symbol(Symbol::Aliphatic(Element::Br)).to_string(),
+            "Br"
+        );
+        assert_eq!(
+            AtomKind::Symbol(Symbol::Aromatic(Element::S)).to_string(),
+            "s"
+        );
     }
 
     #[test]
     fn targets_star_and_alph_and_arom() {
         let empty: &[u8] = &[];
-        assert_eq!(AtomKind::Star.targets(), empty);
-        assert_eq!(AtomKind::Aliphatic(Element::S).targets(), &[2, 4, 6]);
-        assert_eq!(AtomKind::Aromatic(Element::P).targets(), &[3, 5]);
+        assert_eq!(AtomKind::Symbol(Symbol::Star).targets(), empty);
+        assert_eq!(
+            AtomKind::Symbol(Symbol::Aliphatic(Element::S)).targets(),
+            &[2, 4, 6]
+        );
+        assert_eq!(
+            AtomKind::Symbol(Symbol::Aromatic(Element::P)).targets(),
+            &[3, 5]
+        );
     }
 }

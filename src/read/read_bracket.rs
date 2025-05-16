@@ -4,7 +4,7 @@ use super::{
     error::ReadError, missing_character, read_charge, read_configuration, read_symbol,
     scanner::Scanner,
 };
-use crate::feature::{AtomKind, BracketSymbol, VirtualHydrogen};
+use crate::feature::{AtomKind, Symbol, VirtualHydrogen};
 
 fn lex_bracket_contents(scanner: &mut Scanner) -> Result<AtomKind, ReadError> {
     // (We know the '[' was already popped by read_bracket)
@@ -15,7 +15,7 @@ fn lex_bracket_contents(scanner: &mut Scanner) -> Result<AtomKind, ReadError> {
     let symbol = read_symbol(scanner)?;
 
     // Build optional `Isotope` only if `symbol` is an [`Element`]
-    let isotope = if let BracketSymbol::Element(el) = symbol {
+    let isotope = if let Some(Symbol::Aliphatic(el)) = symbol {
         iso_num_opt.and_then(|mass| {
             Isotope::list()
                 .iter()
@@ -41,7 +41,7 @@ fn lex_bracket_contents(scanner: &mut Scanner) -> Result<AtomKind, ReadError> {
 
     Ok(AtomKind::Bracket {
         isotope,
-        symbol,
+        symbol: symbol.unwrap(),
         configuration,
         hcount,
         charge,
@@ -141,7 +141,7 @@ fn read_map(scanner: &mut Scanner) -> Result<Option<u16>, ReadError> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::feature::{BracketSymbol, Charge, Configuration};
+    use crate::feature::{Charge, Configuration, Symbol};
     use mendeleev::Element;
     use pretty_assertions::assert_eq;
 
@@ -202,7 +202,7 @@ mod tests {
             read_bracket(&mut scanner),
             Ok(Some(AtomKind::Bracket {
                 isotope: None,
-                symbol: BracketSymbol::Star,
+                symbol: Symbol::Star,
                 configuration: None,
                 hcount: None,
                 charge: None,
@@ -219,7 +219,7 @@ mod tests {
             read_bracket(&mut scanner),
             Ok(Some(AtomKind::Bracket {
                 isotope: None,
-                symbol: BracketSymbol::Star,
+                symbol: Symbol::Star,
                 configuration: None,
                 hcount: None,
                 charge: None,
@@ -236,7 +236,7 @@ mod tests {
             read_bracket(&mut scanner),
             Ok(Some(AtomKind::Bracket {
                 isotope: None,
-                symbol: BracketSymbol::Star,
+                symbol: Symbol::Star,
                 configuration: Some(Configuration::TH1),
                 hcount: None,
                 charge: None,
@@ -253,7 +253,7 @@ mod tests {
             read_bracket(&mut scanner),
             Ok(Some(AtomKind::Bracket {
                 isotope: None,
-                symbol: BracketSymbol::Star,
+                symbol: Symbol::Star,
                 configuration: None,
                 hcount: Some(VirtualHydrogen::H2),
                 charge: None,
@@ -270,7 +270,7 @@ mod tests {
             read_bracket(&mut scanner),
             Ok(Some(AtomKind::Bracket {
                 isotope: None,
-                symbol: BracketSymbol::Star,
+                symbol: Symbol::Star,
                 configuration: None,
                 hcount: None,
                 charge: Charge::new(1),
@@ -287,7 +287,7 @@ mod tests {
             read_bracket(&mut scanner),
             Ok(Some(AtomKind::Bracket {
                 isotope: None,
-                symbol: BracketSymbol::Star,
+                symbol: Symbol::Star,
                 configuration: None,
                 hcount: None,
                 charge: None,
@@ -304,7 +304,7 @@ mod tests {
             read_bracket(&mut scanner),
             Ok(Some(AtomKind::Bracket {
                 isotope: None,
-                symbol: BracketSymbol::Aromatic(Element::S),
+                symbol: Symbol::Aromatic(Element::S),
                 configuration: None,
                 hcount: None,
                 charge: Charge::new(1),

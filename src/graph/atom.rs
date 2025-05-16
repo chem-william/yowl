@@ -70,7 +70,7 @@ mod subvalence {
     use mendeleev::Element;
 
     use super::*;
-    use crate::feature::{BondKind, BracketSymbol, Charge, VirtualHydrogen};
+    use crate::feature::{BondKind, Charge, VirtualHydrogen};
 
     #[test]
     fn star() {
@@ -221,7 +221,7 @@ mod subvalence {
 #[cfg(test)]
 mod suppressed_hydrogens {
     use super::*;
-    use crate::feature::{BondKind, BracketSymbol, Symbol, VirtualHydrogen};
+    use crate::feature::{BondKind, Symbol, VirtualHydrogen};
     use mendeleev::Element;
     use pretty_assertions::assert_eq;
 

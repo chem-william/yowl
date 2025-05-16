@@ -1,13 +1,13 @@
 use super::{error::ReadError, missing_character::missing_character, scanner::Scanner};
-use crate::feature::BracketSymbol;
+use crate::feature::Symbol;
 use mendeleev::Element;
 
-pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, ReadError> {
+pub fn read_symbol(scanner: &mut Scanner) -> Result<Option<Symbol>, ReadError> {
     match scanner.peek() {
         Some('*') => {
             scanner.pop();
 
-            Ok(BracketSymbol::Star)
+            Ok(Some(Symbol::Star))
         }
         Some('a') => {
             scanner.pop();
@@ -28,7 +28,7 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, ReadError> {
             match scanner.peek() {
                 Some('e') => aromatic(Element::Se, scanner),
                 Some('i') => aromatic(Element::Si, scanner),
-                _ => Ok(BracketSymbol::Aromatic(Element::S)),
+                _ => Ok(Some(Symbol::Aromatic(Element::S))),
             }
         }
         Some('t') => {
@@ -63,7 +63,7 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, ReadError> {
                 Some('i') => element(Element::Bi, scanner),
                 Some('k') => element(Element::Bk, scanner),
                 Some('r') => element(Element::Br, scanner),
-                _ => Ok(BracketSymbol::Element(Element::B)),
+                _ => Ok(Some(Symbol::Aliphatic(Element::B))),
             }
         }
         Some('C') => {
@@ -81,7 +81,7 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, ReadError> {
                 Some('r') => element(Element::Cr, scanner),
                 Some('s') => element(Element::Cs, scanner),
                 Some('u') => element(Element::Cu, scanner),
-                _ => Ok(BracketSymbol::Element(Element::C)),
+                _ => Ok(Some(Symbol::Aliphatic(Element::C))),
             }
         }
         Some('D') => {
@@ -112,7 +112,7 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, ReadError> {
                 Some('l') => element(Element::Fl, scanner),
                 Some('m') => element(Element::Fm, scanner),
                 Some('r') => element(Element::Fr, scanner),
-                _ => Ok(BracketSymbol::Element(Element::F)),
+                _ => Ok(Some(Symbol::Aliphatic(Element::F))),
             }
         }
         Some('G') => {
@@ -122,7 +122,7 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, ReadError> {
                 Some('a') => element(Element::Ga, scanner),
                 Some('d') => element(Element::Gd, scanner),
                 Some('e') => element(Element::Ge, scanner),
-                _ => Ok(BracketSymbol::Element(Element::F)),
+                _ => Ok(Some(Symbol::Aliphatic(Element::F))),
             }
         }
         Some('H') => {
@@ -134,7 +134,7 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, ReadError> {
                 Some('g') => element(Element::Hg, scanner),
                 Some('o') => element(Element::Ho, scanner),
                 Some('s') => element(Element::Hs, scanner),
-                _ => Ok(BracketSymbol::Element(Element::H)),
+                _ => Ok(Some(Symbol::Aliphatic(Element::H))),
             }
         }
         Some('I') => {
@@ -143,7 +143,7 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, ReadError> {
             match scanner.peek() {
                 Some('n') => element(Element::In, scanner),
                 Some('r') => element(Element::Ir, scanner),
-                _ => Ok(BracketSymbol::Element(Element::I)),
+                _ => Ok(Some(Symbol::Aliphatic(Element::I))),
             }
         }
         Some('K') => {
@@ -151,7 +151,7 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, ReadError> {
 
             match scanner.peek() {
                 Some('r') => element(Element::Kr, scanner),
-                _ => Ok(BracketSymbol::Element(Element::K)),
+                _ => Ok(Some(Symbol::Aliphatic(Element::K))),
             }
         }
         Some('L') => {
@@ -191,7 +191,7 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, ReadError> {
                 Some('i') => element(Element::Ni, scanner),
                 Some('o') => element(Element::No, scanner),
                 Some('p') => element(Element::Np, scanner),
-                _ => Ok(BracketSymbol::Element(Element::N)),
+                _ => Ok(Some(Symbol::Aliphatic(Element::N))),
             }
         }
         Some('O') => {
@@ -200,7 +200,7 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, ReadError> {
             match scanner.peek() {
                 Some('g') => element(Element::Og, scanner),
                 Some('s') => element(Element::Os, scanner),
-                _ => Ok(BracketSymbol::Element(Element::O)),
+                _ => Ok(Some(Symbol::Aliphatic(Element::O))),
             }
         }
         Some('P') => {
@@ -215,7 +215,7 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, ReadError> {
                 Some('r') => element(Element::Pr, scanner),
                 Some('t') => element(Element::Pt, scanner),
                 Some('u') => element(Element::Pu, scanner),
-                _ => Ok(BracketSymbol::Element(Element::P)),
+                _ => Ok(Some(Symbol::Aliphatic(Element::P))),
             }
         }
         Some('R') => {
@@ -245,7 +245,7 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, ReadError> {
                 Some('m') => element(Element::Sm, scanner),
                 Some('n') => element(Element::Sn, scanner),
                 Some('r') => element(Element::Sr, scanner),
-                _ => Ok(BracketSymbol::Element(Element::S)),
+                _ => Ok(Some(Symbol::Aliphatic(Element::S))),
             }
         }
         Some('T') => {
@@ -282,7 +282,7 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, ReadError> {
                         _ => Err(missing_character(scanner)),
                     }
                 }
-                _ => Ok(BracketSymbol::Element(Element::U)),
+                _ => Ok(Some(Symbol::Aliphatic(Element::U))),
             }
         }
         Some('V') => element(Element::V, scanner),
@@ -300,7 +300,7 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, ReadError> {
 
             match scanner.peek() {
                 Some('b') => element(Element::Yb, scanner),
-                _ => Ok(BracketSymbol::Element(Element::Y)),
+                _ => Ok(Some(Symbol::Aliphatic(Element::Y))),
             }
         }
         Some('Z') => {
@@ -316,16 +316,16 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<BracketSymbol, ReadError> {
     }
 }
 
-fn aromatic(element: Element, scanner: &mut Scanner) -> Result<BracketSymbol, ReadError> {
+fn aromatic(element: Element, scanner: &mut Scanner) -> Result<Option<Symbol>, ReadError> {
     scanner.pop();
 
-    Ok(BracketSymbol::Aromatic(element))
+    Ok(Some(Symbol::Aromatic(element)))
 }
 
-fn element(element: Element, scanner: &mut Scanner) -> Result<BracketSymbol, ReadError> {
+fn element(element: Element, scanner: &mut Scanner) -> Result<Option<Symbol>, ReadError> {
     scanner.pop();
 
-    Ok(BracketSymbol::Element(element))
+    Ok(Some(Symbol::Aliphatic(element)))
 }
 
 #[cfg(test)]
@@ -333,7 +333,7 @@ mod follower {
     use mendeleev::Element;
 
     use crate::{
-        feature::BracketSymbol,
+        feature::Symbol,
         read::{read_symbol, ReadError, Scanner},
     };
 
@@ -383,7 +383,7 @@ mod follower {
 
             assert_eq!(
                 read_symbol(&mut scanner),
-                Ok(BracketSymbol::Aromatic(aromatic))
+                Ok(Some(Symbol::Aromatic(aromatic)))
             );
             assert_eq!(scanner.cursor(), cursor)
         }
@@ -528,7 +528,7 @@ mod follower {
             let mut scanner = Scanner::new(input);
             let symbol = read_symbol(&mut scanner);
 
-            assert_eq!(symbol, Ok(BracketSymbol::Element(element)));
+            assert_eq!(symbol, Ok(Some(Symbol::Aliphatic(element))));
             assert_eq!(scanner.cursor(), cursor)
         }
     }

@@ -1,6 +1,8 @@
 use mendeleev::Element;
 
-use super::{error::ReadError, missing_character::missing_character, scanner::Scanner};
+use super::{
+    error::ReadError, missing_character::missing_character, read_symbol, scanner::Scanner,
+};
 use crate::feature::{AtomKind, Symbol};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
