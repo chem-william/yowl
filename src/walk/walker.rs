@@ -146,7 +146,7 @@ mod tests {
     use mendeleev::Element;
 
     use super::*;
-    use crate::feature::{AtomKind, BondKind};
+    use crate::feature::{AtomKind, BondKind, Symbol};
     use crate::graph::Bond;
     use crate::write::Writer;
 
@@ -156,11 +156,11 @@ mod tests {
         let mut writer = Writer::default();
         let graph = vec![
             Atom {
-                kind: AtomKind::Aliphatic(Element::C),
+                kind: AtomKind::Symbol(Symbol::Aliphatic(Element::C)),
                 bonds: vec![Bond::new(BondKind::Elided, 1)],
             },
             Atom {
-                kind: AtomKind::Aliphatic(Element::O),
+                kind: AtomKind::Symbol(Symbol::Aliphatic(Element::O)),
                 bonds: vec![Bond::new(BondKind::Elided, 0)],
             },
         ];
@@ -174,11 +174,11 @@ mod tests {
         let mut writer = Writer::default();
         let graph = vec![
             Atom {
-                kind: AtomKind::Aliphatic(Element::C),
+                kind: AtomKind::Symbol(Symbol::Aliphatic(Element::C)),
                 bonds: vec![],
             },
             Atom {
-                kind: AtomKind::Aliphatic(Element::O),
+                kind: AtomKind::Symbol(Symbol::Aliphatic(Element::O)),
                 bonds: vec![],
             },
         ];
@@ -192,28 +192,28 @@ mod tests {
         let mut writer = Writer::default();
         let graph = vec![
             Atom {
-                kind: AtomKind::Aliphatic(Element::C),
+                kind: AtomKind::Symbol(Symbol::Aliphatic(Element::C)),
                 bonds: vec![
                     Bond::new(BondKind::Single, 1),
                     Bond::new(BondKind::Single, 3),
                 ],
             },
             Atom {
-                kind: AtomKind::Aliphatic(Element::C),
+                kind: AtomKind::Symbol(Symbol::Aliphatic(Element::C)),
                 bonds: vec![
                     Bond::new(BondKind::Single, 0),
                     Bond::new(BondKind::Single, 2),
                 ],
             },
             Atom {
-                kind: AtomKind::Aliphatic(Element::C),
+                kind: AtomKind::Symbol(Symbol::Aliphatic(Element::C)),
                 bonds: vec![
                     Bond::new(BondKind::Single, 1),
                     Bond::new(BondKind::Single, 3),
                 ],
             },
             Atom {
-                kind: AtomKind::Aliphatic(Element::C),
+                kind: AtomKind::Symbol(Symbol::Aliphatic(Element::C)),
                 bonds: vec![
                     Bond::new(BondKind::Single, 0),
                     Bond::new(BondKind::Single, 2),
@@ -235,35 +235,35 @@ mod tests {
         let mut writer = Writer::default();
         let graph = vec![
             Atom {
-                kind: AtomKind::Aliphatic(Element::C),
+                kind: AtomKind::Symbol(Symbol::Aliphatic(Element::C)),
                 bonds: vec![
                     Bond::new(BondKind::Single, 1),
                     Bond::new(BondKind::Double, 4),
                 ],
             },
             Atom {
-                kind: AtomKind::Aliphatic(Element::C),
+                kind: AtomKind::Symbol(Symbol::Aliphatic(Element::C)),
                 bonds: vec![
                     Bond::new(BondKind::Single, 0),
                     Bond::new(BondKind::Single, 2),
                 ],
             },
             Atom {
-                kind: AtomKind::Aliphatic(Element::C),
+                kind: AtomKind::Symbol(Symbol::Aliphatic(Element::C)),
                 bonds: vec![
                     Bond::new(BondKind::Single, 1),
                     Bond::new(BondKind::Single, 3),
                 ],
             },
             Atom {
-                kind: AtomKind::Aliphatic(Element::C),
+                kind: AtomKind::Symbol(Symbol::Aliphatic(Element::C)),
                 bonds: vec![
                     Bond::new(BondKind::Single, 2),
                     Bond::new(BondKind::Single, 4),
                 ],
             },
             Atom {
-                kind: AtomKind::Aliphatic(Element::C),
+                kind: AtomKind::Symbol(Symbol::Aliphatic(Element::C)),
                 bonds: vec![
                     Bond::new(BondKind::Double, 0),
                     Bond::new(BondKind::Single, 3),
@@ -285,35 +285,35 @@ mod tests {
         let mut writer = Writer::default();
         let graph = vec![
             Atom {
-                kind: AtomKind::Aliphatic(Element::C),
+                kind: AtomKind::Symbol(Symbol::Aliphatic(Element::C)),
                 bonds: vec![
                     Bond::new(BondKind::Double, 1),
                     Bond::new(BondKind::Single, 4),
                 ],
             },
             Atom {
-                kind: AtomKind::Aliphatic(Element::C),
+                kind: AtomKind::Symbol(Symbol::Aliphatic(Element::C)),
                 bonds: vec![
                     Bond::new(BondKind::Double, 0),
                     Bond::new(BondKind::Single, 2),
                 ],
             },
             Atom {
-                kind: AtomKind::Aliphatic(Element::C),
+                kind: AtomKind::Symbol(Symbol::Aliphatic(Element::C)),
                 bonds: vec![
                     Bond::new(BondKind::Single, 1),
                     Bond::new(BondKind::Single, 3),
                 ],
             },
             Atom {
-                kind: AtomKind::Aliphatic(Element::C),
+                kind: AtomKind::Symbol(Symbol::Aliphatic(Element::C)),
                 bonds: vec![
                     Bond::new(BondKind::Single, 2),
                     Bond::new(BondKind::Double, 4),
                 ],
             },
             Atom {
-                kind: AtomKind::Aliphatic(Element::C),
+                kind: AtomKind::Symbol(Symbol::Aliphatic(Element::C)),
                 bonds: vec![
                     Bond::new(BondKind::Double, 3),
                     Bond::new(BondKind::Single, 0),
@@ -330,11 +330,11 @@ mod tests {
         let mut writer = Writer::default();
         let graph = vec![
             Atom {
-                kind: AtomKind::Star,
+                kind: AtomKind::Symbol(Symbol::Star),
                 bonds: vec![Bond::new(BondKind::Up, 1)],
             },
             Atom {
-                kind: AtomKind::Star,
+                kind: AtomKind::Symbol(Symbol::Star),
                 bonds: vec![Bond::new(BondKind::Down, 0)],
             },
         ];
