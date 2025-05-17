@@ -1,19 +1,20 @@
-use std::collections::HashMap;
-
 use super::{Error, Follower};
 use crate::{
     feature::BondKind,
     graph::{Atom, Bond, JoinPool},
 };
 
+/// An identifier for an atom in the graph.
+type AtomId = usize;
+
 /// Performs a depth-first traversal of `graph`, emitting SMILES via the `Follower`.
 pub fn walk<F: Follower>(graph: Vec<Atom>, follower: &mut F) -> Result<(), Error> {
     let num_atoms = graph.len();
-    let mut atoms = graph.into_iter().enumerate().collect::<HashMap<_, _>>();
+    let mut atoms: Vec<Option<Atom>> = graph.into_iter().map(Some).collect();
     let mut pool = JoinPool::new();
 
     for id in 0..num_atoms {
-        if let Some(root_atom) = atoms.remove(&id) {
+        if let Some(root_atom) = atoms[id].take() {
             walk_root(id, root_atom, num_atoms, &mut atoms, follower, &mut pool)?;
         }
     }
@@ -21,10 +22,10 @@ pub fn walk<F: Follower>(graph: Vec<Atom>, follower: &mut F) -> Result<(), Error
 }
 
 fn walk_root<F: Follower>(
-    root_id: usize,
+    root_id: AtomId,
     root_atom: Atom,
     num_atoms: usize,
-    atoms: &mut HashMap<usize, Atom>,
+    atoms: &mut [Option<Atom>],
     follower: &mut F,
     pool: &mut JoinPool,
 ) -> Result<(), Error> {
@@ -41,7 +42,7 @@ fn walk_root<F: Follower>(
         validate_bond_indices(sid, bond.tid, num_atoms)?;
         backtrack_and_pop(sid, &mut chain, follower);
 
-        if let Some(mut child_atom) = atoms.remove(&bond.tid) {
+        if let Some(mut child_atom) = atoms[bond.tid].take() {
             process_tree_edge(
                 sid,
                 &bond,
