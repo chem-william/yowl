@@ -1,5 +1,3 @@
-use crate::Element;
-
 use crate::Isotope;
 
 use super::{
@@ -30,18 +28,9 @@ fn lex_bracket_contents(scanner: &mut Scanner) -> Result<AtomKind, ReadError> {
 
     // 5. The rest are all optional
     let configuration = read_configuration(scanner);
-
-    // remember where we are for eventual error
-    let hcount_pos = scanner.cursor();
     let hcount = read_hcount(scanner);
     let charge = read_charge(scanner);
     let map = read_map(scanner)?;
-
-    if let Some(Symbol::Aliphatic(element)) = symbol {
-        if element == Element::H && hcount.is_some() {
-            return Err(ReadError::Character(hcount_pos));
-        }
-    }
 
     match scanner.peek() {
         Some(']') => {
@@ -151,14 +140,6 @@ mod tests {
     use crate::feature::{Charge, Configuration, Symbol};
     use crate::Element;
     use pretty_assertions::assert_eq;
-
-    #[test]
-    fn hh1() {
-        let mut scanner = Scanner::new("[HH1]");
-        let atom = read_bracket(&mut scanner);
-
-        assert_eq!(atom, Err(ReadError::Character(2)))
-    }
 
     #[test]
     fn a_x() {
