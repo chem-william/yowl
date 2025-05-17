@@ -100,11 +100,7 @@ fn read_isotope(scanner: &mut Scanner) -> Option<u16> {
         }
     }
 
-    if digits.is_empty() {
-        None
-    } else {
-        Some(digits.parse::<u16>().expect("number"))
-    }
+    digits.parse::<u16>().ok()
 }
 
 fn read_map(scanner: &mut Scanner) -> Result<Option<u16>, ReadError> {
