@@ -4,9 +4,6 @@ use crate::{
     graph::{Atom, Bond, JoinPool},
 };
 
-/// An identifier for an atom in the graph.
-type AtomId = usize;
-
 /// Performs a depth-first traversal of `graph`, emitting SMILES via the `Follower`.
 pub fn walk<F: Follower>(graph: Vec<Atom>, follower: &mut F) -> Result<(), Error> {
     let num_atoms = graph.len();
@@ -22,7 +19,7 @@ pub fn walk<F: Follower>(graph: Vec<Atom>, follower: &mut F) -> Result<(), Error
 }
 
 fn walk_root<F: Follower>(
-    root_id: AtomId,
+    root_id: usize,
     root_atom: Atom,
     num_atoms: usize,
     atoms: &mut [Option<Atom>],
