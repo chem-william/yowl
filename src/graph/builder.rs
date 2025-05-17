@@ -48,25 +48,27 @@ impl Builder {
             return Err(error);
         }
 
-        let mut result = Vec::new();
+        self.graph
+            .into_iter()
+            .enumerate()
+            .map(|(idx, node)| {
+                node.check_stereo(idx);
 
-        for node in self.graph {
-            let mut bonds = Vec::new();
+                let bonds = node
+                    .edges
+                    .into_iter()
+                    .map(|edge| match edge.target {
+                        Target::Id(tid) => Ok(Bond::new(edge.kind, tid)),
+                        Target::Rnum(rid, _, _) => Err(Error::Rnum(rid)),
+                    })
+                    .collect::<Result<Vec<_>, _>>()?;
 
-            for edge in node.edges {
-                match edge.target {
-                    Target::Id(tid) => bonds.push(Bond::new(edge.kind, tid)),
-                    Target::Rnum(rid, _, _) => return Err(Error::Rnum(rid)),
-                }
-            }
-
-            result.push(Atom {
-                kind: node.kind,
-                bonds,
-            });
-        }
-
-        Ok(result)
+                Ok(Atom {
+                    kind: node.kind,
+                    bonds,
+                })
+            })
+            .collect()
     }
 }
 
@@ -158,6 +160,41 @@ impl Node {
 
     fn add_edge(&mut self, kind: BondKind, target: Target) {
         self.edges.push(Edge::new(kind, target));
+    }
+
+    /// Ensure there’s at most one stereo-directional bond.
+    ///
+    /// # Panics
+    /// Panic if there are >=2 [`BondKind::Up`] bonds or >=2 [`BondKind::Down`] bonds.
+    fn check_stereo(&self, atom_idx: usize) {
+        let mut up_count = 0;
+        let mut down_count = 0;
+
+        for edge in &self.edges {
+            match edge.kind {
+                BondKind::Up => {
+                    up_count += 1;
+                    if up_count > 1 {
+                        panic!(
+                            "Conflicting stereochemistry (multiple Up bonds) \
+                             at atom index {}: {:?}",
+                            atom_idx, self
+                        );
+                    }
+                }
+                BondKind::Down => {
+                    down_count += 1;
+                    if down_count > 1 {
+                        panic!(
+                            "Conflicting stereochemistry (multiple Down bonds) \
+                             at atom index {}: {:?}",
+                            atom_idx, self
+                        );
+                    }
+                }
+                _ => {}
+            }
+        }
     }
 }
 

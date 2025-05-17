@@ -27,17 +27,18 @@ pub fn read<F: Follower>(
     mut trace: Option<&mut Trace>,
 ) -> Result<(), ReadError> {
     let mut scanner = Scanner::new(smiles);
+    // Did we actually read something?
+    let got_something = read_smiles(None, &mut scanner, follower, &mut trace)?.is_some();
+    let at_end = scanner.is_done();
 
-    if read_smiles(None, &mut scanner, follower, &mut trace)?.is_some() {
-        if scanner.is_done() {
-            Ok(())
-        } else {
-            Err(ReadError::Character(scanner.cursor()))
-        }
-    } else if scanner.is_done() {
-        Err(ReadError::EndOfLine)
-    } else {
-        Err(ReadError::Character(scanner.cursor()))
+    match (got_something, at_end) {
+        // Successfully read and consumed the whole string
+        (true, true) => Ok(()),
+        // Read nothing but exactly at end of input
+        (false, true) => Err(ReadError::EndOfLine),
+        // first: Read nothing and still have chars
+        // second: Read something but there's leftover garbage
+        (false, false) | (true, false) => Err(ReadError::Character(scanner.cursor())),
     }
 }
 

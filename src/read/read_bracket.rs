@@ -14,7 +14,7 @@ fn lex_bracket_contents(scanner: &mut Scanner) -> Result<AtomKind, ReadError> {
     // Read the symbol
     let symbol = read_symbol(scanner)?;
 
-    // Build optional `Isotope` only if `symbol` is an [`Element`]
+    // Build optional `Isotope` only if `symbol` is an `Element`
     let isotope = if let Some(Symbol::Aliphatic(el)) = symbol {
         iso_num_opt.and_then(|mass| {
             Isotope::list()
@@ -100,11 +100,7 @@ fn read_isotope(scanner: &mut Scanner) -> Option<u16> {
         }
     }
 
-    if digits.is_empty() {
-        None
-    } else {
-        Some(digits.parse::<u16>().expect("number"))
-    }
+    digits.parse::<u16>().ok()
 }
 
 fn read_map(scanner: &mut Scanner) -> Result<Option<u16>, ReadError> {
