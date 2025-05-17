@@ -40,6 +40,25 @@ pub struct Builder {
     rid: usize,
 }
 
+fn check_cis_trans_configuration(node: &Node, atom_idx: usize) {
+    let mut seen_directional_bond = false;
+    for edge in &node.edges {
+        match edge.kind {
+            BondKind::Up | BondKind::Down => {
+                if seen_directional_bond {
+                    panic!(
+                        "Conflicting stereochemistry at atom index {}: {:?}",
+                        atom_idx, node
+                    );
+                } else {
+                    seen_directional_bond = true;
+                }
+            }
+            _ => {}
+        }
+    }
+}
+
 impl Builder {
     /// Builds the representation created by using the `Follower` trait
     /// methods.
@@ -50,10 +69,12 @@ impl Builder {
 
         let mut result = Vec::new();
 
-        for node in self.graph {
+        for (idx, node) in self.graph.iter().enumerate() {
             let mut bonds = Vec::new();
 
-            for edge in node.edges {
+            check_cis_trans_configuration(node, idx);
+
+            for edge in &node.edges {
                 match edge.target {
                     Target::Id(tid) => bonds.push(Bond::new(edge.kind, tid)),
                     Target::Rnum(rid, _, _) => return Err(Error::Rnum(rid)),

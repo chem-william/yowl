@@ -111,3 +111,12 @@ fn special_case_temp_iupac_names() {
     let written_smiles = writer.write();
     assert_eq!(written_smiles, expected_smiles);
 }
+
+#[test]
+#[should_panic(expected = "Conflicting stereochemistry at atom index 1")]
+fn check_proper_directionality() {
+    let smiles = "C/C(\\F)=C/F";
+    let mut builder = Builder::default();
+    read(smiles, &mut builder, None).unwrap();
+    builder.build().expect("atoms");
+}
