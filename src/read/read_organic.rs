@@ -1,17 +1,24 @@
-use mendeleev::Element;
+use crate::Element;
 
 use super::{error::ReadError, missing_character::missing_character, scanner::Scanner};
-use crate::feature::AtomKind;
+use crate::feature::{AtomKind, Symbol};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum AtomToken {
     Aromatic(Element),
     Aliphatic(Element),
+    Star,
 }
 
 /// Try to consume one organic‐atom token (e.g. “c” or “Cl”).
 fn next_atom_token(scanner: &mut Scanner) -> Result<Option<AtomToken>, ReadError> {
     match scanner.peek() {
+        // we first check for a star (wildcard element)
+        Some('*') => {
+            scanner.pop();
+            Ok(Some(AtomToken::Star))
+        }
+
         // aromatic (lowercase single letters)
         Some('b') => {
             scanner.pop();
@@ -111,8 +118,9 @@ pub fn read_organic(scanner: &mut Scanner) -> Result<Option<AtomKind>, ReadError
     if let Some(token) = next_atom_token(scanner)? {
         // map raw token → domain type
         let kind = match token {
-            AtomToken::Aromatic(element) => AtomKind::Aromatic(element),
-            AtomToken::Aliphatic(a) => AtomKind::Aliphatic(a),
+            AtomToken::Aromatic(element) => AtomKind::Symbol(Symbol::Aromatic(element)),
+            AtomToken::Aliphatic(a) => AtomKind::Symbol(Symbol::Aliphatic(a)),
+            AtomToken::Star => AtomKind::Symbol(Symbol::Star),
         };
         Ok(Some(kind))
     } else {
@@ -126,27 +134,14 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     #[test]
-    fn a_x() {
-        let mut scanner = Scanner::new("Ax");
-        let atom = read_organic(&mut scanner);
-
-        assert_eq!(atom, Err(ReadError::Character(1)))
-    }
-
-    #[test]
-    fn t_x() {
-        let mut scanner = Scanner::new("Tx");
-        let atom = read_organic(&mut scanner);
-
-        assert_eq!(atom, Err(ReadError::Character(1)))
-    }
-
-    #[test]
     fn b_x() {
         let mut scanner = Scanner::new("Bx");
         let atom = read_organic(&mut scanner);
 
-        assert_eq!(atom, Ok(Some(AtomKind::Aliphatic(Element::B))))
+        assert_eq!(
+            atom,
+            Ok(Some(AtomKind::Symbol(Symbol::Aliphatic(Element::B))))
+        )
     }
 
     #[test]
@@ -154,7 +149,10 @@ mod tests {
         let mut scanner = Scanner::new("Cx");
         let atom = read_organic(&mut scanner);
 
-        assert_eq!(atom, Ok(Some(AtomKind::Aliphatic(Element::C))))
+        assert_eq!(
+            atom,
+            Ok(Some(AtomKind::Symbol(Symbol::Aliphatic(Element::C))))
+        )
     }
 
     #[test]
@@ -172,7 +170,7 @@ mod tests {
             let mut scanner = Scanner::new(inp);
             let atom = read_organic(&mut scanner);
 
-            assert_eq!(atom, Ok(Some(AtomKind::Aromatic(out))))
+            assert_eq!(atom, Ok(Some(AtomKind::Symbol(Symbol::Aromatic(out)))))
         }
     }
 
@@ -181,6 +179,9 @@ mod tests {
         let mut scanner = Scanner::new("Cl");
         let atom = read_organic(&mut scanner);
 
-        assert_eq!(atom, Ok(Some(AtomKind::Aliphatic(Element::Cl))))
+        assert_eq!(
+            atom,
+            Ok(Some(AtomKind::Symbol(Symbol::Aliphatic(Element::Cl))))
+        )
     }
 }

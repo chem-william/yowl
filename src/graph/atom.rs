@@ -1,5 +1,5 @@
 use super::Bond;
-use crate::feature::AtomKind;
+use crate::feature::{AtomKind, Symbol};
 
 /// Atom used in graph-like (adjacency) SMILES representation.
 #[derive(Debug, PartialEq)]
@@ -50,15 +50,15 @@ impl Atom {
     pub fn suppressed_hydrogens(&self) -> u8 {
         let subvalence = self.subvalence();
         match &self.kind {
-            AtomKind::Star => 0,
-            AtomKind::Aromatic(_) => {
+            AtomKind::Symbol(Symbol::Star) => 0,
+            AtomKind::Symbol(Symbol::Aromatic(_)) => {
                 if subvalence > 1 {
                     subvalence - 1
                 } else {
                     0
                 }
             }
-            AtomKind::Aliphatic(_) => subvalence,
+            AtomKind::Symbol(Symbol::Aliphatic(_)) => subvalence,
 
             AtomKind::Bracket { hcount, .. } => hcount.as_ref().map_or(0, std::convert::Into::into),
         }
@@ -67,15 +67,15 @@ impl Atom {
 
 #[cfg(test)]
 mod subvalence {
-    use mendeleev::Element;
+    use crate::Element;
 
     use super::*;
-    use crate::feature::{BondKind, BracketSymbol, Charge, VirtualHydrogen};
+    use crate::feature::{BondKind, Charge, VirtualHydrogen};
 
     #[test]
     fn star() {
         let atom = Atom {
-            kind: AtomKind::Star,
+            kind: AtomKind::Symbol(Symbol::Star),
             bonds: vec![],
         };
 
@@ -85,7 +85,7 @@ mod subvalence {
     #[test]
     fn star_single() {
         let atom = Atom {
-            kind: AtomKind::Star,
+            kind: AtomKind::Symbol(Symbol::Star),
             bonds: vec![Bond::new(BondKind::Single, 1)],
         };
 
@@ -95,7 +95,7 @@ mod subvalence {
     #[test]
     fn carbon_single() {
         let atom = Atom {
-            kind: AtomKind::Aliphatic(Element::C),
+            kind: AtomKind::Symbol(Symbol::Aliphatic(Element::C)),
             bonds: vec![Bond::new(BondKind::Single, 1)],
         };
 
@@ -105,7 +105,7 @@ mod subvalence {
     #[test]
     fn aromatic_carbon_single() {
         let atom = Atom {
-            kind: AtomKind::Aromatic(Element::C),
+            kind: AtomKind::Symbol(Symbol::Aromatic(Element::C)),
             bonds: vec![Bond::new(BondKind::Single, 1)],
         };
 
@@ -117,7 +117,7 @@ mod subvalence {
         let atom = Atom {
             kind: AtomKind::Bracket {
                 isotope: None,
-                symbol: BracketSymbol::Star,
+                symbol: Symbol::Star,
                 configuration: None,
                 hcount: None,
                 charge: None,
@@ -134,7 +134,7 @@ mod subvalence {
         let atom = Atom {
             kind: AtomKind::Bracket {
                 isotope: None,
-                symbol: BracketSymbol::Element(Element::C),
+                symbol: Symbol::Aliphatic(Element::C),
                 configuration: None,
                 hcount: Some(VirtualHydrogen::H1),
                 charge: None,
@@ -151,7 +151,7 @@ mod subvalence {
         let atom = Atom {
             kind: AtomKind::Bracket {
                 isotope: None,
-                symbol: BracketSymbol::Element(Element::C),
+                symbol: Symbol::Aliphatic(Element::C),
                 configuration: None,
                 hcount: None,
                 charge: None,
@@ -168,7 +168,7 @@ mod subvalence {
         let atom = Atom {
             kind: AtomKind::Bracket {
                 isotope: None,
-                symbol: BracketSymbol::Aromatic(Element::C),
+                symbol: Symbol::Aromatic(Element::C),
                 configuration: None,
                 hcount: None,
                 charge: None,
@@ -185,7 +185,7 @@ mod subvalence {
         let atom = Atom {
             kind: AtomKind::Bracket {
                 isotope: None,
-                symbol: BracketSymbol::Aromatic(Element::C),
+                symbol: Symbol::Aromatic(Element::C),
                 configuration: None,
                 hcount: Some(VirtualHydrogen::H1),
                 charge: None,
@@ -202,7 +202,7 @@ mod subvalence {
         let atom = Atom {
             kind: AtomKind::Bracket {
                 isotope: None,
-                symbol: BracketSymbol::Aromatic(Element::S),
+                symbol: Symbol::Aromatic(Element::S),
                 configuration: None,
                 hcount: None,
                 charge: Charge::new(1),
@@ -221,13 +221,13 @@ mod subvalence {
 #[cfg(test)]
 mod suppressed_hydrogens {
     use super::*;
-    use crate::feature::{BondKind, BracketSymbol, VirtualHydrogen};
-    use mendeleev::Element;
+    use crate::feature::{BondKind, Symbol, VirtualHydrogen};
+    use crate::Element;
     use pretty_assertions::assert_eq;
 
     #[test]
     fn star() {
-        let atom = Atom::new(AtomKind::Star);
+        let atom = Atom::new(AtomKind::Symbol(Symbol::Star));
 
         assert_eq!(atom.suppressed_hydrogens(), 0)
     }
@@ -235,7 +235,7 @@ mod suppressed_hydrogens {
     #[test]
     fn aromatic_subvalence_1() {
         let atom = Atom {
-            kind: AtomKind::Aromatic(Element::C),
+            kind: AtomKind::Symbol(Symbol::Aromatic(Element::C)),
             bonds: vec![
                 Bond::new(BondKind::Elided, 1),
                 Bond::new(BondKind::Elided, 2),
@@ -249,7 +249,7 @@ mod suppressed_hydrogens {
     #[test]
     fn aromatic_subvalence_2() {
         let atom = Atom {
-            kind: AtomKind::Aromatic(Element::C),
+            kind: AtomKind::Symbol(Symbol::Aromatic(Element::C)),
             bonds: vec![
                 Bond::new(BondKind::Elided, 1),
                 Bond::new(BondKind::Elided, 2),
@@ -262,7 +262,7 @@ mod suppressed_hydrogens {
     #[test]
     fn aliphatic_subvalence_0() {
         let atom = Atom {
-            kind: AtomKind::Aliphatic(Element::C),
+            kind: AtomKind::Symbol(Symbol::Aliphatic(Element::C)),
             bonds: vec![
                 Bond::new(BondKind::Elided, 1),
                 Bond::new(BondKind::Elided, 2),
@@ -277,7 +277,7 @@ mod suppressed_hydrogens {
     #[test]
     fn aliphatic_subvalence_1() {
         let atom = Atom {
-            kind: AtomKind::Aliphatic(Element::C),
+            kind: AtomKind::Symbol(Symbol::Aliphatic(Element::C)),
             bonds: vec![
                 Bond::new(BondKind::Elided, 1),
                 Bond::new(BondKind::Elided, 2),
@@ -291,7 +291,7 @@ mod suppressed_hydrogens {
     #[test]
     fn aliphatic_subvalence_2() {
         let atom = Atom {
-            kind: AtomKind::Aliphatic(Element::C),
+            kind: AtomKind::Symbol(Symbol::Aliphatic(Element::C)),
             bonds: vec![
                 Bond::new(BondKind::Elided, 1),
                 Bond::new(BondKind::Elided, 2),
@@ -306,7 +306,7 @@ mod suppressed_hydrogens {
         let atom = Atom {
             kind: AtomKind::Bracket {
                 isotope: None,
-                symbol: BracketSymbol::Element(Element::C),
+                symbol: Symbol::Aliphatic(Element::C),
                 hcount: None,
                 charge: None,
                 configuration: None,
@@ -323,7 +323,7 @@ mod suppressed_hydrogens {
         let atom = Atom {
             kind: AtomKind::Bracket {
                 isotope: None,
-                symbol: BracketSymbol::Element(Element::C),
+                symbol: Symbol::Aliphatic(Element::C),
                 hcount: Some(VirtualHydrogen::H0),
                 charge: None,
                 configuration: None,
@@ -340,7 +340,7 @@ mod suppressed_hydrogens {
         let atom = Atom {
             kind: AtomKind::Bracket {
                 isotope: None,
-                symbol: BracketSymbol::Element(Element::C),
+                symbol: Symbol::Aliphatic(Element::C),
                 hcount: Some(VirtualHydrogen::H1),
                 charge: None,
                 configuration: None,

@@ -8,23 +8,23 @@ use crate::walk::Follower;
 ///
 /// ```
 /// use yowl::walk::Follower;
-/// use yowl::graph::{ Atom, Bond, Builder };
-/// use yowl::feature::{ AtomKind, BondKind };
+/// use yowl::graph::{Atom, Bond, Builder};
+/// use yowl::feature::{AtomKind, BondKind, Symbol};
 ///
 /// let mut builder = Builder::default();
 ///
-/// builder.root(AtomKind::Star);
-/// builder.extend(BondKind::Double, AtomKind::Star);
+/// builder.root(AtomKind::Symbol(Symbol::Star));
+/// builder.extend(BondKind::Double, AtomKind::Symbol(Symbol::Star));
 ///
 /// assert_eq!(builder.build(), Ok(vec![
 ///     Atom {
-///         kind: AtomKind::Star,
+///         kind: AtomKind::Symbol(Symbol::Star),
 ///         bonds: vec![
 ///             Bond::new(BondKind::Double, 1)
 ///         ]
 ///     },
 ///     Atom {
-///         kind: AtomKind::Star,
+///         kind: AtomKind::Symbol(Symbol::Star),
 ///         bonds: vec![
 ///             Bond::new(BondKind::Double, 0)
 ///         ]
@@ -183,16 +183,17 @@ enum Target {
 #[cfg(test)]
 mod errors {
     use super::*;
+    use crate::feature::Symbol;
     use pretty_assertions::assert_eq;
 
     #[test]
     fn join_incompatible() {
         let mut builder = Builder::default();
 
-        builder.root(AtomKind::Star);
+        builder.root(AtomKind::Symbol(Symbol::Star));
         builder.join(BondKind::Up, Rnum::new(1));
-        builder.extend(BondKind::Elided, AtomKind::Star);
-        builder.extend(BondKind::Elided, AtomKind::Star);
+        builder.extend(BondKind::Elided, AtomKind::Symbol(Symbol::Star));
+        builder.extend(BondKind::Elided, AtomKind::Symbol(Symbol::Star));
         builder.join(BondKind::Up, Rnum::new(1));
 
         assert_eq!(builder.build(), Err(Error::Join(2, 0)))
@@ -202,10 +203,10 @@ mod errors {
     fn join_unbalanced() {
         let mut builder = Builder::default();
 
-        builder.root(AtomKind::Star);
+        builder.root(AtomKind::Symbol(Symbol::Star));
         builder.join(BondKind::Elided, Rnum::new(1));
-        builder.extend(BondKind::Elided, AtomKind::Star);
-        builder.extend(BondKind::Elided, AtomKind::Star);
+        builder.extend(BondKind::Elided, AtomKind::Symbol(Symbol::Star));
+        builder.extend(BondKind::Elided, AtomKind::Symbol(Symbol::Star));
         builder.join(BondKind::Elided, Rnum::new(1));
         builder.join(BondKind::Elided, Rnum::new(2));
 
@@ -216,19 +217,19 @@ mod errors {
 #[cfg(test)]
 mod build {
     use super::*;
-    use crate::feature::{BracketSymbol, Configuration, VirtualHydrogen};
+    use crate::feature::{Configuration, Symbol, VirtualHydrogen};
     use pretty_assertions::assert_eq;
 
     #[test]
     fn p1() {
         let mut builder = Builder::default();
 
-        builder.root(AtomKind::Star);
+        builder.root(AtomKind::Symbol(Symbol::Star));
 
         assert_eq!(
             builder.build(),
             Ok(vec![Atom {
-                kind: AtomKind::Star,
+                kind: AtomKind::Symbol(Symbol::Star),
                 bonds: vec![]
             }])
         )
@@ -238,18 +239,18 @@ mod build {
     fn p2() {
         let mut builder = Builder::default();
 
-        builder.root(AtomKind::Star);
-        builder.extend(BondKind::Elided, AtomKind::Star);
+        builder.root(AtomKind::Symbol(Symbol::Star));
+        builder.extend(BondKind::Elided, AtomKind::Symbol(Symbol::Star));
 
         assert_eq!(
             builder.build(),
             Ok(vec![
                 Atom {
-                    kind: AtomKind::Star,
+                    kind: AtomKind::Symbol(Symbol::Star),
                     bonds: vec![Bond::new(BondKind::Elided, 1)]
                 },
                 Atom {
-                    kind: AtomKind::Star,
+                    kind: AtomKind::Symbol(Symbol::Star),
                     bonds: vec![Bond::new(BondKind::Elided, 0)]
                 }
             ])
@@ -260,26 +261,26 @@ mod build {
     fn p3() {
         let mut builder = Builder::default();
 
-        builder.root(AtomKind::Star);
-        builder.extend(BondKind::Elided, AtomKind::Star);
-        builder.extend(BondKind::Single, AtomKind::Star);
+        builder.root(AtomKind::Symbol(Symbol::Star));
+        builder.extend(BondKind::Elided, AtomKind::Symbol(Symbol::Star));
+        builder.extend(BondKind::Single, AtomKind::Symbol(Symbol::Star));
 
         assert_eq!(
             builder.build(),
             Ok(vec![
                 Atom {
-                    kind: AtomKind::Star,
+                    kind: AtomKind::Symbol(Symbol::Star),
                     bonds: vec![Bond::new(BondKind::Elided, 1)]
                 },
                 Atom {
-                    kind: AtomKind::Star,
+                    kind: AtomKind::Symbol(Symbol::Star),
                     bonds: vec![
                         Bond::new(BondKind::Elided, 0),
                         Bond::new(BondKind::Single, 2)
                     ]
                 },
                 Atom {
-                    kind: AtomKind::Star,
+                    kind: AtomKind::Symbol(Symbol::Star),
                     bonds: vec![Bond::new(BondKind::Single, 1)]
                 }
             ])
@@ -290,27 +291,27 @@ mod build {
     fn p3_branched() {
         let mut builder = Builder::default();
 
-        builder.root(AtomKind::Star);
-        builder.extend(BondKind::Elided, AtomKind::Star);
+        builder.root(AtomKind::Symbol(Symbol::Star));
+        builder.extend(BondKind::Elided, AtomKind::Symbol(Symbol::Star));
         builder.pop(1);
-        builder.extend(BondKind::Single, AtomKind::Star);
+        builder.extend(BondKind::Single, AtomKind::Symbol(Symbol::Star));
 
         assert_eq!(
             builder.build(),
             Ok(vec![
                 Atom {
-                    kind: AtomKind::Star,
+                    kind: AtomKind::Symbol(Symbol::Star),
                     bonds: vec![
                         Bond::new(BondKind::Elided, 1),
                         Bond::new(BondKind::Single, 2)
                     ]
                 },
                 Atom {
-                    kind: AtomKind::Star,
+                    kind: AtomKind::Symbol(Symbol::Star),
                     bonds: vec![Bond::new(BondKind::Elided, 0)]
                 },
                 Atom {
-                    kind: AtomKind::Star,
+                    kind: AtomKind::Symbol(Symbol::Star),
                     bonds: vec![Bond::new(BondKind::Single, 0)]
                 }
             ])
@@ -321,31 +322,31 @@ mod build {
     fn c3_elided_elided() {
         let mut builder = Builder::default();
 
-        builder.root(AtomKind::Star);
+        builder.root(AtomKind::Symbol(Symbol::Star));
         builder.join(BondKind::Elided, Rnum::new(1));
-        builder.extend(BondKind::Elided, AtomKind::Star);
-        builder.extend(BondKind::Elided, AtomKind::Star);
+        builder.extend(BondKind::Elided, AtomKind::Symbol(Symbol::Star));
+        builder.extend(BondKind::Elided, AtomKind::Symbol(Symbol::Star));
         builder.join(BondKind::Elided, Rnum::new(1));
 
         assert_eq!(
             builder.build(),
             Ok(vec![
                 Atom {
-                    kind: AtomKind::Star,
+                    kind: AtomKind::Symbol(Symbol::Star),
                     bonds: vec![
                         Bond::new(BondKind::Elided, 2),
                         Bond::new(BondKind::Elided, 1)
                     ]
                 },
                 Atom {
-                    kind: AtomKind::Star,
+                    kind: AtomKind::Symbol(Symbol::Star),
                     bonds: vec![
                         Bond::new(BondKind::Elided, 0),
                         Bond::new(BondKind::Elided, 2)
                     ]
                 },
                 Atom {
-                    kind: AtomKind::Star,
+                    kind: AtomKind::Symbol(Symbol::Star),
                     bonds: vec![
                         Bond::new(BondKind::Elided, 1),
                         Bond::new(BondKind::Elided, 0)
@@ -359,31 +360,31 @@ mod build {
     fn c3_single_elided() {
         let mut builder = Builder::default();
 
-        builder.root(AtomKind::Star);
+        builder.root(AtomKind::Symbol(Symbol::Star));
         builder.join(BondKind::Single, Rnum::new(1));
-        builder.extend(BondKind::Elided, AtomKind::Star);
-        builder.extend(BondKind::Elided, AtomKind::Star);
+        builder.extend(BondKind::Elided, AtomKind::Symbol(Symbol::Star));
+        builder.extend(BondKind::Elided, AtomKind::Symbol(Symbol::Star));
         builder.join(BondKind::Elided, Rnum::new(1));
 
         assert_eq!(
             builder.build(),
             Ok(vec![
                 Atom {
-                    kind: AtomKind::Star,
+                    kind: AtomKind::Symbol(Symbol::Star),
                     bonds: vec![
                         Bond::new(BondKind::Single, 2),
                         Bond::new(BondKind::Elided, 1)
                     ]
                 },
                 Atom {
-                    kind: AtomKind::Star,
+                    kind: AtomKind::Symbol(Symbol::Star),
                     bonds: vec![
                         Bond::new(BondKind::Elided, 0),
                         Bond::new(BondKind::Elided, 2)
                     ]
                 },
                 Atom {
-                    kind: AtomKind::Star,
+                    kind: AtomKind::Symbol(Symbol::Star),
                     bonds: vec![
                         Bond::new(BondKind::Elided, 1),
                         Bond::new(BondKind::Single, 0)
@@ -399,19 +400,19 @@ mod build {
 
         builder.root(AtomKind::Bracket {
             isotope: None,
-            symbol: BracketSymbol::Star,
+            symbol: Symbol::Star,
             configuration: Some(Configuration::TH1),
             hcount: None,
             charge: None,
             map: None,
         });
-        builder.extend(BondKind::Elided, AtomKind::Star);
+        builder.extend(BondKind::Elided, AtomKind::Symbol(Symbol::Star));
         builder.pop(1);
-        builder.extend(BondKind::Elided, AtomKind::Star);
+        builder.extend(BondKind::Elided, AtomKind::Symbol(Symbol::Star));
         builder.pop(1);
-        builder.extend(BondKind::Elided, AtomKind::Star);
+        builder.extend(BondKind::Elided, AtomKind::Symbol(Symbol::Star));
         builder.pop(1);
-        builder.extend(BondKind::Elided, AtomKind::Star);
+        builder.extend(BondKind::Elided, AtomKind::Symbol(Symbol::Star));
 
         assert_eq!(
             builder.build(),
@@ -419,7 +420,7 @@ mod build {
                 Atom {
                     kind: AtomKind::Bracket {
                         isotope: None,
-                        symbol: BracketSymbol::Star,
+                        symbol: Symbol::Star,
                         configuration: Some(Configuration::TH1),
                         hcount: None,
                         charge: None,
@@ -433,19 +434,19 @@ mod build {
                     ]
                 },
                 Atom {
-                    kind: AtomKind::Star,
+                    kind: AtomKind::Symbol(Symbol::Star),
                     bonds: vec![Bond::new(BondKind::Elided, 0)]
                 },
                 Atom {
-                    kind: AtomKind::Star,
+                    kind: AtomKind::Symbol(Symbol::Star),
                     bonds: vec![Bond::new(BondKind::Elided, 0)]
                 },
                 Atom {
-                    kind: AtomKind::Star,
+                    kind: AtomKind::Symbol(Symbol::Star),
                     bonds: vec![Bond::new(BondKind::Elided, 0)]
                 },
                 Atom {
-                    kind: AtomKind::Star,
+                    kind: AtomKind::Symbol(Symbol::Star),
                     bonds: vec![Bond::new(BondKind::Elided, 0)]
                 }
             ])
@@ -456,35 +457,35 @@ mod build {
     fn tetrahedral_child() {
         let mut builder = Builder::default();
 
-        builder.root(AtomKind::Star);
+        builder.root(AtomKind::Symbol(Symbol::Star));
         builder.extend(
             BondKind::Elided,
             AtomKind::Bracket {
                 isotope: None,
-                symbol: BracketSymbol::Star,
+                symbol: Symbol::Star,
                 configuration: Some(Configuration::TH1),
                 hcount: None,
                 charge: None,
                 map: None,
             },
         );
-        builder.extend(BondKind::Elided, AtomKind::Star);
+        builder.extend(BondKind::Elided, AtomKind::Symbol(Symbol::Star));
         builder.pop(1);
-        builder.extend(BondKind::Elided, AtomKind::Star);
+        builder.extend(BondKind::Elided, AtomKind::Symbol(Symbol::Star));
         builder.pop(1);
-        builder.extend(BondKind::Elided, AtomKind::Star);
+        builder.extend(BondKind::Elided, AtomKind::Symbol(Symbol::Star));
 
         assert_eq!(
             builder.build(),
             Ok(vec![
                 Atom {
-                    kind: AtomKind::Star,
+                    kind: AtomKind::Symbol(Symbol::Star),
                     bonds: vec![Bond::new(BondKind::Elided, 1)]
                 },
                 Atom {
                     kind: AtomKind::Bracket {
                         isotope: None,
-                        symbol: BracketSymbol::Star,
+                        symbol: Symbol::Star,
                         configuration: Some(Configuration::TH1),
                         hcount: None,
                         charge: None,
@@ -498,15 +499,15 @@ mod build {
                     ]
                 },
                 Atom {
-                    kind: AtomKind::Star,
+                    kind: AtomKind::Symbol(Symbol::Star),
                     bonds: vec![Bond::new(BondKind::Elided, 1)]
                 },
                 Atom {
-                    kind: AtomKind::Star,
+                    kind: AtomKind::Symbol(Symbol::Star),
                     bonds: vec![Bond::new(BondKind::Elided, 1)]
                 },
                 Atom {
-                    kind: AtomKind::Star,
+                    kind: AtomKind::Symbol(Symbol::Star),
                     bonds: vec![Bond::new(BondKind::Elided, 1)]
                 }
             ])
@@ -517,35 +518,35 @@ mod build {
     fn tetrahedral_child_hydrogen() {
         let mut builder = Builder::default();
 
-        builder.root(AtomKind::Star);
+        builder.root(AtomKind::Symbol(Symbol::Star));
         builder.extend(
             BondKind::Elided,
             AtomKind::Bracket {
                 isotope: None,
-                symbol: BracketSymbol::Star,
+                symbol: Symbol::Star,
                 configuration: Some(Configuration::TH1),
                 hcount: Some(VirtualHydrogen::H1),
                 charge: None,
                 map: None,
             },
         );
-        builder.extend(BondKind::Elided, AtomKind::Star);
+        builder.extend(BondKind::Elided, AtomKind::Symbol(Symbol::Star));
         builder.pop(1);
-        builder.extend(BondKind::Elided, AtomKind::Star);
+        builder.extend(BondKind::Elided, AtomKind::Symbol(Symbol::Star));
         builder.pop(1);
-        builder.extend(BondKind::Elided, AtomKind::Star);
+        builder.extend(BondKind::Elided, AtomKind::Symbol(Symbol::Star));
 
         assert_eq!(
             builder.build(),
             Ok(vec![
                 Atom {
-                    kind: AtomKind::Star,
+                    kind: AtomKind::Symbol(Symbol::Star),
                     bonds: vec![Bond::new(BondKind::Elided, 1)]
                 },
                 Atom {
                     kind: AtomKind::Bracket {
                         isotope: None,
-                        symbol: BracketSymbol::Star,
+                        symbol: Symbol::Star,
                         configuration: Some(Configuration::TH2),
                         hcount: Some(VirtualHydrogen::H1),
                         charge: None,
@@ -559,15 +560,15 @@ mod build {
                     ]
                 },
                 Atom {
-                    kind: AtomKind::Star,
+                    kind: AtomKind::Symbol(Symbol::Star),
                     bonds: vec![Bond::new(BondKind::Elided, 1)]
                 },
                 Atom {
-                    kind: AtomKind::Star,
+                    kind: AtomKind::Symbol(Symbol::Star),
                     bonds: vec![Bond::new(BondKind::Elided, 1)]
                 },
                 Atom {
-                    kind: AtomKind::Star,
+                    kind: AtomKind::Symbol(Symbol::Star),
                     bonds: vec![Bond::new(BondKind::Elided, 1)]
                 }
             ])

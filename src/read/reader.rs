@@ -90,7 +90,7 @@ fn read_atom(scanner: &mut Scanner) -> Result<Option<AtomKind>, ReadError> {
         return Ok(Some(bracket));
     }
 
-    Ok(read_star(scanner))
+    Ok(None)
 }
 
 // <body> ::= <branch> | <split> | <union>
@@ -205,18 +205,6 @@ fn read_union<F: Follower>(
                 Err(missing_character(scanner))
             }
         }
-    }
-}
-
-// <star> = "*"
-fn read_star(scanner: &mut Scanner) -> Option<AtomKind> {
-    match scanner.peek() {
-        Some('*') => {
-            scanner.pop();
-
-            Some(AtomKind::Star)
-        }
-        _ => None,
     }
 }
 

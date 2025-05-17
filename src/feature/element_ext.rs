@@ -1,4 +1,4 @@
-use mendeleev::Element;
+use crate::Element;
 
 use super::atom_kind;
 

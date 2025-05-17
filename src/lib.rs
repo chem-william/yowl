@@ -17,15 +17,11 @@ pub mod walk;
 /// Writing SMILES string representations.
 pub mod write;
 
-// https://github.com/rust-lang/cargo/issues/383#issuecomment-720873790
-#[cfg(doctest)]
-mod test_readme {
-    macro_rules! external_doc_test {
-        ($x:expr) => {
-            #[doc = $x]
-            extern "C" {}
-        };
-    }
+pub use mendeleev::Element;
+pub use mendeleev::Isotope;
 
-    external_doc_test!(include_str!("../README.md"));
+mod doctests {
+    #[cfg(doctest)]
+    #[doc =include_str!("../README.md")]
+    struct _ReadMe;
 }
