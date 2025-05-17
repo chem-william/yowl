@@ -8,13 +8,13 @@ use crate::{
 
 /// Performs a depth-first traversal of `graph`, emitting SMILES via the `Follower`.
 pub fn walk<F: Follower>(graph: Vec<Atom>, follower: &mut F) -> Result<(), Error> {
-    let size = graph.len();
+    let num_atoms = graph.len();
     let mut atoms = graph.into_iter().enumerate().collect::<HashMap<_, _>>();
     let mut pool = JoinPool::new();
 
-    for id in 0..size {
+    for id in 0..num_atoms {
         if let Some(root_atom) = atoms.remove(&id) {
-            walk_root(id, root_atom, size, &mut atoms, follower, &mut pool)?;
+            walk_root(id, root_atom, num_atoms, &mut atoms, follower, &mut pool)?;
         }
     }
     Ok(())
@@ -23,7 +23,7 @@ pub fn walk<F: Follower>(graph: Vec<Atom>, follower: &mut F) -> Result<(), Error
 fn walk_root<F: Follower>(
     root_id: usize,
     root_atom: Atom,
-    size: usize,
+    num_atoms: usize,
     atoms: &mut HashMap<usize, Atom>,
     follower: &mut F,
     pool: &mut JoinPool,
@@ -38,7 +38,7 @@ fn walk_root<F: Follower>(
     follower.root(root_atom.kind);
 
     while let Some((sid, bond)) = stack.pop() {
-        validate_bond_indices(sid, bond.tid, size)?;
+        validate_bond_indices(sid, bond.tid, num_atoms)?;
         backtrack_and_pop(sid, &mut chain, follower);
 
         if let Some(mut child_atom) = atoms.remove(&bond.tid) {
