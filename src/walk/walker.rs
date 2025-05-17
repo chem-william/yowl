@@ -4,55 +4,78 @@ use crate::{
     graph::{Atom, Bond, JoinPool},
 };
 
-/// Performs a depth-first traversal of `graph`, emitting SMILES via the `Follower`.
+/// Performs a full SMILES depth-first search (DFS) `graph` of atoms, emitting SMILES via [`Follower`].
 pub fn walk<F: Follower>(graph: Vec<Atom>, follower: &mut F) -> Result<(), Error> {
-    let num_atoms = graph.len();
-    let mut atoms: Vec<Option<Atom>> = graph.into_iter().map(Some).collect();
-    let mut pool = JoinPool::new();
-
-    for id in 0..num_atoms {
-        if let Some(root_atom) = atoms[id].take() {
-            walk_root(id, root_atom, num_atoms, &mut atoms, follower, &mut pool)?;
-        }
-    }
-    Ok(())
+    SmilesWalker::new(graph, follower).traverse()
 }
 
-fn walk_root<F: Follower>(
-    root_id: usize,
-    root_atom: Atom,
+/// Encapsulates all global state for a SMILES traversal.
+struct SmilesWalker<'a, F: Follower> {
+    /// Remaining atoms to visit. `None` means already consumed.
+    atoms: Vec<Option<Atom>>,
+    /// Pool of ring‐closure trackers.
+    pool: JoinPool,
+    /// Sink for SMILES events.
+    follower: &'a mut F,
+    /// Total number of atoms (for bounds checks).
     num_atoms: usize,
-    atoms: &mut [Option<Atom>],
-    follower: &mut F,
-    pool: &mut JoinPool,
-) -> Result<(), Error> {
-    let mut stack = Vec::new();
-    let mut chain = vec![root_id];
+}
 
-    // Initialize stack with root bonds (rev so first bond is processed first)
-    for bond in root_atom.bonds.into_iter().rev() {
-        stack.push((root_id, bond));
-    }
-    follower.root(root_atom.kind);
-
-    while let Some((sid, bond)) = stack.pop() {
-        validate_bond_indices(sid, bond.tid, num_atoms)?;
-        backtrack_and_pop(sid, &mut chain, follower);
-
-        if let Some(mut child_atom) = atoms[bond.tid].take() {
-            process_tree_edge(
-                sid,
-                &bond,
-                &mut child_atom,
-                follower,
-                &mut stack,
-                &mut chain,
-            )?;
-        } else {
-            process_ring_edge(sid, &bond, pool, follower);
+impl<'a, F: Follower> SmilesWalker<'a, F> {
+    /// Build a walker from the raw atom list and the follower.
+    pub fn new(graph: Vec<Atom>, follower: &'a mut F) -> Self {
+        let num_atoms = graph.len();
+        let atoms = graph.into_iter().map(Some).collect();
+        SmilesWalker {
+            atoms,
+            pool: JoinPool::new(),
+            follower,
+            num_atoms,
         }
     }
-    Ok(())
+
+    /// Iterate each root ID in order, invoking DFS from any atom still present.
+    pub fn traverse(&mut self) -> Result<(), Error> {
+        for id in 0..self.num_atoms {
+            if let Some(root) = self.atoms[id].take() {
+                self.dfs_from_root(id, root)?;
+            }
+        }
+        Ok(())
+    }
+
+    /// Handle one connected component starting at `root_id`.
+    fn dfs_from_root(&mut self, root_id: usize, root_atom: Atom) -> Result<(), Error> {
+        // Prepare per-path state
+        let mut stack = Vec::new();
+        let mut chain = vec![root_id];
+
+        // Seed stack
+        for bond in root_atom.bonds.into_iter().rev() {
+            stack.push((root_id, bond));
+        }
+        self.follower.root(root_atom.kind);
+
+        // Standard DFS loop
+        while let Some((sid, bond)) = stack.pop() {
+            validate_bond_indices(sid, bond.tid, self.num_atoms)?;
+            backtrack_and_pop(sid, &mut chain, self.follower);
+
+            if let Some(mut child) = self.atoms[bond.tid].take() {
+                process_tree_edge(
+                    sid,
+                    &bond,
+                    &mut child,
+                    self.follower,
+                    &mut stack,
+                    &mut chain,
+                )?;
+            } else {
+                process_ring_edge(sid, &bond, &mut self.pool, self.follower);
+            }
+        }
+        Ok(())
+    }
 }
 
 /// Validate basic bond errors: unknown target or self-loop.
