@@ -1,3 +1,5 @@
+use crate::Element;
+
 use crate::Isotope;
 
 use super::{
@@ -14,7 +16,7 @@ fn lex_bracket_contents(scanner: &mut Scanner) -> Result<AtomKind, ReadError> {
     // Read the symbol
     let symbol = read_symbol(scanner)?;
 
-    // Build optional `Isotope` only if `symbol` is an [`Element`]
+    // Build optional `Isotope` only if `symbol` is an `Element`
     let isotope = if let Some(Symbol::Aliphatic(el)) = symbol {
         iso_num_opt.and_then(|mass| {
             Isotope::list()
