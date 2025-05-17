@@ -31,7 +31,7 @@ impl AtomKind {
     pub const fn is_aromatic(&self) -> bool {
         match self {
             Self::Symbol(Symbol::Aromatic(_)) => true,
-            Self::Symbol(Symbol::Aliphatic(_)) | Self::Symbol(Symbol::Star) => false,
+            Self::Symbol(Symbol::Aliphatic(_) | Symbol::Star) => false,
             Self::Bracket { symbol, .. } => match symbol {
                 Symbol::Aromatic(_) => true,
                 Symbol::Aliphatic(_) | Symbol::Star => false,
@@ -47,8 +47,9 @@ impl AtomKind {
             Self::Symbol(Symbol::Aromatic(aromatic)) => aromatic.targets(),
             Self::Bracket { symbol, charge, .. } => match symbol {
                 Symbol::Star => &[],
-                Symbol::Aromatic(element) => elemental_targets(*element, *charge),
-                Symbol::Aliphatic(element) => elemental_targets(*element, *charge),
+                Symbol::Aromatic(element) | Symbol::Aliphatic(element) => {
+                    elemental_targets(*element, *charge)
+                }
             },
         }
     }
