@@ -61,7 +61,7 @@ mod write {
     use crate::feature::Symbol;
 
     use super::*;
-    use mendeleev::Element;
+    use crate::Element;
     use pretty_assertions::assert_eq;
 
     #[test]

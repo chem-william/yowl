@@ -1,4 +1,4 @@
-use mendeleev::Isotope;
+use crate::Isotope;
 
 use super::{
     error::ReadError, missing_character, read_charge, read_configuration, read_symbol,
@@ -142,7 +142,7 @@ fn read_map(scanner: &mut Scanner) -> Result<Option<u16>, ReadError> {
 mod tests {
     use super::*;
     use crate::feature::{Charge, Configuration, Symbol};
-    use mendeleev::Element;
+    use crate::Element;
     use pretty_assertions::assert_eq;
 
     #[test]

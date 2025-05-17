@@ -28,7 +28,7 @@ Parse acetamide into an adjacency representation:
 use yowl::graph::{Builder, Atom, Bond};
 use yowl::feature::{AtomKind, BondKind, Symbol};
 use yowl::read::{read, ReadError};
-use mendeleev::Element;
+use yowl::Element;
 
 fn main() -> Result<(), ReadError> {
     let mut builder = Builder::default();

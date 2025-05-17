@@ -1,6 +1,6 @@
 use super::{error::ReadError, missing_character::missing_character, scanner::Scanner};
 use crate::feature::Symbol;
-use mendeleev::Element;
+use crate::Element;
 
 pub fn read_symbol(scanner: &mut Scanner) -> Result<Option<Symbol>, ReadError> {
     match scanner.peek() {

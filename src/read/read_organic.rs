@@ -1,4 +1,4 @@
-use mendeleev::Element;
+use crate::Element;
 
 use super::{error::ReadError, missing_character::missing_character, scanner::Scanner};
 use crate::feature::{AtomKind, Symbol};

@@ -1,4 +1,4 @@
-use mendeleev::Element;
+use crate::Element;
 
 /// Represents those atomic symbols capable of appearing within a bracket
 /// atom in the string representation.

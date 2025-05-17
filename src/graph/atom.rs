@@ -67,7 +67,7 @@ impl Atom {
 
 #[cfg(test)]
 mod subvalence {
-    use mendeleev::Element;
+    use crate::Element;
 
     use super::*;
     use crate::feature::{BondKind, Charge, VirtualHydrogen};
@@ -222,7 +222,7 @@ mod subvalence {
 mod suppressed_hydrogens {
     use super::*;
     use crate::feature::{BondKind, Symbol, VirtualHydrogen};
-    use mendeleev::Element;
+    use crate::Element;
     use pretty_assertions::assert_eq;
 
     #[test]

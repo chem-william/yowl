@@ -143,7 +143,7 @@ fn process_ring_edge<F: Follower>(sid: usize, bond: &Bond, pool: &mut JoinPool, 
 
 #[cfg(test)]
 mod tests {
-    use mendeleev::Element;
+    use crate::Element;
 
     use super::*;
     use crate::feature::{AtomKind, BondKind, Symbol};

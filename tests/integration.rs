@@ -2,11 +2,11 @@ extern crate yowl;
 
 use std::fs;
 
-use mendeleev::Element;
 use yowl::feature::{AtomKind, BondKind, Symbol};
 use yowl::graph::{Atom, Bond, Builder};
 use yowl::read::read;
 use yowl::write::Writer;
+use yowl::Element;
 
 use pretty_assertions::assert_eq;
 

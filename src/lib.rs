@@ -17,6 +17,9 @@ pub mod walk;
 /// Writing SMILES string representations.
 pub mod write;
 
+pub use mendeleev::Element;
+pub use mendeleev::Isotope;
+
 // https://github.com/rust-lang/cargo/issues/383#issuecomment-720873790
 #[cfg(doctest)]
 mod test_readme {

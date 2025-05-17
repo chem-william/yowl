@@ -1,6 +1,6 @@
 use std::fmt;
 
-use mendeleev::{Element, Isotope};
+use crate::{Element, Isotope};
 
 use super::{Charge, Configuration, VirtualHydrogen};
 use crate::feature::element_ext::ElementExt;
