@@ -40,22 +40,6 @@ pub struct Builder {
     rid: usize,
 }
 
-fn check_cis_trans_configuration(node: &Node, atom_idx: usize) {
-    let mut seen_directional_bond = false;
-    for edge in &node.edges {
-        match edge.kind {
-            BondKind::Up | BondKind::Down => {
-                if seen_directional_bond {
-                    panic!("Conflicting stereochemistry at atom index {atom_idx}: {node:?}",);
-                } else {
-                    seen_directional_bond = true;
-                }
-            }
-            _ => {}
-        }
-    }
-}
-
 impl Builder {
     /// Builds the representation created by using the `Follower` trait
     /// methods.
@@ -64,27 +48,27 @@ impl Builder {
             return Err(error);
         }
 
-        let mut result = Vec::new();
+        self.graph
+            .into_iter()
+            .enumerate()
+            .map(|(idx, node)| {
+                node.check_stereo(idx);
 
-        for (idx, node) in self.graph.iter().enumerate() {
-            let mut bonds = Vec::new();
+                let bonds = node
+                    .edges
+                    .into_iter()
+                    .map(|edge| match edge.target {
+                        Target::Id(tid) => Ok(Bond::new(edge.kind, tid)),
+                        Target::Rnum(rid, _, _) => Err(Error::Rnum(rid)),
+                    })
+                    .collect::<Result<Vec<_>, _>>()?;
 
-            check_cis_trans_configuration(node, idx);
-
-            for edge in &node.edges {
-                match edge.target {
-                    Target::Id(tid) => bonds.push(Bond::new(edge.kind, tid)),
-                    Target::Rnum(rid, _, _) => return Err(Error::Rnum(rid)),
-                }
-            }
-
-            result.push(Atom {
-                kind: node.kind,
-                bonds,
-            });
-        }
-
-        Ok(result)
+                Ok(Atom {
+                    kind: node.kind,
+                    bonds,
+                })
+            })
+            .collect()
     }
 }
 
@@ -176,6 +160,20 @@ impl Node {
 
     fn add_edge(&mut self, kind: BondKind, target: Target) {
         self.edges.push(Edge::new(kind, target));
+    }
+
+    /// Ensure there’s at most one stereo-directional bond.
+    fn check_stereo(&self, atom_idx: usize) {
+        if self
+            .edges
+            .iter()
+            .filter(|e| matches!(e.kind, BondKind::Up | BondKind::Down))
+            .take(2)
+            .count()
+            > 1
+        {
+            panic!("Conflicting stereochemistry at atom index {atom_idx}: {self:?}");
+        }
     }
 }
 
