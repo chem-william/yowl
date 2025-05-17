@@ -113,9 +113,17 @@ fn special_case_temp_iupac_names() {
 }
 
 #[test]
-#[should_panic(expected = "Conflicting stereochemistry at atom index 1")]
-fn check_proper_directionality() {
+#[should_panic(expected = "Conflicting stereochemistry (multiple ")]
+fn invalid_stereochemistry() {
     let smiles = "C/C(\\F)=C/F";
+    let mut builder = Builder::default();
+    read(smiles, &mut builder, None).unwrap();
+    builder.build().expect("atoms");
+}
+
+#[test]
+fn valid_stereochemistry() {
+    let smiles = "N/C(/O)=C(\\S)/F";
     let mut builder = Builder::default();
     read(smiles, &mut builder, None).unwrap();
     builder.build().expect("atoms");
