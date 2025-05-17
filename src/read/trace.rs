@@ -53,6 +53,10 @@ impl Trace {
     }
 
     /// Joins a ring closure to head.
+    ///
+    /// # Panics
+    /// Panics if the internal `stack` is empty when looking up the
+    /// head atom ID:
     pub fn join(&mut self, bond_cursor: usize, rnum_cursor: Range<usize>, rnum: Rnum) {
         let sid = *self.stack.last().expect("last on stack");
 
