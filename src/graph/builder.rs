@@ -46,10 +46,7 @@ fn check_cis_trans_configuration(node: &Node, atom_idx: usize) {
         match edge.kind {
             BondKind::Up | BondKind::Down => {
                 if seen_directional_bond {
-                    panic!(
-                        "Conflicting stereochemistry at atom index {}: {:?}",
-                        atom_idx, node
-                    );
+                    panic!("Conflicting stereochemistry at atom index {atom_idx}: {node:?}",);
                 } else {
                     seen_directional_bond = true;
                 }
