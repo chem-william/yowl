@@ -124,7 +124,7 @@ fn read_branch<F: Follower>(
         _ => return Ok(false),
     }
 
-    let length = if scanner.peek() == Some(&'.') {
+    let length = if scanner.peek() == Some('.') {
         scanner.pop();
 
         match read_smiles(None, scanner, follower, trace)? {

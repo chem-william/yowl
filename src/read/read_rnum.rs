@@ -13,7 +13,7 @@ fn next_rnum_token(scanner: &mut Scanner) -> Result<Option<RnumToken>, ReadError
     let result = match scanner.peek() {
         // single digit
         Some('0'..='9') => {
-            let c = *scanner.pop().unwrap();
+            let c = scanner.pop().unwrap();
             let d = u8::try_from(c.to_digit(10).unwrap()).expect("rnum to u8");
 
             Ok(Some(RnumToken::Digit(d)))
@@ -25,7 +25,7 @@ fn next_rnum_token(scanner: &mut Scanner) -> Result<Option<RnumToken>, ReadError
 
             // first digit
             let c1 = match scanner.peek() {
-                Some(next) if next.is_ascii_digit() => *next,
+                Some(next) if next.is_ascii_digit() => next,
                 _ => return Err(missing_character(scanner)),
             };
             scanner.pop();
@@ -34,7 +34,7 @@ fn next_rnum_token(scanner: &mut Scanner) -> Result<Option<RnumToken>, ReadError
 
             // second digit
             let c2 = match scanner.peek() {
-                Some(next) if next.is_ascii_digit() => *next,
+                Some(next) if next.is_ascii_digit() => next,
                 _ => return Err(missing_character(scanner)),
             };
             scanner.pop();

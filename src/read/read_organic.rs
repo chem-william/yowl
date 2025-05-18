@@ -48,7 +48,7 @@ fn next_atom_token(scanner: &mut Scanner) -> Result<Option<AtomToken>, ReadError
         // aliphatic: two-char combos first
         Some('B') => {
             scanner.pop();
-            if scanner.peek() == Some(&'r') {
+            if scanner.peek() == Some('r') {
                 scanner.pop();
                 Ok(Some(AtomToken::Aliphatic(Element::Br)))
             } else {
@@ -57,7 +57,7 @@ fn next_atom_token(scanner: &mut Scanner) -> Result<Option<AtomToken>, ReadError
         }
         Some('C') => {
             scanner.pop();
-            if scanner.peek() == Some(&'l') {
+            if scanner.peek() == Some('l') {
                 scanner.pop();
                 Ok(Some(AtomToken::Aliphatic(Element::Cl)))
             } else {
@@ -66,7 +66,7 @@ fn next_atom_token(scanner: &mut Scanner) -> Result<Option<AtomToken>, ReadError
         }
         Some('T') => {
             scanner.pop();
-            if scanner.peek() == Some(&'s') {
+            if scanner.peek() == Some('s') {
                 scanner.pop();
                 Ok(Some(AtomToken::Aliphatic(Element::Ts)))
             } else {
@@ -75,7 +75,7 @@ fn next_atom_token(scanner: &mut Scanner) -> Result<Option<AtomToken>, ReadError
         }
         Some('A') => {
             scanner.pop();
-            if scanner.peek() == Some(&'t') {
+            if scanner.peek() == Some('t') {
                 scanner.pop();
                 Ok(Some(AtomToken::Aliphatic(Element::At)))
             } else {
