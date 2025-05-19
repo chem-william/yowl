@@ -1,44 +1,50 @@
 #[derive(Debug)]
-pub struct Scanner {
+pub struct Scanner<'a> {
+    input: &'a str,
+    /// Byte‐offset into `input`; always lands on a valid `char` boundary.
     cursor: usize,
-    characters: Vec<char>,
 }
 
-impl Scanner {
-    pub fn new(string: &str) -> Self {
-        Self {
-            cursor: 0,
-            characters: string.chars().collect(),
-        }
+impl<'a> Scanner<'a> {
+    pub fn new(input: &'a str) -> Self {
+        Scanner { input, cursor: 0 }
     }
 
+    /// Return the current byte‐offset (0..=input.len()).
     pub const fn cursor(&self) -> usize {
         self.cursor
     }
 
+    /// True if we’ve consumed all bytes in the string.
     pub fn is_done(&self) -> bool {
-        self.cursor == self.characters.len()
+        self.cursor >= self.input.len()
     }
 
-    pub fn peek(&self) -> Option<&char> {
-        self.characters.get(self.cursor)
+    /// Look at the next `char` without advancing.
+    pub fn peek(&self) -> Option<char> {
+        // If `cursor` is already at or past the end, there is no next char.
+        let slice = &self.input[self.cursor..];
+        slice.chars().next()
     }
 
-    pub fn pop(&mut self) -> Option<&char> {
-        if let Some(result) = self.characters.get(self.cursor) {
-            self.cursor += 1;
-            Some(result)
+    /// Consume and return the next `char`, advancing `cursor` by that char’s UTF‑8 length.
+    pub fn pop(&mut self) -> Option<char> {
+        // Use `peek()` to see if there’s a next char.
+        if let Some(ch) = self.peek() {
+            // Advance by the number of bytes this `char` takes.
+            self.cursor += ch.len_utf8();
+            Some(ch)
         } else {
             None
         }
     }
 }
 
-impl Iterator for Scanner {
+impl<'a> Iterator for Scanner<'a> {
     type Item = char;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.pop().copied()
+        self.pop()
     }
 }
 
@@ -57,7 +63,7 @@ mod tests {
     fn cursor_given_not_done() {
         let mut scanner = Scanner::new("abc");
 
-        assert_eq!(scanner.pop(), Some(&'a'));
+        assert_eq!(scanner.pop(), Some('a'));
         assert_eq!(scanner.cursor(), 1);
     }
 
@@ -65,9 +71,9 @@ mod tests {
     fn cursor_given_done() {
         let mut scanner = Scanner::new("abc");
 
-        assert_eq!(scanner.pop(), Some(&'a'));
-        assert_eq!(scanner.pop(), Some(&'b'));
-        assert_eq!(scanner.pop(), Some(&'c'));
+        assert_eq!(scanner.pop(), Some('a'));
+        assert_eq!(scanner.pop(), Some('b'));
+        assert_eq!(scanner.pop(), Some('c'));
         assert_eq!(scanner.cursor(), 3);
     }
 
@@ -89,17 +95,17 @@ mod tests {
     fn peek_given_not_done() {
         let mut scanner = Scanner::new("abc");
 
-        assert_eq!(scanner.pop(), Some(&'a'));
-        assert_eq!(scanner.peek(), Some(&'b'));
+        assert_eq!(scanner.pop(), Some('a'));
+        assert_eq!(scanner.peek(), Some('b'));
     }
 
     #[test]
     fn peek_given_done() {
         let mut scanner = Scanner::new("abc");
 
-        assert_eq!(scanner.pop(), Some(&'a'));
-        assert_eq!(scanner.pop(), Some(&'b'));
-        assert_eq!(scanner.pop(), Some(&'c'));
+        assert_eq!(scanner.pop(), Some('a'));
+        assert_eq!(scanner.pop(), Some('b'));
+        assert_eq!(scanner.pop(), Some('c'));
         assert_eq!(scanner.peek(), None);
     }
 
@@ -107,14 +113,14 @@ mod tests {
     fn pop_given_not_done() {
         let mut scanner = Scanner::new("abc");
 
-        assert_eq!(scanner.pop(), Some(&'a'));
+        assert_eq!(scanner.pop(), Some('a'));
     }
 
     #[test]
     fn pop_given_done() {
         let mut scanner = Scanner::new("a");
 
-        assert_eq!(scanner.pop(), Some(&'a'));
+        assert_eq!(scanner.pop(), Some('a'));
         assert_eq!(scanner.pop(), None);
     }
 }

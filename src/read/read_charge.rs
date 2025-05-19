@@ -24,7 +24,7 @@ fn next_charge_token(scanner: &mut Scanner) -> Option<ChargeToken> {
             // try multi-digit or default
             if let Some(n) = lex_fifteen(scanner) {
                 Some(ChargeToken::Signed(n))
-            } else if scanner.peek() == Some(&'+') {
+            } else if scanner.peek() == Some('+') {
                 scanner.pop();
                 Some(ChargeToken::Plus2)
             } else {
@@ -35,7 +35,7 @@ fn next_charge_token(scanner: &mut Scanner) -> Option<ChargeToken> {
             scanner.pop();
             if let Some(n) = lex_fifteen(scanner) {
                 Some(ChargeToken::Signed(-n))
-            } else if scanner.peek() == Some(&'-') {
+            } else if scanner.peek() == Some('-') {
                 scanner.pop();
                 Some(ChargeToken::Minus2)
             } else {

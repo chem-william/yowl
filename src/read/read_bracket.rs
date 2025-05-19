@@ -95,7 +95,7 @@ fn read_isotope(scanner: &mut Scanner) -> Option<u16> {
 
     for _ in 0..3 {
         match scanner.peek() {
-            Some('0'..='9') => digits.push(*scanner.pop().expect("digit")),
+            Some('0'..='9') => digits.push(scanner.pop().expect("digit")),
             _ => break,
         }
     }
@@ -113,7 +113,7 @@ fn read_map(scanner: &mut Scanner) -> Result<Option<u16>, ReadError> {
             match scanner.pop() {
                 Some(next) => {
                     if next.is_ascii_digit() {
-                        digits.push(*next);
+                        digits.push(next);
                     } else {
                         return Err(ReadError::Character(scanner.cursor() - 1));
                     }
@@ -123,7 +123,7 @@ fn read_map(scanner: &mut Scanner) -> Result<Option<u16>, ReadError> {
 
             for _ in 0..2 {
                 match scanner.peek() {
-                    Some('0'..='9') => digits.push(*scanner.pop().expect("digit")),
+                    Some('0'..='9') => digits.push(scanner.pop().expect("digit")),
                     _ => break,
                 }
             }

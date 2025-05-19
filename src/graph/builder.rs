@@ -1,4 +1,4 @@
-use std::collections::{hash_map::Entry, HashMap};
+use std::collections::HashMap;
 
 use super::{reconcile, Atom, Bond, Error};
 use crate::feature::{AtomKind, BondKind, Rnum};
@@ -35,9 +35,9 @@ use crate::walk::Follower;
 pub struct Builder {
     stack: Vec<usize>,
     graph: Vec<Node>,
-    opens: HashMap<Rnum, usize>,
+    opens: HashMap<Rnum, (usize, usize)>,
     errors: Vec<Error>,
-    rid: usize,
+    ring_idx: usize,
 }
 
 impl Builder {
@@ -59,7 +59,7 @@ impl Builder {
                     .into_iter()
                     .map(|edge| match edge.target {
                         Target::Id(tid) => Ok(Bond::new(edge.kind, tid)),
-                        Target::Rnum(rid, _, _) => Err(Error::Rnum(rid)),
+                        Target::Rnum(ring_idx, _, _) => Err(Error::Rnum(ring_idx)),
                     })
                     .collect::<Result<Vec<_>, _>>()?;
 
@@ -92,42 +92,51 @@ impl Follower for Builder {
     }
 
     fn join(&mut self, bond_kind: BondKind, rnum: Rnum) {
-        match self.opens.entry(rnum) {
-            Entry::Occupied(occupied) => {
-                let sid = *self.stack.last().expect("last on stack");
-                let (rnum, tid) = occupied.remove_entry();
-                let edge = self.graph[tid]
-                    .edges
-                    .iter_mut()
-                    .find(|edge| {
-                        if let Target::Rnum(_, _, test) = &edge.target {
-                            test == &rnum
-                        } else {
-                            false
-                        }
-                    })
-                    .expect("edge for rnum");
+        // Get the current “source” atom index.
+        let sid = *self.stack.last().expect("stack must be nonempty");
 
-                match reconcile(edge.kind, bond_kind) {
-                    Some((left, right)) => {
-                        edge.target = Target::Id(sid);
-                        edge.kind = left;
+        // Attempt to take out any existing “open” entry for this ring number.
+        // If there *was* an entry, `remove(&rnum)` returns `Some(tid)`, so we go into the
+        // `if let Some(tid)` branch and “close” the ring.
+        //
+        // If there was *no* open entry, then `remove(&rnum)` returns `None`, so we
+        // go into the `else` block and “open” the ring by inserting `rnum -> sid`.
+        if let Some((tid, edge_idx)) = self.opens.remove(&rnum) {
+            // --- “closing” the ring: ---
+            //
+            // We know that `tid` is the atom index where we previously left a
+            // placeholder edge `Target::Rnum(...)`. We also know that `edge_idx`
+            // is the edge where we placed the placeholder
+            let edge = &mut self.graph[tid].edges[edge_idx];
 
-                        self.graph[sid].add_edge(right, Target::Id(tid));
-                    }
-                    None => self.errors.push(Error::Join(sid, tid)),
+            // Try to reconcile bond‐kinds. If they match up, rewrite the placeholder
+            // to point back to `sid`, then add the complementary edge on `sid`.
+            match reconcile(edge.kind, bond_kind) {
+                Some((left_kind, right_kind)) => {
+                    // Overwrite the placeholder on `tid` so it points to `sid` now:
+                    edge.target = Target::Id(sid);
+                    edge.kind = left_kind;
+
+                    // And emit the partner edge from `sid` → `tid`:
+                    self.graph[sid].add_edge(right_kind, Target::Id(tid));
+                }
+                None => {
+                    // If we can’t reconcile, record an error instead.
+                    self.errors.push(Error::Join(sid, tid));
                 }
             }
-            Entry::Vacant(vacant) => {
-                let sid = *self.stack.last().expect("last on stack");
-                let rnum = *vacant.key();
-
-                vacant.insert(sid);
-                self.graph[sid].add_edge(bond_kind, Target::Rnum(self.rid, sid, rnum));
-            }
+        } else {
+            // --- “opening” the ring for the first time: ---
+            //
+            // No previous entry existed for `rnum`, so store `rnum -> (sid, edge_idx)`
+            // and emit a placeholder edge on `sid` that carries (ring_idx, sid, rnum).
+            let placeholder_idx = self.graph[sid].edges.len();
+            self.opens.insert(rnum, (sid, placeholder_idx));
+            self.graph[sid].add_edge(bond_kind, Target::Rnum(self.ring_idx, sid, rnum));
         }
 
-        self.rid += 1;
+        // Bump the global ring‐ID counter no matter which branch we took.
+        self.ring_idx += 1;
     }
 
     fn pop(&mut self, depth: usize) {
@@ -213,7 +222,7 @@ impl Edge {
 #[derive(Debug, PartialEq)]
 enum Target {
     Id(usize),
-    // rid, sid, rnum
+    // ring_idx, sid, rnum
     Rnum(usize, usize, Rnum),
 }
 
