@@ -72,7 +72,16 @@ impl<'a> Iterator for Scanner<'a> {
 
 #[cfg(test)]
 mod tests {
+    use std::hint::black_box;
+
     use super::*;
+
+    #[test]
+    #[should_panic(expected = "Scanner only supports ASCII input")]
+    fn invalid_non_ascii_input() {
+        let scanner = Scanner::new("£");
+        black_box(scanner);
+    }
 
     #[test]
     fn cursor_given_empty() {
