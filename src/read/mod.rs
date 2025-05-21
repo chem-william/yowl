@@ -21,5 +21,4 @@ pub(crate) use read_organic::read_organic;
 pub(crate) use read_rnum::read_rnum;
 pub(crate) use read_symbol::read_symbol;
 pub use reader::read;
-pub(crate) use scanner::Scanner;
 pub use trace::Trace;

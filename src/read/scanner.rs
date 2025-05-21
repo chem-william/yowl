@@ -1,42 +1,64 @@
 #[derive(Debug)]
-pub struct Scanner<'a> {
-    input: &'a str,
-    /// Byte‐offset into `input`; always lands on a valid `char` boundary.
-    cursor: usize,
+pub(crate) struct Scanner<'a> {
+    /// The input SMILES string, assumed to contain only ASCII characters.
+    buf: &'a [u8],
+    /// The current byte offset into the input buffer.
+    /// Points to the next byte to be examined.
+    pos: usize,
 }
 
 impl<'a> Scanner<'a> {
+    /// Create a new Scanner over an ASCII SMILES string
+    ///
+    /// # Panic
+    ///
+    /// Will panic if `input` is not a valid ASCII string.
     pub fn new(input: &'a str) -> Self {
-        Scanner { input, cursor: 0 }
-    }
-
-    /// Return the current byte‐offset (0..=input.len()).
-    pub const fn cursor(&self) -> usize {
-        self.cursor
-    }
-
-    /// True if we’ve consumed all bytes in the string.
-    pub fn is_done(&self) -> bool {
-        self.cursor >= self.input.len()
-    }
-
-    /// Look at the next `char` without advancing.
-    pub fn peek(&self) -> Option<char> {
-        // If `cursor` is already at or past the end, there is no next char.
-        let slice = &self.input[self.cursor..];
-        slice.chars().next()
-    }
-
-    /// Consume and return the next `char`, advancing `cursor` by that char’s UTF‑8 length.
-    pub fn pop(&mut self) -> Option<char> {
-        // Use `peek()` to see if there’s a next char.
-        if let Some(ch) = self.peek() {
-            // Advance by the number of bytes this `char` takes.
-            self.cursor += ch.len_utf8();
-            Some(ch)
-        } else {
-            None
+        if !input.as_bytes().is_ascii() {
+            panic!("Scanner only supports ASCII input");
         }
+
+        Scanner {
+            buf: input.as_bytes(),
+            pos: 0,
+        }
+    }
+
+    /// Advance until the next non‐quote byte, returning [`char`], or None if at EOF.
+    pub fn pop(&mut self) -> Option<char> {
+        while self.pos < self.buf.len() {
+            let b = self.buf[self.pos];
+            self.pos += 1;
+            if b != b'\'' {
+                // b < 128, so this is safe
+                return Some(b as char);
+            }
+            // else it was a quote: skip it and continue
+        }
+        None
+    }
+
+    /// Look ahead to the next non‐quote char without consuming. Returns None at EOF.
+    pub fn peek(&self) -> Option<char> {
+        let mut i = self.pos;
+        while i < self.buf.len() {
+            let b = self.buf[i];
+            if b != b'\'' {
+                return Some(b as char);
+            }
+            i += 1;
+        }
+        None
+    }
+
+    /// The current byte‐index in the original string.
+    pub fn cursor(&self) -> usize {
+        self.pos
+    }
+
+    /// True if we’ve consumed all characters in the string.
+    pub fn is_done(&self) -> bool {
+        self.peek().is_none()
     }
 }
 
@@ -50,7 +72,16 @@ impl<'a> Iterator for Scanner<'a> {
 
 #[cfg(test)]
 mod tests {
+    use std::hint::black_box;
+
     use super::*;
+
+    #[test]
+    #[should_panic(expected = "Scanner only supports ASCII input")]
+    fn invalid_non_ascii_input() {
+        let scanner = Scanner::new("£");
+        black_box(scanner);
+    }
 
     #[test]
     fn cursor_given_empty() {

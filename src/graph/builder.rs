@@ -186,8 +186,7 @@ impl Node {
                     if up_count > 1 {
                         panic!(
                             "Conflicting stereochemistry (multiple Up bonds) \
-                             at atom index {}: {:?}",
-                            atom_idx, self
+                             at atom index {atom_idx}: {self:?}",
                         );
                     }
                 }
@@ -196,8 +195,7 @@ impl Node {
                     if down_count > 1 {
                         panic!(
                             "Conflicting stereochemistry (multiple Down bonds) \
-                             at atom index {}: {:?}",
-                            atom_idx, self
+                             at atom index {atom_idx}: {self:?}",
                         );
                     }
                 }

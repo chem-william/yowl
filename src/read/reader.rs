@@ -1,6 +1,7 @@
-use super::{missing_character, read_bond, read_bracket, read_organic, read_rnum, Scanner, Trace};
+use super::{missing_character, read_bond, read_bracket, read_organic, read_rnum, Trace};
 use crate::feature::{AtomKind, BondKind};
 use crate::read::error::ReadError;
+use crate::read::scanner::Scanner;
 use crate::walk::Follower;
 
 /// Reads a string using a `Follower` and optional `Trace`.
@@ -220,13 +221,6 @@ mod read {
         let mut writer = Writer::default();
 
         assert_eq!(read("", &mut writer, None), Err(ReadError::EndOfLine))
-    }
-
-    #[test]
-    fn invalid_single_quote() {
-        let mut writer = Writer::default();
-
-        assert_eq!(read("C['", &mut writer, None), Err(ReadError::Character(2)));
     }
 
     #[test]
