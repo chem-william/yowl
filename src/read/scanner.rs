@@ -1,9 +1,8 @@
 use std::str::CharIndices;
 
 #[derive(Debug)]
-pub struct Scanner<'a> {
-    /// The original input SMILES string to be parsed.
-    input: &'a str,
+pub(crate) struct Scanner<'a> {
+    /// The input SMILES string, assumed to contain only ASCII characters.
     buf: &'a [u8],
     pos: usize,
 }

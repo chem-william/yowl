@@ -1,5 +1,6 @@
-use super::{error::ReadError, missing_character::missing_character, scanner::Scanner};
+use super::{error::ReadError, missing_character::missing_character};
 use crate::feature::Symbol;
+use crate::read::scanner::Scanner;
 use crate::Element;
 
 pub fn read_symbol(scanner: &mut Scanner) -> Result<Option<Symbol>, ReadError> {
@@ -332,9 +333,10 @@ fn element(element: Element, scanner: &mut Scanner) -> Result<Option<Symbol>, Re
 mod follower {
     use mendeleev::Element;
 
+    use crate::read::scanner::Scanner;
     use crate::{
         feature::Symbol,
-        read::{read_symbol, ReadError, Scanner},
+        read::{read_symbol, ReadError},
     };
 
     #[test]

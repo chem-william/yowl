@@ -1,6 +1,7 @@
-use super::{missing_character, read_bond, read_bracket, read_organic, read_rnum, Scanner, Trace};
+use super::{missing_character, read_bond, read_bracket, read_organic, read_rnum, Trace};
 use crate::feature::{AtomKind, BondKind};
 use crate::read::error::ReadError;
+use crate::read::scanner::Scanner;
 use crate::walk::Follower;
 
 /// Reads a string using a `Follower` and optional `Trace`.
