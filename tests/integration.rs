@@ -5,6 +5,7 @@ use std::fs;
 use yowl::feature::{AtomKind, BondKind, Symbol};
 use yowl::graph::{Atom, Bond, Builder};
 use yowl::read::read;
+use yowl::walk::walk;
 use yowl::write::Writer;
 use yowl::Element;
 
@@ -127,4 +128,54 @@ fn valid_stereochemistry() {
     let mut builder = Builder::default();
     read(smiles, &mut builder, None).unwrap();
     builder.build().expect("atoms");
+}
+
+#[test]
+fn clockwise_smiles() {
+    let smiles = "F[C@H](Cl)(Br)";
+    let mut builder = Builder::default();
+    read(smiles, &mut builder, None).unwrap();
+    dbg!(&builder);
+    builder.build().expect("atoms");
+}
+
+#[test]
+fn counterclockwise_smiles() {
+    let smiles = "F[C@@H](Cl)(Br)";
+    let mut builder = Builder::default();
+    read(smiles, &mut builder, None).unwrap();
+    let atoms = builder.build().expect("atoms");
+    let mut writer = Writer::default();
+    dbg!(&atoms);
+    let _ = walk(atoms, &mut writer);
+    dbg!(writer.write());
+}
+
+#[test]
+fn smiles_with_single_quotes_are_ignored() {
+    let mut writer = Writer::default();
+
+    let smiles_with_quotes = "['Lv']['Ts']['Og']";
+    let smiles_without_quotes = "[Lv][Ts][Og]";
+
+    // Both variants should parse successfully and roundtrip as the one without quotes
+    let _ = read(smiles_with_quotes, &mut writer, None);
+    let written = writer.write();
+    assert_eq!(written, smiles_without_quotes);
+
+    let mut writer = Writer::default();
+    let _ = read(smiles_without_quotes, &mut writer, None);
+    let written2 = writer.write();
+    assert_eq!(written2, smiles_without_quotes);
+}
+
+#[test]
+fn error_reporting_with_quotes_matches_original_input() {
+    use yowl::read::ReadError;
+    let mut writer = Writer::default();
+    // The error should be reported at the correct position in the original string,
+    // even if there are single quotes before the error.
+    let smiles = "C['Lv']['Ts']['Og']_";
+    let err = read(smiles, &mut writer, None).unwrap_err();
+    assert_eq!(err, ReadError::Character(19));
 }
