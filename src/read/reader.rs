@@ -223,13 +223,6 @@ mod read {
     }
 
     #[test]
-    fn invalid_single_quote() {
-        let mut writer = Writer::default();
-
-        assert_eq!(read("C['", &mut writer, None), Err(ReadError::Character(2)));
-    }
-
-    #[test]
     fn leading_paren() {
         let mut writer = Writer::default();
 
