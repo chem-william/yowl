@@ -1,27 +1,30 @@
-use std::str::CharIndices;
-
 #[derive(Debug)]
 pub(crate) struct Scanner<'a> {
     /// The input SMILES string, assumed to contain only ASCII characters.
     buf: &'a [u8],
+    /// The current byte offset into the input buffer.
+    /// Points to the next byte to be examined.
     pos: usize,
 }
 
 impl<'a> Scanner<'a> {
-    /// Create a new Scanner over an ASCII SMILES string. Panic if not ASCII.
+    /// Create a new Scanner over an ASCII SMILES string
+    ///
+    /// # Panic
+    ///
+    /// Will panic if `input` is not a valid ASCII string.
     pub fn new(input: &'a str) -> Self {
-        // We guarantee ASCII only; rust strings are UTF-8, so check for any byte ≥ 128
-        if input.bytes().any(|b| b >= 128) {
+        if !input.as_bytes().is_ascii() {
             panic!("Scanner only supports ASCII input");
         }
+
         Scanner {
-            input,
             buf: input.as_bytes(),
             pos: 0,
         }
     }
 
-    /// Advance until the next non‐quote byte, returning it as a char, or None if at EOF.
+    /// Advance until the next non‐quote byte, returning [`char`], or None if at EOF.
     pub fn pop(&mut self) -> Option<char> {
         while self.pos < self.buf.len() {
             let b = self.buf[self.pos];
