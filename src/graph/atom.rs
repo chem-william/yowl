@@ -51,13 +51,7 @@ impl Atom {
         let subvalence = self.subvalence();
         match &self.kind {
             AtomKind::Symbol(Symbol::Star) => 0,
-            AtomKind::Symbol(Symbol::Aromatic(_)) => {
-                if subvalence > 1 {
-                    subvalence - 1
-                } else {
-                    0
-                }
-            }
+            AtomKind::Symbol(Symbol::Aromatic(_)) => subvalence.saturating_sub(1),
             AtomKind::Symbol(Symbol::Aliphatic(_)) => subvalence,
 
             AtomKind::Bracket { hcount, .. } => hcount.as_ref().map_or(0, std::convert::Into::into),
