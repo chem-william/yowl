@@ -123,7 +123,7 @@ pub fn read_symbol(scanner: &mut Scanner) -> Result<Option<Symbol>, ReadError> {
                 Some('a') => element(Element::Ga, scanner),
                 Some('d') => element(Element::Gd, scanner),
                 Some('e') => element(Element::Ge, scanner),
-                _ => Ok(Some(Symbol::Aliphatic(Element::F))),
+                _ => Err(missing_character(scanner)),
             }
         }
         Some('H') => {
