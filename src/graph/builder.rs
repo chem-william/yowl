@@ -183,21 +183,19 @@ impl Node {
             match edge.kind {
                 BondKind::Up => {
                     up_count += 1;
-                    if up_count > 1 {
-                        panic!(
-                            "Conflicting stereochemistry (multiple Up bonds) \
+                    assert!(
+                        up_count <= 1,
+                        "Conflicting stereochemistry (multiple Up bonds) \
                              at atom index {atom_idx}: {self:?}",
-                        );
-                    }
+                    );
                 }
                 BondKind::Down => {
                     down_count += 1;
-                    if down_count > 1 {
-                        panic!(
-                            "Conflicting stereochemistry (multiple Down bonds) \
+                    assert!(
+                        down_count <= 1,
+                        "Conflicting stereochemistry (multiple Down bonds) \
                              at atom index {atom_idx}: {self:?}",
-                        );
-                    }
+                    );
                 }
                 _ => {}
             }

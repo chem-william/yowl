@@ -62,7 +62,7 @@ impl<'a> Scanner<'a> {
     }
 }
 
-impl<'a> Iterator for Scanner<'a> {
+impl Iterator for Scanner<'_> {
     type Item = char;
 
     fn next(&mut self) -> Option<Self::Item> {

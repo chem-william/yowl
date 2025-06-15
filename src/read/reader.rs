@@ -39,7 +39,7 @@ pub fn read<F: Follower>(
         (false, true) => Err(ReadError::EndOfLine),
         // first: Read nothing and still have chars
         // second: Read something but there's leftover garbage
-        (false, false) | (true, false) => Err(ReadError::Character(scanner.cursor())),
+        (false | true, false) => Err(ReadError::Character(scanner.cursor())),
     }
 }
 
