@@ -11,7 +11,6 @@ fn lex_bracket_contents(scanner: &mut Scanner) -> Result<AtomKind, ReadError> {
     // Read isotope *before* symbol so we can match element+mass in one go:
     let iso_num_opt = read_isotope(scanner);
 
-    // Read the symbol
     let symbol = read_symbol(scanner)?;
 
     // Build optional `Isotope` only if `symbol` is an `Element`
@@ -26,7 +25,7 @@ fn lex_bracket_contents(scanner: &mut Scanner) -> Result<AtomKind, ReadError> {
         None
     };
 
-    // 5. The rest are all optional
+    // The rest are all optional
     let configuration = read_configuration(scanner);
     let hcount = read_hcount(scanner);
     let charge = read_charge(scanner);
@@ -91,47 +90,47 @@ fn read_hcount(scanner: &mut Scanner) -> Option<VirtualHydrogen> {
 }
 
 fn read_isotope(scanner: &mut Scanner) -> Option<u16> {
-    let mut digits = String::new();
+    let mut value = 0;
 
     for _ in 0..3 {
-        match scanner.peek() {
-            Some('0'..='9') => digits.push(scanner.pop().expect("digit")),
+        let c = match scanner.peek() {
+            Some(c) if c.is_ascii_digit() => c,
             _ => break,
-        }
+        };
+        scanner.pop();
+
+        // ASCII digit to numeric value (0..9)
+        value = value * 10 + (c as u16 - '0' as u16);
     }
 
-    digits.parse::<u16>().ok()
+    (value > 0).then_some(value)
 }
 
+// reads parts such as [CH2:1] or [*:999]
 fn read_map(scanner: &mut Scanner) -> Result<Option<u16>, ReadError> {
-    match scanner.peek() {
-        Some(':') => {
-            scanner.pop();
-
-            let mut digits = String::new();
-
-            match scanner.pop() {
-                Some(next) => {
-                    if next.is_ascii_digit() {
-                        digits.push(next);
-                    } else {
-                        return Err(ReadError::Character(scanner.cursor() - 1));
-                    }
-                }
-                None => return Err(missing_character(scanner)),
-            }
-
-            for _ in 0..2 {
-                match scanner.peek() {
-                    Some('0'..='9') => digits.push(scanner.pop().expect("digit")),
-                    _ => break,
-                }
-            }
-
-            Ok(Some(digits.parse::<u16>().expect("number")))
-        }
-        _ => Ok(None),
+    // no ':' => no map
+    if scanner.peek() != Some(':') {
+        return Ok(None);
     }
+    scanner.pop();
+
+    // First digit is required
+    let mut value: u16 = match scanner.pop() {
+        Some(c) if c.is_ascii_digit() => c as u16 - '0' as u16,
+        Some(_) => return Err(ReadError::Character(scanner.cursor() - 1)),
+        None => return Err(missing_character(scanner)),
+    };
+
+    for _ in 0..2 {
+        let Some(c) = scanner.peek() else { break };
+        if !c.is_ascii_digit() {
+            break;
+        }
+        scanner.pop();
+        value = value * 10 + (c as u16 - '0' as u16);
+    }
+
+    Ok(Some(value))
 }
 
 #[cfg(test)]
@@ -321,6 +320,23 @@ mod tests {
                 hcount: None,
                 charge: Charge::new(1),
                 map: None
+            }))
+        )
+    }
+
+    #[test]
+    fn multi_element_map() {
+        let mut scanner = Scanner::new("[CH2:1]");
+
+        assert_eq!(
+            read_bracket(&mut scanner),
+            Ok(Some(AtomKind::Bracket {
+                isotope: None,
+                symbol: Symbol::Aliphatic(Element::C),
+                configuration: None,
+                hcount: Some(VirtualHydrogen::H2),
+                charge: None,
+                map: Some(1),
             }))
         )
     }
