@@ -11,11 +11,11 @@ readme = "README.md"
 
 [dependencies]
 mendeleev = "0.8.4"
-thiserror = "2.0.12"
+thiserror = "2.0.17"
 
 [dev-dependencies]
 pretty_assertions = "1.4.1"
-criterion = "0.8.0"
+criterion = "0.8.1"
 
 [[bench]]
 name = "benchmark"
