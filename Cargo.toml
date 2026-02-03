@@ -11,7 +11,7 @@ readme = "README.md"
 
 [dependencies]
 mendeleev = "0.8.4"
-thiserror = "2.0.17"
+thiserror = "2.0.18"
 
 [dev-dependencies]
 pretty_assertions = "1.4.1"
