@@ -14,9 +14,10 @@ impl<'a> Scanner<'a> {
     ///
     /// Will panic if `input` is not a valid ASCII string.
     pub fn new(input: &'a str) -> Self {
-        if !input.as_bytes().is_ascii() {
-            panic!("Scanner only supports ASCII input");
-        }
+        assert!(
+            input.as_bytes().is_ascii(),
+            "Scanner only supports ASCII input"
+        );
 
         Scanner {
             buf: input.as_bytes(),
