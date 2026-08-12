@@ -21,6 +21,7 @@ pub struct Writer {
 }
 
 impl Writer {
+    #[must_use]
     pub fn write(self) -> String {
         self.stack.join("")
     }
