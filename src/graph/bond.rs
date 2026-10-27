@@ -29,6 +29,7 @@ impl Bond {
     }
 
     /// Returns true if this bond is encoded as Aromatic.
+    #[must_use]
     pub fn is_aromatic(&self) -> bool {
         self.kind == BondKind::Aromatic
     }

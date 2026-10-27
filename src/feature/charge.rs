@@ -12,6 +12,7 @@ impl Charge {
     pub const MAX: i8 = 15;
 
     /// Tries to construct a `Charge`, returning `None` if out of range.
+    #[must_use]
     pub fn new(value: i8) -> Option<Self> {
         if (Self::MIN..=Self::MAX).contains(&value) {
             Some(Charge { value })

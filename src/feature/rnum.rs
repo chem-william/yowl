@@ -7,6 +7,9 @@ use std::fmt;
 pub struct Rnum(u8);
 
 impl Rnum {
+    /// # Panics
+    ///
+    /// If `n` is > 99, this function will panic.
     pub fn new(n: u8) -> Self {
         assert!(n <= 99, "Rnum must be in 0..=99");
         Self(n)

@@ -28,6 +28,7 @@ pub enum AtomKind {
 
 impl AtomKind {
     /// Returns true if the kind was defined as being aromatic.
+    #[must_use]
     pub const fn is_aromatic(&self) -> bool {
         match self {
             Self::Symbol(Symbol::Aromatic(_)) => true,
@@ -40,6 +41,7 @@ impl AtomKind {
     }
 
     /// Returns the valence targets for this atom kind.
+    #[must_use]
     pub fn targets(&self) -> &[u8] {
         match self {
             Self::Symbol(Symbol::Star) => &[],
